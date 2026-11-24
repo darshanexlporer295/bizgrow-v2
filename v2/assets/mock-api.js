@@ -22,6 +22,14 @@
     return v;
   }
 
+  // Consent wording version. Bump it when the sign-up consent or privacy notice text changes.
+  var CONSENT_VERSION = 'signup-consent-v1';
+  var TRADES = ['textile', 'plastic', 'chemical', 'agri', 'other'];
+  var PROBLEMS = ['udhar', 'stock', 'accounts', 'staff', 'other'];
+  var TEAMS = ['just_me', '2_5', '6_20', '20_plus'];
+  var OWE = ['0_10', '10_50', '50_plus'];
+  function pick(v, list, label) { if (list.indexOf(v) < 0) throw E(label + ' has an answer that is not on the list'); return v; }
+
   function seed() {
     var today = todayS();
     var st = {
@@ -55,7 +63,8 @@
         { id: 2, title: 'Check expiry dates on biscuits (example)', due: today, priority: 'normal', done: false }
       ], suppliers: [
         { id: 1, name: 'Patil Wholesale (example)', phone: '9800044444', items: 'Atta, sugar, oil', note: '' }
-      ], audit: [], erased: false
+      ], audit: [], erased: false,
+      signup: { done: true, answers: {} }, consents: []
     };
     var seqN = 1;
     function mk(cid, cname, method, lines, dateS, dueS, paid, disc) {
@@ -83,7 +92,7 @@
   function seedEmpty() {
     var st = seed();
     st.products = []; st.customers = []; st.sales = []; st.expenses = []; st.tasks = []; st.suppliers = []; st.audit = [];
-    st.payments = []; st.erased = true;
+    st.payments = []; st.erased = true; st.consents = [];
     st.shop.name = 'My shop (cleared demo)';
     st.users = st.users.slice(0, 1);
     return st;
@@ -93,6 +102,9 @@
     var st = null;
     try { var raw = localStorage.getItem(KEY); if (raw) st = JSON.parse(raw); } catch (e) { st = null; }
     if (!st) st = seed();
+    // Saved demo data from earlier builds has no sign-up or consent fields yet.
+    if (!st.signup) st.signup = { done: true, answers: {} };
+    if (!st.consents) st.consents = [];
     mem = st; return st;
   }
   function save(st) { mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* in-memory fallback */ } }
@@ -232,18 +244,48 @@
       st.session.uid = 1; save(st); return { ok: true };
     }
     if (path === '/signup' && method === 'POST') {
-      if (!b.consent) throw E('Please accept the Privacy Notice to continue.');
-      st.session.uid = 1; save(st); return { ok: true };
+      if (!b.consent) throw E('Please tick the box to continue.');
+      st.session.uid = 1;
+      var signer = me(st); if (signer && b.name) signer.name = String(b.name).slice(0, 60);
+      // Owners answer the sign-up questions next. Invited staff skip them.
+      st.signup = { done: !!b.invite, answers: {} };
+      st.consents.push({ granted: true, text_version: CONSENT_VERSION, at: nowIso() });
+      save(st); return { ok: true };
     }
     if (path === '/logout' && method === 'POST') { st.session.uid = null; save(st); return { ok: true }; }
     if (path === '/password/forgot' || path === '/password/reset' || path === '/privacy/request' || path === '/privacy/erase') return { ok: true };
     if (path === '/config') return {};
     if (path === '/me') {
       var u = me(st); if (!u) throw E('Please log in', 401);
-      return { user: { id: u.id, name: u.name, email: u.email, phone: '' }, role: appRole(u), v2role: u.v2role, shop: st.shop, onboarded: true, answers: {}, lang: st.shop.lang };
+      return { user: { id: u.id, name: u.name, email: u.email, phone: '' }, role: appRole(u), v2role: u.v2role, shop: st.shop, onboarded: true, answers: {}, lang: st.shop.lang,
+        signup_done: st.signup.done, signup_answers: st.signup.answers, consent: st.consents[st.consents.length - 1] || null };
     }
     var cu = me(st); if (!cu && path !== '/config') throw E('Please log in', 401);
 
+    // Sign-up questions (the wizard). Same shape the future server will use. Demo: kept in this browser only.
+    if (path === '/signup/answers' && method === 'PUT') {
+      if (!cu) throw E('Please log in', 401);
+      var a = b.answers || {}, clean = {};
+      if (a.shop_name != null) clean.shop_name = text(a.shop_name, 'Shop name', 60);
+      if (a.trade != null) clean.trade = pick(a.trade, TRADES, 'Trade');
+      if (a.city != null && String(a.city).trim() !== '') clean.city = text(a.city, 'City', 40);
+      if (a.team_size != null) clean.team_size = pick(a.team_size, TEAMS, 'Team size');
+      if (a.problem != null) clean.problem = pick(a.problem, PROBLEMS, 'Problem');
+      if (a.udhar_customers != null) clean.udhar_customers = pick(a.udhar_customers, OWE, 'Customers who owe');
+      st.signup.answers = Object.assign({}, st.signup.answers, clean);
+      if (clean.shop_name) st.shop.name = clean.shop_name;
+      if (b.done) {
+        if (!st.signup.answers.shop_name || !st.signup.answers.trade) throw E('Shop name and trade are needed');
+        st.signup.done = true;
+      }
+      save(st); return { ok: true, signup_done: st.signup.done };
+    }
+    // Consent switch on the Privacy screen. Every change is kept as a dated record.
+    if (path === '/consent' && method === 'POST') {
+      if (!cu) throw E('Please log in', 401);
+      st.consents.push({ granted: !!b.granted, text_version: CONSENT_VERSION, at: nowIso() }); save(st);
+      return { ok: true, consent: st.consents[st.consents.length - 1] };
+    }
     if (path === '/language' && method === 'PUT') { st.shop.lang = b.lang || 'en'; save(st); return { ok: true }; }
     if (path === '/onboarding' && method === 'PUT') return { ok: true };
     if (path === '/business' && method === 'PUT') {
@@ -527,7 +569,7 @@
     }
     if (a === 'export' && method === 'GET') {
       if (!can(cu, 'export')) throw E('Only the owner can download data', 403);
-      return { exported_at: nowIso(), note: 'Example demo export. Stored only in this browser.', shop: st.shop, staff: st.users.filter(function (u) { return !u.deleted_at; }).map(function (u) { return { id: u.id, name: u.name, email: u.email, role: u.v2role, status: u.status }; }), products: st.products, customers: st.customers, sales: st.sales, payments: st.payments, expenses: st.expenses, tasks: st.tasks, suppliers: st.suppliers, audit: st.audit };
+      return { exported_at: nowIso(), note: 'Example demo export. Stored only in this browser.', shop: st.shop, signup_answers: st.signup.answers, consent_records: st.consents, staff: st.users.filter(function (u) { return !u.deleted_at; }).map(function (u) { return { id: u.id, name: u.name, email: u.email, role: u.v2role, status: u.status }; }), products: st.products, customers: st.customers, sales: st.sales, payments: st.payments, expenses: st.expenses, tasks: st.tasks, suppliers: st.suppliers, audit: st.audit };
     }
     if (a === 'erase' && method === 'POST') {
       if (!can(cu, 'erase')) throw E('Only the owner can delete data', 403);

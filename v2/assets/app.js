@@ -70,6 +70,8 @@ addEventListener('hashchange',()=>render());
 function go(h){if(location.hash===h)render();else location.hash=h;}
 async function render(){
   if(!S.me){return renderAuth();}
+  // Owners answer the sign-up questions once, before Home (see v2-signup.js).
+  if(window.BGV2&&BGV2.gate&&BGV2.gate())return;
   const page=(location.hash.replace(/^#\//,'')||'home').split('/');S.page=page[0];
   document.documentElement.lang=S.lang;
   const nav=NAV();
@@ -142,8 +144,6 @@ async function renderAuth(){
      <button class="btn block auth-submit" type="submit">${t('signin')}</button></form>`
    :`<form data-form="signup"><input type="hidden" name="invite" value="${invite&&!invite.error?invite.token:''}">
      <div class="f"><label>${t('your_name')}</label><input class="in" name="name" autocomplete="name" required></div>
-     ${invite&&!invite.error?'':`<div class="f"><label>${t('shop_name')}</label><input class="in" name="shop" required></div>
-     <div class="f"><label>${t('what_sell')}</label><select class="in" name="category">${CATS.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join('')}</select></div>`}
      <div class="f"><label>${t('email')}</label><input class="in" name="email" type="email" autocomplete="email" required></div>
      <div class="f"><label>${t('password')}</label><input class="in" name="password" type="password" autocomplete="new-password" minlength="8" required><div class="hint">${t('pw_hint')}</div></div>
      <label class="chk f"><input type="checkbox" name="consent"><span>${t('consent_text').replace('{p}',`<a href="#" data-act="privacy-notice">${t('privacy_link')}</a>`)}</span></label>

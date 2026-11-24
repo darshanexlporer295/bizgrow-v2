@@ -22,3 +22,9 @@ FOLDERS
 - original/ : the untouched copy of the app.
 - v2/ : the new version. v2/dist/bizgrow-v2.html is the single file to open.
 - CHANGES.md : what changed, what was tested, and what is still missing.
+
+SIGN-UP AND PRIVACY (latest round)
+- New users answer six short questions first. The sign-up consent box starts unticked; Continue waits until it is ticked.
+- Privacy screen: privacy notice, and a consent switch you can turn off any time.
+- The privacy wording is a draft. A lawyer should review it before real customers sign up. This is not a claim of legal compliance.
+- Setup for the later server step: docs/SETUP-STEPS.md (plain steps). Files: supabase/schema.sql, google-sheet/apps-script.gs.

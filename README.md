@@ -7,12 +7,24 @@ BizGrow is a simple app for small shops in India. It helps with billing, stock, 
 - **Team and roles.** Owner, manager, cashier, stock-keeper and accountant, each with the screens they are allowed to use. Add, edit, suspend or remove people.
 - **Audit log with undo**, an **evening summary**, and **export or delete my data**.
 - Text in English, Hindi, Marathi and Gujarati.
+- **Sign-up in six short questions** (shop name, trade, city, team size, biggest problem, udhar customers), one per screen. Answers are stored through the demo stand-in, in the shape a real server will use.
+- **Consent and privacy.** The sign-up consent box starts unticked, and Continue waits until it is ticked. The Privacy screen has a privacy notice and a consent switch that can be turned off at any time.
 
 ## Important: this is a demo
 
 - It runs **in the browser only**. The shop, people and sales are **example data**.
 - There is **no real server and no real accounts yet**. The "stand-in" backend is in `v2/assets/mock-api.js`, and it keeps data in the browser it is opened in.
 - Clearing the browser's site data deletes the demo data.
+- The privacy notice and consent wording are a draft. **A lawyer should review them before any real customer signs up.** This project does not claim legal compliance. The notice describes what the app does; it is not legal advice.
+- Hindi, Marathi and Gujarati wording is a first draft and needs a native-speaker check.
+
+## Files for the later server step
+
+| File | What it is |
+| --- | --- |
+| `supabase/schema.sql` | The database tables, with row-level security and access rules set in the file. Not yet run on a live project. |
+| `google-sheet/apps-script.gs` | Receives sign-up rows into a Google Sheet. Not yet run on a live account. |
+| `docs/SETUP-STEPS.md` | Plain numbered steps for the database, the Sheet, and where keys go (hosting settings only, never in files). |
 
 ## How to open it
 

@@ -20,7 +20,7 @@ a{color:var(--accent);text-decoration:none}
 .shell{display:flex;min-height:100%}
 .side{width:236px;background:var(--navy);color:#CBD5E1;padding:20px 14px;position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;overflow-y:auto}
 .brand{display:flex;align-items:center;gap:10px;color:#fff;font-weight:800;font-size:19px;padding:4px 10px 22px;font-family:"Plus Jakarta Sans",Inter,"Noto Sans Devanagari","Noto Sans Gujarati",sans-serif}
-.brand small{display:block;font-weight:500;font-size:11px;color:#94A3B8;letter-spacing:.02em;margin-top:1px}
+.brand small{display:block;font-weight:500;font-size:12px;color:#94A3B8;letter-spacing:.02em;margin-top:1px}
 .nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:#CBD5E1;font-weight:500;font-size:14.5px;margin-bottom:2px}
 .nav a svg{width:19px;height:19px;flex:none;opacity:.9}
 .nav a.on{background:rgba(255,255,255,.1);color:#fff}
@@ -99,7 +99,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 /* charts */
 .bars{display:flex;align-items:flex-end;gap:6px;height:170px;padding-top:8px}
 .bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}.bars .b i{display:block;width:100%;max-width:38px;background:var(--primary);border-radius:6px 6px 0 0;min-height:2px}
-.bars .b small{font-size:11px;color:var(--mut)}
+.bars .b small{font-size:12px;color:var(--mut)}
 .hb{margin:10px 0}.hb .bar{height:8px;background:#EAEFF6;border-radius:9px;margin-top:5px;overflow:hidden}.hb .bar i{display:block;height:100%;background:var(--primary);border-radius:9px}
 .hb.s .bar i{background:var(--saffron)}
 .step{display:flex;gap:12px;align-items:flex-start;padding:10px 0}.step .n{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:none}.step.done .n{background:#CBD5E1}
@@ -109,7 +109,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 @media(max-width:900px){
  .side{display:none}.main{margin-left:0;padding:18px 14px 96px}
  .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);padding:6px 4px calc(8px + env(safe-area-inset-bottom));z-index:30}
- .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--mut);padding:5px 0}.tabbar a svg{width:23px;height:23px}.tabbar a.on{color:var(--primary)}
+ .tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:600;color:var(--mut);padding:5px 0}.tabbar a svg{width:23px;height:23px}.tabbar a.on{color:var(--primary)}
  .g4{grid-template-columns:1fr 1fr}.g3,.g2,.g21{grid-template-columns:1fr}.pos{grid-template-columns:1fr}.cart{position:static}
  .top h1{font-size:22px}.auth{grid-template-columns:1fr}.auth .l{display:none}.kpi .v{font-size:22px}
  .tiles{grid-template-columns:repeat(2,1fr)}
@@ -124,7 +124,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 
 .revo{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:14px;background:linear-gradient(135deg,#0F254A,#0A192F);color:#E2E8F0;border-radius:var(--r);padding:16px 18px}
 .revo b{color:#fff;display:block;font-size:15px}.revo .small{color:#CBD5E1;margin-top:2px}.revo .grow{min-width:200px}
-.rv-tag{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#FBBF24}
+.rv-tag{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#FBBF24}
 .lockrow{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.lockrow:last-child{border:0}
 .revopop{position:fixed;right:18px;bottom:22px;width:310px;max-width:calc(100vw - 28px);background:#0A192F;color:#E2E8F0;border-radius:16px;padding:16px 18px;z-index:60;box-shadow:0 12px 36px rgba(10,25,47,.4);animation:up .35s ease}
 .revopop b{display:block;color:#fff;font-size:15px;margin:3px 0}.revopop .small{color:#CBD5E1}.revopop .x{position:absolute;right:10px;top:8px;color:#94A3B8;font-size:14px}.revopop .link{color:#CBD5E1}
@@ -144,7 +144,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 .auth-sub{color:var(--mut);font-size:15px;margin-bottom:22px}
 .gbtn{width:100%;min-height:48px;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #CBD5E1;border-radius:11px;background:#fff;color:#1F2937;font-weight:600;font-size:15px;position:relative;padding:0 14px}
 .gbtn:disabled{cursor:not-allowed;color:#64748B;background:#F8FAFC}
-.gbtn em{position:absolute;right:12px;font-style:normal;font-size:11px;font-weight:700;color:#92400E;background:#FEF3C7;border-radius:99px;padding:3px 8px}
+.gbtn em{position:absolute;right:12px;font-style:normal;font-size:12px;font-weight:700;color:#92400E;background:#FEF3C7;border-radius:99px;padding:3px 8px}
 .or{display:flex;align-items:center;gap:12px;color:var(--mut);font-size:12px;font-weight:700;letter-spacing:.1em;margin:20px 0}
 .or:before,.or:after{content:"";flex:1;height:1px;background:var(--line)}
 .auth .btn.block{min-height:48px;font-size:15.5px;background:var(--navy);margin-top:4px}
@@ -234,6 +234,41 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 
 /* Demo: the terms page needs a real server, so its link is hidden in the demo. */
 a[href="/terms"]{display:none!important}
+
+/* ---------- sign-up questions (v2-signup.js) ---------- */
+.su-wrap{min-height:100vh;min-height:100dvh;background:var(--bg);display:flex;align-items:flex-start;justify-content:center;padding:16px}
+.su-box{width:100%;max-width:520px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px 20px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
+.su-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.su-brand{font-weight:800;font-size:18px;color:var(--navy)}
+.su-lang{width:auto;min-height:44px;font-size:16px;padding:6px 10px}
+.su-dots{display:flex;gap:8px;justify-content:center;padding:4px 0}
+.su-dot{width:12px;height:12px;border-radius:50%;background:var(--line);display:inline-block}
+.su-dot.done{background:var(--accent)}
+.su-dot.on{background:var(--saffron);transform:scale(1.25)}
+.su-count{font-size:14px;color:var(--mut);text-align:center}
+.su-title{font-size:24px;line-height:1.3;color:var(--navy);margin:4px 0 0}
+.su-hint{font-size:15px;color:var(--mut);margin:0}
+.su-form{display:flex;flex-direction:column;gap:14px}
+.su-in{font-size:20px;min-height:56px}
+.su-opts{display:grid;grid-template-columns:1fr;gap:10px}
+.su-opt{min-height:60px;padding:12px 16px;border-radius:14px;border:2px solid var(--line);background:#fff;color:var(--navy);font:inherit;font-size:18px;font-weight:600;text-align:left;cursor:pointer}
+.su-opt[aria-pressed="true"]{border-color:var(--accent);background:#EEF2FF;color:var(--primary)}
+.su-opt:focus-visible{outline:3px solid var(--saffron);outline-offset:2px}
+.su-nav{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.su-nav .btn{min-height:52px;font-size:17px;padding:0 20px}
+.su-nav .btn.sec{min-height:52px}
+.su-out{text-align:center;padding-top:4px}
+.su-wide{grid-column:1/-1}
+.su-notice h4{font-size:15px;margin:12px 0 4px;color:var(--navy)}
+.su-notice p{font-size:14px;line-height:1.5;color:#334155;margin:0}
+.sw{display:flex;align-items:center;gap:12px;cursor:pointer;min-height:44px;font-size:16px}
+.sw input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.sw-track{position:relative;width:52px;height:30px;border-radius:999px;background:#CBD5E1;flex:none;transition:background .15s}
+.sw-track::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .15s}
+.sw input:checked + .sw-track{background:var(--accent)}
+.sw input:checked + .sw-track::after{transform:translateX(22px)}
+.sw input:focus-visible + .sw-track{outline:3px solid var(--saffron);outline-offset:2px}
+@media (max-width:480px){.su-title{font-size:22px}.su-opt{min-height:56px;font-size:17px}}
 
 </style></head>
 <body><div id="app"></div><noscript>BizGrow needs JavaScript to run.</noscript><script>
@@ -584,6 +619,199 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
 })();
 
 </script><script>
+/* BizGrow v2: text for the sign-up questions, the sign-up consent, and the privacy notice (en, hi, mr, gu).
+   Loaded after v2-i18n-extra.js, so consent_text here replaces the older line. Merged into window.I18N.
+   The Hindi, Marathi and Gujarati wording is a first draft and needs a native-speaker check. */
+(function () {
+  'use strict';
+  var X = {
+    en: {
+      consent_text: 'Your sign-up answers are shared with RÊVO (BizGrow’s maker) so we can understand your business and offer you things made for you. You can withdraw this any time in Privacy. Read the {p}.',
+      su_consent_need: 'Please tick the box to continue.',
+      su_progress: 'Question {n} of {total}',
+      su_next: 'Next',
+      su_back: 'Back',
+      su_skip: 'Skip for now',
+      su_finish: 'Finish',
+      su_signout: 'Sign out',
+      su_done: 'All set. Let’s start.',
+      su_need_name: 'Please type your shop name.',
+      su_need_trade: 'Please pick what you trade in.',
+      su_q1: 'What is your shop name?', su_q1_hint: 'This is the name on your bills.', su_name_ph: 'For example, Sharma General Store',
+      su_q2: 'What do you trade in?', su_q2_hint: 'Pick the one that fits best.',
+      su_q3: 'Which city is your shop in?', su_q3_hint: 'Optional. You can skip this.', su_city_ph: 'For example, Pune',
+      su_q4: 'How many people work in your shop?', su_q4_hint: 'Optional. Count yourself too.',
+      su_q5: 'What is your biggest problem right now?', su_q5_hint: 'Optional.',
+      su_q6: 'About how many customers owe you money?', su_q6_hint: 'Optional. A rough number is fine.',
+      su_trade_textile: 'Textile', su_trade_plastic: 'Plastic', su_trade_chemical: 'Chemical', su_trade_agri: 'Agri-input (fertiliser, seed, pesticide)', su_trade_other: 'Other',
+      su_team_just_me: 'Just me', su_team_2_5: '2 to 5', su_team_6_20: '6 to 20', su_team_20_plus: 'More than 20',
+      su_problem_udhar: 'Getting back udhar (money owed)', su_problem_stock: 'Stock', su_problem_accounts: 'Hisaab-kitaab (accounts)', su_problem_staff: 'Staff', su_problem_other: 'Something else',
+      su_owe_0_10: '0 to 10', su_owe_10_50: '10 to 50', su_owe_50_plus: 'More than 50',
+      su_lang_name: 'Language',
+      pn_title: 'Privacy notice',
+      pn_intro: 'BizGrow is a free app made by RÊVO. This is what happens to your information.',
+      pn_collect_h: 'What we collect',
+      pn_collect: 'Your name, email and sign-up answers: shop name, trade, city, team size, biggest problem, and how many customers owe you money. Also the items, bills, customers, udhar, expenses and notes you enter.',
+      pn_who_h: 'Who can see it',
+      pn_who: 'The RÊVO and BizGrow team. Your sign-up answers are also kept in a Google Sheet that the team uses as a list. Staff of your own shop see only your own shop’s data, inside the app.',
+      pn_why_h: 'Why we use it',
+      pn_why: 'To understand your business and offer you things made for you. Your shop data is used to run your account.',
+      pn_out_h: 'How to withdraw or delete',
+      pn_out: 'Turn off the switch above to stop sharing your sign-up answers. Use Download on this page to get a copy of your data, and Delete on this page to remove it.',
+      pn_contact_h: 'Contact',
+      pn_contact: 'For questions or requests, write to [CONTACT EMAIL].',
+      pn_record_h: 'Consent record',
+      pn_record: 'We keep a record of each consent: the date and time, the text version ({v}), and whether you said yes or no.',
+      pv_consent_title: 'Share my sign-up answers with RÊVO',
+      pv_consent_sub: 'Your sign-up answers are shared with RÊVO (BizGrow’s maker) so we can understand your business and offer you things made for you. You can withdraw this any time in Privacy.',
+      pv_on: 'Shared', pv_off: 'Not shared',
+      pv_record: 'Last change: {when}, text version {v}',
+      pv_record_none: 'No consent record yet.',
+      pv_notice_title: 'Privacy notice',
+      pv_notice_sub: 'What we collect, who sees it, and how to withdraw or delete.'
+    },
+    hi: {
+      consent_text: 'आपके साइन-अप के जवाब RÊVO (BizGrow बनाने वाली टीम) के साथ साझा किए जाएंगे, ताकि हम आपके कारोबार को समझ सकें और आपके लिए बनी चीज़ें दे सकें। आप इसे कभी भी प्राइवेसी में जाकर वापस ले सकते हैं। {p} पढ़ें।',
+      su_consent_need: 'आगे बढ़ने के लिए ऊपर का बॉक्स टिक करें।',
+      su_progress: 'सवाल {n} / {total}',
+      su_next: 'आगे',
+      su_back: 'पीछे',
+      su_skip: 'अभी छोड़ें',
+      su_finish: 'पूरा करें',
+      su_signout: 'साइन आउट',
+      su_done: 'बढ़िया, अब शुरू करते हैं।',
+      su_need_name: 'कृपया अपनी दुकान का नाम लिखें।',
+      su_need_trade: 'कृपया चुनें कि आप किस चीज़ का कारोबार करते हैं।',
+      su_q1: 'आपकी दुकान का नाम क्या है?', su_q1_hint: 'यह नाम आपके बिल पर दिखेगा।', su_name_ph: 'जैसे शर्मा जनरल स्टोर',
+      su_q2: 'आप किस चीज़ का कारोबार करते हैं?', su_q2_hint: 'जो सबसे ठीक लगे, वह चुनें।',
+      su_q3: 'आपकी दुकान किस शहर में है?', su_q3_hint: 'वैकल्पिक। आप इसे छोड़ सकते हैं।', su_city_ph: 'जैसे पुणे',
+      su_q4: 'आपकी दुकान में कितने लोग काम करते हैं?', su_q4_hint: 'वैकल्पिक। खुद को भी गिनें।',
+      su_q5: 'अभी आपकी सबसे बड़ी परेशानी क्या है?', su_q5_hint: 'वैकल्पिक।',
+      su_q6: 'लगभग कितने ग्राहकों से आपका पैसा उधार बाकी है?', su_q6_hint: 'वैकल्पिक। अंदाज़ा काफ़ी है।',
+      su_trade_textile: 'कपड़ा (टेक्सटाइल)', su_trade_plastic: 'प्लास्टिक', su_trade_chemical: 'केमिकल', su_trade_agri: 'कृषि-इनपुट (खाद, बीज, दवा)', su_trade_other: 'अन्य',
+      su_team_just_me: 'सिर्फ़ मैं', su_team_2_5: '2 से 5', su_team_6_20: '6 से 20', su_team_20_plus: '20 से ज़्यादा',
+      su_problem_udhar: 'उधार वसूली', su_problem_stock: 'स्टॉक', su_problem_accounts: 'हिसाब-किताब', su_problem_staff: 'स्टाफ़', su_problem_other: 'कुछ और',
+      su_owe_0_10: '0 से 10', su_owe_10_50: '10 से 50', su_owe_50_plus: '50 से ज़्यादा',
+      su_lang_name: 'भाषा',
+      pn_title: 'गोपनीयता सूचना',
+      pn_intro: 'BizGrow, RÊVO का बनाया हुआ मुफ़्त ऐप है। आपकी जानकारी के साथ क्या होता है, यह नीचे लिखा है।',
+      pn_collect_h: 'हम क्या जमा करते हैं',
+      pn_collect: 'आपका नाम, ईमेल और साइन-अप के जवाब: दुकान का नाम, कारोबार, शहर, टीम का आकार, सबसे बड़ी परेशानी, और कितने ग्राहकों से उधार बाकी है। साथ ही आपके डाले हुए आइटम, बिल, ग्राहक, उधार, खर्च और नोट।',
+      pn_who_h: 'कौन देख सकता है',
+      pn_who: 'RÊVO और BizGrow की टीम। आपके साइन-अप के जवाब टीम की सूची के लिए एक Google Sheet में भी रखे जाते हैं। आपकी दुकान का स्टाफ़ ऐप के अंदर सिर्फ़ अपनी दुकान का डेटा देखता है।',
+      pn_why_h: 'हम इसका उपयोग क्यों करते हैं',
+      pn_why: 'आपके कारोबार को समझने और आपके लिए बनी चीज़ें देने के लिए। दुकान का डेटा आपका खाता चलाने के लिए इस्तेमाल होता है।',
+      pn_out_h: 'वापस लेना या हटाना',
+      pn_out: 'साझा करना बंद करने के लिए ऊपर का स्विच बंद करें। अपने डेटा की कॉपी पाने के लिए इस पेज पर Download, और उसे हटाने के लिए इसी पेज पर Delete दबाएं।',
+      pn_contact_h: 'संपर्क',
+      pn_contact: 'सवाल या अनुरोध के लिए लिखें: [CONTACT EMAIL]',
+      pn_record_h: 'सहमति का रिकॉर्ड',
+      pn_record: 'हम हर सहमति का रिकॉर्ड रखते हैं: तारीख और समय, टेक्स्ट का संस्करण ({v}), और आपने हाँ कहा या नहीं।',
+      pv_consent_title: 'मेरे साइन-अप के जवाब RÊVO के साथ साझा करें',
+      pv_consent_sub: 'आपके साइन-अप के जवाब RÊVO (BizGrow बनाने वाली टीम) के साथ साझा किए जाते हैं, ताकि हम आपके कारोबार को समझ सकें और आपके लिए बनी चीज़ें दे सकें। आप इसे कभी भी प्राइवेसी में जाकर वापस ले सकते हैं।',
+      pv_on: 'साझा हो रहा है', pv_off: 'साझा नहीं हो रहा',
+      pv_record: 'आखिरी बदलाव: {when}, टेक्स्ट संस्करण {v}',
+      pv_record_none: 'अभी तक सहमति का कोई रिकॉर्ड नहीं है।',
+      pv_notice_title: 'गोपनीयता सूचना',
+      pv_notice_sub: 'हम क्या जमा करते हैं, कौन देख सकता है, और वापस लेने या हटाने का तरीका।'
+    },
+    mr: {
+      consent_text: 'तुमची साइन-अप उत्तरे RÊVO (BizGrow बनवणारी टीम) सोबत शेअर केली जातील, जेणेकरून आम्हाला तुमचा व्यवसाय समजेल आणि तुमच्यासाठी बनवलेल्या गोष्टी देता येतील. तुम्ही हे कधीही प्रायव्हसी मध्ये जाऊन मागे घेऊ शकता. {p} वाचा.',
+      su_consent_need: 'पुढे जाण्यासाठी वरचा बॉक्स टिक करा.',
+      su_progress: 'प्रश्न {n} / {total}',
+      su_next: 'पुढे',
+      su_back: 'मागे',
+      su_skip: 'आत्ता वगळा',
+      su_finish: 'पूर्ण करा',
+      su_signout: 'साइन आउट',
+      su_done: 'छान, आता सुरू करूया.',
+      su_need_name: 'कृपया तुमच्या दुकानाचे नाव लिहा.',
+      su_need_trade: 'कृपया तुम्ही कशाचा व्यापार करता ते निवडा.',
+      su_q1: 'तुमच्या दुकानाचे नाव काय आहे?', su_q1_hint: 'हे नाव तुमच्या बिलावर दिसेल.', su_name_ph: 'उदा. शर्मा जनरल स्टोअर',
+      su_q2: 'तुम्ही कशाचा व्यापार करता?', su_q2_hint: 'जो सगळ्यात जवळचा वाटेल तो निवडा.',
+      su_q3: 'तुमची दुकान कोणत्या शहरात आहे?', su_q3_hint: 'ऐच्छिक. तुम्ही हे वगळू शकता.', su_city_ph: 'उदा. पुणे',
+      su_q4: 'तुमच्या दुकानात किती लोक काम करतात?', su_q4_hint: 'ऐच्छिक. स्वतःलाही धरा.',
+      su_q5: 'सध्या तुमची सगळ्यात मोठी अडचण कोणती आहे?', su_q5_hint: 'ऐच्छिक.',
+      su_q6: 'साधारण किती ग्राहकांकडे तुमची उधारी बाकी आहे?', su_q6_hint: 'ऐच्छिक. अंदाज चालेल.',
+      su_trade_textile: 'कापड (टेक्सटाईल)', su_trade_plastic: 'प्लास्टिक', su_trade_chemical: 'रसायने (केमिकल)', su_trade_agri: 'शेती-निविष्ठा (खत, बियाणे, औषध)', su_trade_other: 'इतर',
+      su_team_just_me: 'फक्त मी', su_team_2_5: '2 ते 5', su_team_6_20: '6 ते 20', su_team_20_plus: '20 पेक्षा जास्त',
+      su_problem_udhar: 'उधारी वसूल करणे', su_problem_stock: 'साठा (स्टॉक)', su_problem_accounts: 'हिशेब-किताब', su_problem_staff: 'कर्मचारी', su_problem_other: 'इतर काही',
+      su_owe_0_10: '0 ते 10', su_owe_10_50: '10 ते 50', su_owe_50_plus: '50 पेक्षा जास्त',
+      su_lang_name: 'भाषा',
+      pn_title: 'गोपनीयता सूचना',
+      pn_intro: 'BizGrow हे RÊVO ने बनवलेले मोफत ॲप आहे. तुमच्या माहितीचे काय होते ते येथे लिहिले आहे.',
+      pn_collect_h: 'आम्ही काय गोळा करतो',
+      pn_collect: 'तुमचे नाव, ईमेल आणि साइन-अप उत्तरे: दुकानाचे नाव, व्यापार, शहर, कर्मचारी संख्या, सगळ्यात मोठी अडचण, आणि किती ग्राहकांकडे उधारी बाकी आहे. तसेच तुम्ही टाकलेल्या वस्तू, बिले, ग्राहक, उधारी, खर्च आणि नोंदी.',
+      pn_who_h: 'कोण पाहू शकतो',
+      pn_who: 'RÊVO आणि BizGrow ची टीम. तुमची साइन-अप उत्तरे टीमच्या यादीसाठी एका Google Sheet मध्येही ठेवली जातात. तुमच्या दुकानातील कर्मचारी ॲपमध्ये फक्त तुमच्याच दुकानाचा डेटा पाहतात.',
+      pn_why_h: 'आम्ही हे का वापरतो',
+      pn_why: 'तुमचा व्यवसाय समजून घेण्यासाठी आणि तुमच्यासाठी बनवलेल्या गोष्टी देण्यासाठी. तुमच्या खात्यासाठी दुकानाचा डेटा वापरला जातो.',
+      pn_out_h: 'मागे घेणे किंवा काढून टाकणे',
+      pn_out: 'शेअर करणे थांबवण्यासाठी वरचा स्विच बंद करा. तुमच्या डेटाची प्रत मिळवण्यासाठी या पानावरचे Download, आणि तो काढण्यासाठी या पानावरचे Delete वापरा.',
+      pn_contact_h: 'संपर्क',
+      pn_contact: 'प्रश्न किंवा विनंतीसाठी लिहा: [CONTACT EMAIL]',
+      pn_record_h: 'संमतीची नोंद',
+      pn_record: 'प्रत्येक संमतीची नोंद आम्ही ठेवतो: तारीख आणि वेळ, मजकुराची आवृत्ती ({v}), आणि तुम्ही हो म्हटले की नाही.',
+      pv_consent_title: 'माझी साइन-अप उत्तरे RÊVO सोबत शेअर करा',
+      pv_consent_sub: 'तुमची साइन-अप उत्तरे RÊVO (BizGrow बनवणारी टीम) सोबत शेअर केली जातात, जेणेकरून आम्हाला तुमचा व्यवसाय समजेल आणि तुमच्यासाठी बनवलेल्या गोष्टी देता येतील. तुम्ही हे कधीही प्रायव्हसी मध्ये जाऊन मागे घेऊ शकता.',
+      pv_on: 'शेअर होत आहे', pv_off: 'शेअर होत नाही',
+      pv_record: 'शेवटचा बदल: {when}, मजकूर आवृत्ती {v}',
+      pv_record_none: 'अजून संमतीची नोंद नाही.',
+      pv_notice_title: 'गोपनीयता सूचना',
+      pv_notice_sub: 'आम्ही काय गोळा करतो, कोण पाहू शकतो, आणि मागे घेणे किंवा काढणे कसे करायचे.'
+    },
+    gu: {
+      consent_text: 'તમારા સાઇન-અપના જવાબ RÊVO (BizGrow બનાવનાર ટીમ) સાથે શેર થશે, જેથી અમે તમારો ધંધો સમજી શકીએ અને તમારા માટે બનાવેલી વસ્તુઓ આપી શકીએ. તમે આ કોઈ પણ સમયે પ્રાઇવસીમાં જઈને પાછું ખેંચી શકો છો. {p} વાંચો.',
+      su_consent_need: 'આગળ વધવા માટે ઉપરનું બૉક્સ ટિક કરો.',
+      su_progress: 'પ્રશ્ન {n} / {total}',
+      su_next: 'આગળ',
+      su_back: 'પાછળ',
+      su_skip: 'અત્યારે છોડો',
+      su_finish: 'પૂરું કરો',
+      su_signout: 'સાઇન આઉટ',
+      su_done: 'સરસ, ચાલો શરૂ કરીએ.',
+      su_need_name: 'કૃપા કરીને તમારી દુકાનનું નામ લખો.',
+      su_need_trade: 'કૃપા કરીને તમે શેનો વેપાર કરો છો તે પસંદ કરો.',
+      su_q1: 'તમારી દુકાનનું નામ શું છે?', su_q1_hint: 'આ નામ તમારા બિલ પર દેખાશે.', su_name_ph: 'દા.ત. શર્મા જનરલ સ્ટોર',
+      su_q2: 'તમે શેનો વેપાર કરો છો?', su_q2_hint: 'જે સૌથી નજીક લાગે તે પસંદ કરો.',
+      su_q3: 'તમારી દુકાન કયા શહેરમાં છે?', su_q3_hint: 'વૈકલ્પિક. તમે આ છોડી શકો છો.', su_city_ph: 'દા.ત. પુણે',
+      su_q4: 'તમારી દુકાનમાં કેટલા લોકો કામ કરે છે?', su_q4_hint: 'વૈકલ્પિક. પોતાને પણ ગણો.',
+      su_q5: 'અત્યારે તમારી સૌથી મોટી મુશ્કેલી શું છે?', su_q5_hint: 'વૈકલ્પિક.',
+      su_q6: 'લગભગ કેટલા ગ્રાહકો પાસેથી તમારી ઉધારી બાકી છે?', su_q6_hint: 'વૈકલ્પિક. અંદાજ ચાલશે.',
+      su_trade_textile: 'કાપડ (ટેક્સટાઇલ)', su_trade_plastic: 'પ્લાસ્ટિક', su_trade_chemical: 'કેમિકલ', su_trade_agri: 'ખેતી-ઇનપુટ (ખાતર, બિયારણ, દવા)', su_trade_other: 'અન્ય',
+      su_team_just_me: 'ફક્ત હું', su_team_2_5: '2 થી 5', su_team_6_20: '6 થી 20', su_team_20_plus: '20 થી વધુ',
+      su_problem_udhar: 'ઉધારી વસૂલ કરવી', su_problem_stock: 'સ્ટોક', su_problem_accounts: 'હિસાબ-કિતાબ', su_problem_staff: 'સ્ટાફ', su_problem_other: 'બીજું કંઈક',
+      su_owe_0_10: '0 થી 10', su_owe_10_50: '10 થી 50', su_owe_50_plus: '50 થી વધુ',
+      su_lang_name: 'ભાષા',
+      pn_title: 'ગોપનીયતા સૂચના',
+      pn_intro: 'BizGrow એ RÊVO દ્વારા બનાવેલી મફત એપ છે. તમારી માહિતી સાથે શું થાય છે તે અહીં લખ્યું છે.',
+      pn_collect_h: 'અમે શું એકત્ર કરીએ છીએ',
+      pn_collect: 'તમારું નામ, ઈમેલ અને સાઇન-અપના જવાબ: દુકાનનું નામ, વેપાર, શહેર, ટીમનું કદ, સૌથી મોટી મુશ્કેલી, અને કેટલા ગ્રાહકો પાસે ઉધારી બાકી છે. સાથે તમે નાખેલી વસ્તુઓ, બિલ, ગ્રાહકો, ઉધાર, ખર્ચ અને નોંધ.',
+      pn_who_h: 'કોણ જોઈ શકે',
+      pn_who: 'RÊVO અને BizGrow ની ટીમ. તમારા સાઇન-અપના જવાબ ટીમની યાદી માટે એક Google Sheet માં પણ રાખવામાં આવે છે. તમારી દુકાનનો સ્ટાફ એપની અંદર ફક્ત તમારી દુકાનનો ડેટા જુએ છે.',
+      pn_why_h: 'અમે આ કેમ વાપરીએ છીએ',
+      pn_why: 'તમારો ધંધો સમજવા અને તમારા માટે બનાવેલી વસ્તુઓ આપવા માટે. તમારા ખાતા ચલાવવા માટે દુકાનનો ડેટા વપરાય છે.',
+      pn_out_h: 'પાછું ખેંચવું કે કાઢી નાખવું',
+      pn_out: 'શેર કરવાનું બંધ કરવા ઉપરનું સ્વિચ બંધ કરો. ડેટાની નકલ મેળવવા આ પેજ પરનું Download, અને તેને કાઢવા આ પેજ પરનું Delete વાપરો.',
+      pn_contact_h: 'સંપર્ક',
+      pn_contact: 'પ્રશ્ન કે વિનંતી માટે લખો: [CONTACT EMAIL]',
+      pn_record_h: 'સંમતિનો રેકોર્ડ',
+      pn_record: 'અમે દરેક સંમતિનો રેકોર્ડ રાખીએ છીએ: તારીખ અને સમય, લખાણનું સંસ્કરણ ({v}), અને તમે હા કહી કે ના.',
+      pv_consent_title: 'મારા સાઇન-અપના જવાબ RÊVO સાથે શેર કરો',
+      pv_consent_sub: 'તમારા સાઇન-અપના જવાબ RÊVO (BizGrow બનાવનાર ટીમ) સાથે શેર થાય છે, જેથી અમે તમારો ધંધો સમજી શકીએ અને તમારા માટે બનાવેલી વસ્તુઓ આપી શકીએ. તમે આ કોઈ પણ સમયે પ્રાઇવસીમાં જઈને પાછું ખેંચી શકો છો.',
+      pv_on: 'શેર થઈ રહ્યું છે', pv_off: 'શેર થતું નથી',
+      pv_record: 'છેલ્લો ફેરફાર: {when}, લખાણ સંસ્કરણ {v}',
+      pv_record_none: 'હજુ સંમતિનો રેકોર્ડ નથી.',
+      pv_notice_title: 'ગોપનીયતા સૂચના',
+      pv_notice_sub: 'અમે શું એકત્ર કરીએ છીએ, કોણ જુએ છે, અને પાછું ખેંચવા કે કાઢવાની રીત.'
+    }
+  };
+  Object.keys(X).forEach(function (l) {
+    window.I18N[l] = Object.assign(window.I18N[l] || {}, X[l]);
+  });
+})();
+
+</script><script>
 /* BizGrow v2 demo stand-in backend. Runs in the browser only.
    Intercepts fetch('/api/...') and answers with the same shapes the front-end expects.
    All data is EXAMPLE data kept in this browser's localStorage. No server, no real accounts. */
@@ -607,6 +835,14 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
     if (v.length > (max || 60)) throw E(label + ' is too long (max ' + (max || 60) + ' letters)');
     return v;
   }
+
+  // Consent wording version. Bump it when the sign-up consent or privacy notice text changes.
+  var CONSENT_VERSION = 'signup-consent-v1';
+  var TRADES = ['textile', 'plastic', 'chemical', 'agri', 'other'];
+  var PROBLEMS = ['udhar', 'stock', 'accounts', 'staff', 'other'];
+  var TEAMS = ['just_me', '2_5', '6_20', '20_plus'];
+  var OWE = ['0_10', '10_50', '50_plus'];
+  function pick(v, list, label) { if (list.indexOf(v) < 0) throw E(label + ' has an answer that is not on the list'); return v; }
 
   function seed() {
     var today = todayS();
@@ -641,7 +877,8 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
         { id: 2, title: 'Check expiry dates on biscuits (example)', due: today, priority: 'normal', done: false }
       ], suppliers: [
         { id: 1, name: 'Patil Wholesale (example)', phone: '9800044444', items: 'Atta, sugar, oil', note: '' }
-      ], audit: [], erased: false
+      ], audit: [], erased: false,
+      signup: { done: true, answers: {} }, consents: []
     };
     var seqN = 1;
     function mk(cid, cname, method, lines, dateS, dueS, paid, disc) {
@@ -669,7 +906,7 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
   function seedEmpty() {
     var st = seed();
     st.products = []; st.customers = []; st.sales = []; st.expenses = []; st.tasks = []; st.suppliers = []; st.audit = [];
-    st.payments = []; st.erased = true;
+    st.payments = []; st.erased = true; st.consents = [];
     st.shop.name = 'My shop (cleared demo)';
     st.users = st.users.slice(0, 1);
     return st;
@@ -679,6 +916,9 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
     var st = null;
     try { var raw = localStorage.getItem(KEY); if (raw) st = JSON.parse(raw); } catch (e) { st = null; }
     if (!st) st = seed();
+    // Saved demo data from earlier builds has no sign-up or consent fields yet.
+    if (!st.signup) st.signup = { done: true, answers: {} };
+    if (!st.consents) st.consents = [];
     mem = st; return st;
   }
   function save(st) { mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* in-memory fallback */ } }
@@ -818,18 +1058,48 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       st.session.uid = 1; save(st); return { ok: true };
     }
     if (path === '/signup' && method === 'POST') {
-      if (!b.consent) throw E('Please accept the Privacy Notice to continue.');
-      st.session.uid = 1; save(st); return { ok: true };
+      if (!b.consent) throw E('Please tick the box to continue.');
+      st.session.uid = 1;
+      var signer = me(st); if (signer && b.name) signer.name = String(b.name).slice(0, 60);
+      // Owners answer the sign-up questions next. Invited staff skip them.
+      st.signup = { done: !!b.invite, answers: {} };
+      st.consents.push({ granted: true, text_version: CONSENT_VERSION, at: nowIso() });
+      save(st); return { ok: true };
     }
     if (path === '/logout' && method === 'POST') { st.session.uid = null; save(st); return { ok: true }; }
     if (path === '/password/forgot' || path === '/password/reset' || path === '/privacy/request' || path === '/privacy/erase') return { ok: true };
     if (path === '/config') return {};
     if (path === '/me') {
       var u = me(st); if (!u) throw E('Please log in', 401);
-      return { user: { id: u.id, name: u.name, email: u.email, phone: '' }, role: appRole(u), v2role: u.v2role, shop: st.shop, onboarded: true, answers: {}, lang: st.shop.lang };
+      return { user: { id: u.id, name: u.name, email: u.email, phone: '' }, role: appRole(u), v2role: u.v2role, shop: st.shop, onboarded: true, answers: {}, lang: st.shop.lang,
+        signup_done: st.signup.done, signup_answers: st.signup.answers, consent: st.consents[st.consents.length - 1] || null };
     }
     var cu = me(st); if (!cu && path !== '/config') throw E('Please log in', 401);
 
+    // Sign-up questions (the wizard). Same shape the future server will use. Demo: kept in this browser only.
+    if (path === '/signup/answers' && method === 'PUT') {
+      if (!cu) throw E('Please log in', 401);
+      var a = b.answers || {}, clean = {};
+      if (a.shop_name != null) clean.shop_name = text(a.shop_name, 'Shop name', 60);
+      if (a.trade != null) clean.trade = pick(a.trade, TRADES, 'Trade');
+      if (a.city != null && String(a.city).trim() !== '') clean.city = text(a.city, 'City', 40);
+      if (a.team_size != null) clean.team_size = pick(a.team_size, TEAMS, 'Team size');
+      if (a.problem != null) clean.problem = pick(a.problem, PROBLEMS, 'Problem');
+      if (a.udhar_customers != null) clean.udhar_customers = pick(a.udhar_customers, OWE, 'Customers who owe');
+      st.signup.answers = Object.assign({}, st.signup.answers, clean);
+      if (clean.shop_name) st.shop.name = clean.shop_name;
+      if (b.done) {
+        if (!st.signup.answers.shop_name || !st.signup.answers.trade) throw E('Shop name and trade are needed');
+        st.signup.done = true;
+      }
+      save(st); return { ok: true, signup_done: st.signup.done };
+    }
+    // Consent switch on the Privacy screen. Every change is kept as a dated record.
+    if (path === '/consent' && method === 'POST') {
+      if (!cu) throw E('Please log in', 401);
+      st.consents.push({ granted: !!b.granted, text_version: CONSENT_VERSION, at: nowIso() }); save(st);
+      return { ok: true, consent: st.consents[st.consents.length - 1] };
+    }
     if (path === '/language' && method === 'PUT') { st.shop.lang = b.lang || 'en'; save(st); return { ok: true }; }
     if (path === '/onboarding' && method === 'PUT') return { ok: true };
     if (path === '/business' && method === 'PUT') {
@@ -1113,7 +1383,7 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
     }
     if (a === 'export' && method === 'GET') {
       if (!can(cu, 'export')) throw E('Only the owner can download data', 403);
-      return { exported_at: nowIso(), note: 'Example demo export. Stored only in this browser.', shop: st.shop, staff: st.users.filter(function (u) { return !u.deleted_at; }).map(function (u) { return { id: u.id, name: u.name, email: u.email, role: u.v2role, status: u.status }; }), products: st.products, customers: st.customers, sales: st.sales, payments: st.payments, expenses: st.expenses, tasks: st.tasks, suppliers: st.suppliers, audit: st.audit };
+      return { exported_at: nowIso(), note: 'Example demo export. Stored only in this browser.', shop: st.shop, signup_answers: st.signup.answers, consent_records: st.consents, staff: st.users.filter(function (u) { return !u.deleted_at; }).map(function (u) { return { id: u.id, name: u.name, email: u.email, role: u.v2role, status: u.status }; }), products: st.products, customers: st.customers, sales: st.sales, payments: st.payments, expenses: st.expenses, tasks: st.tasks, suppliers: st.suppliers, audit: st.audit };
     }
     if (a === 'erase' && method === 'POST') {
       if (!can(cu, 'erase')) throw E('Only the owner can delete data', 403);
@@ -1302,6 +1572,8 @@ addEventListener('hashchange',()=>render());
 function go(h){if(location.hash===h)render();else location.hash=h;}
 async function render(){
   if(!S.me){return renderAuth();}
+  // Owners answer the sign-up questions once, before Home (see v2-signup.js).
+  if(window.BGV2&&BGV2.gate&&BGV2.gate())return;
   const page=(location.hash.replace(/^#\//,'')||'home').split('/');S.page=page[0];
   document.documentElement.lang=S.lang;
   const nav=NAV();
@@ -1374,8 +1646,6 @@ async function renderAuth(){
      <button class="btn block auth-submit" type="submit">${t('signin')}</button></form>`
    :`<form data-form="signup"><input type="hidden" name="invite" value="${invite&&!invite.error?invite.token:''}">
      <div class="f"><label>${t('your_name')}</label><input class="in" name="name" autocomplete="name" required></div>
-     ${invite&&!invite.error?'':`<div class="f"><label>${t('shop_name')}</label><input class="in" name="shop" required></div>
-     <div class="f"><label>${t('what_sell')}</label><select class="in" name="category">${CATS.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join('')}</select></div>`}
      <div class="f"><label>${t('email')}</label><input class="in" name="email" type="email" autocomplete="email" required></div>
      <div class="f"><label>${t('password')}</label><input class="in" name="password" type="password" autocomplete="new-password" minlength="8" required><div class="hint">${t('pw_hint')}</div></div>
      <label class="chk f"><input type="checkbox" name="consent"><span>${t('consent_text').replace('{p}',`<a href="#" data-act="privacy-notice">${t('privacy_link')}</a>`)}</span></label>
@@ -2770,6 +3040,206 @@ boot();
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
     } catch (err) { B.toast(err.message || B.tx('v2_forbidden')); }
+  });
+})();
+
+</script><script>
+/* BizGrow v2: sign-up questions, sign-up consent, privacy notice and the consent switch on the Privacy page.
+   Six questions, one per screen, after an owner signs up (or logs in before finishing), before Home.
+   Only the optional questions can be skipped. Demo only: answers are kept in this browser through the mock API,
+   in the shape the future server will use. Loaded after app.js and v2-privacy.js. */
+(function () {
+  'use strict';
+  var B = window.BGV2; if (!B) return;
+  function esc(s) { return B.esc(s); }
+  function $(s) { return document.querySelector(s); }
+
+  // Consent wording version. Bump it (and mock-api.js CONSENT_VERSION) whenever the consent or notice text changes.
+  var CONSENT_VERSION = 'signup-consent-v1';
+  var LANG_NAMES = { en: 'English', hi: 'हिन्दी', mr: 'मराठी', gu: 'ગુજરાતી' };
+
+  // Config lists. To add a trade later (for example manufacturer or wholesale), add its key here and a
+  // su_trade_<key> line in v2-i18n-signup.js. The server list must match.
+  var CONFIG = {
+    trades: ['textile', 'plastic', 'chemical', 'agri', 'other'],
+    teams: ['just_me', '2_5', '6_20', '20_plus'],
+    problems: ['udhar', 'stock', 'accounts', 'staff', 'other'],
+    owe: ['0_10', '10_50', '50_plus']
+  };
+
+  // The six questions, in order. Only the optional ones (required: false) can be skipped.
+  var STEPS = [
+    { key: 'shop_name', type: 'text', required: true, max: 60 },
+    { key: 'trade', type: 'choice', required: true, list: CONFIG.trades, prefix: 'su_trade_' },
+    { key: 'city', type: 'text', required: false, max: 40 },
+    { key: 'team_size', type: 'choice', required: false, list: CONFIG.teams, prefix: 'su_team_' },
+    { key: 'problem', type: 'choice', required: false, list: CONFIG.problems, prefix: 'su_problem_' },
+    { key: 'udhar_customers', type: 'choice', required: false, list: CONFIG.owe, prefix: 'su_owe_' }
+  ];
+
+  var W = null; // state of the questions while they are on screen
+
+  function hasAnswer(o, k) { return !!o && o[k] !== undefined && o[k] !== null && o[k] !== ''; }
+
+  // Called by app.js before the normal screens. Returns true when the questions took over the screen.
+  B.gate = function () {
+    var me = B.S.me;
+    if (!me || me.signup_done !== false) { W = null; return false; }
+    if (!W) {
+      W = { i: 0, a: Object.assign({}, me.signup_answers || {}), busy: false };
+      var first = -1;
+      for (var j = 0; j < STEPS.length; j++) { if (!hasAnswer(W.a, STEPS[j].key)) { first = j; break; } }
+      W.i = first < 0 ? STEPS.length - 1 : first;
+    }
+    draw();
+    return true;
+  };
+
+  function draw() {
+    var s = STEPS[W.i], n = W.i + 1, total = STEPS.length, cur = W.a[s.key];
+    document.documentElement.lang = B.S.lang;
+    var langs = Object.keys(LANG_NAMES).map(function (k) {
+      return '<option value="' + k + '"' + (B.S.lang === k ? ' selected' : '') + '>' + LANG_NAMES[k] + '</option>';
+    }).join('');
+    var dots = STEPS.map(function (x, j) {
+      return '<span class="su-dot' + (j < W.i ? ' done' : '') + (j === W.i ? ' on' : '') + '"></span>';
+    }).join('');
+    var back = W.i > 0 ? '<button type="button" class="btn sec" data-act="su-back">' + esc(B.tx('su_back')) + '</button>' : '<span></span>';
+    var skip = s.required ? '' : '<button type="button" class="btn sec" data-act="su-skip">' + esc(B.tx('su_skip')) + '</button>';
+    var body;
+    if (s.type === 'text') {
+      var ph = s.key === 'shop_name' ? 'su_name_ph' : 'su_city_ph';
+      var last = W.i === STEPS.length - 1;
+      body = '<form data-form="su" class="su-form">' +
+        '<input class="in su-in" name="' + s.key + '" value="' + esc(cur || '') + '" placeholder="' + esc(B.tx(ph)) + '"' +
+        ' autocomplete="off" maxlength="' + s.max + '"' + (s.required ? ' required' : '') + ' aria-label="' + esc(B.tx('su_q' + n)) + '">' +
+        '<div class="su-nav">' + back + skip + '<button type="submit" class="btn">' + esc(B.tx(last ? 'su_finish' : 'su_next')) + '</button></div></form>';
+    } else {
+      body = '<div class="su-opts">' + s.list.map(function (v) {
+        return '<button type="button" class="su-opt" aria-pressed="' + (cur === v) + '" data-act="su-pick" data-v="' + v + '">' + esc(B.tx(s.prefix + v)) + '</button>';
+      }).join('') + '</div><div class="su-nav">' + back + skip + '<span></span></div>';
+    }
+    var html =
+      '<div class="su-wrap"><div class="su-box">' +
+        '<div class="su-top"><div class="su-brand">BizGrow</div>' +
+        '<select class="in su-lang" id="suLang" aria-label="' + esc(B.tx('su_lang_name')) + '">' + langs + '</select></div>' +
+        '<div class="su-dots" aria-hidden="true">' + dots + '</div>' +
+        '<div class="su-count">' + esc(B.tx('su_progress', { n: n, total: total })) + '</div>' +
+        '<h2 class="su-title">' + esc(B.tx('su_q' + n)) + '</h2>' +
+        '<p class="su-hint">' + esc(B.tx('su_q' + n + '_hint')) + '</p>' +
+        body +
+        '<div class="su-out"><button type="button" class="linkbtn" data-act="logout">' + esc(B.tx('su_signout')) + '</button></div>' +
+      '</div></div>';
+    $('#app').innerHTML = html;
+    var sel = document.getElementById('suLang');
+    if (sel) sel.onchange = function () {
+      B.S.lang = sel.value; localStorage.setItem('bg_lang', sel.value);
+      B.api('/language', 'PUT', { lang: sel.value }).catch(function () { /* demo: keep going */ });
+      draw();
+    };
+  }
+
+  // Save one answer (or a skip) and move on. The last question also marks the sign-up finished.
+  async function answer(value) {
+    if (!W || W.busy) return;
+    var s = STEPS[W.i], partial = {};
+    if (value !== undefined && value !== '') { partial[s.key] = value; W.a[s.key] = value; }
+    var last = W.i === STEPS.length - 1;
+    W.busy = true;
+    try {
+      if (last) await B.api('/signup/answers', 'PUT', { answers: partial, done: true });
+      else if (Object.keys(partial).length) await B.api('/signup/answers', 'PUT', { answers: partial, done: false });
+    } catch (err) {
+      W.busy = false; B.toast(err.message || B.tx('su_need_name')); return;
+    }
+    W.busy = false;
+    if (last) return finish();
+    W.i++; draw();
+  }
+
+  async function finish() {
+    try { B.S.me = await B.api('/me'); }
+    catch (e) { B.S.me = Object.assign({}, B.S.me, { signup_done: true }); }
+    W = null;
+    B.toast(B.tx('su_done'));
+    B.go('#/home');
+  }
+
+  B.ACT['su-pick'] = function (el) { answer(el.dataset.v); };
+  B.ACT['su-skip'] = function () { if (W && !STEPS[W.i].required) answer(undefined); };
+  B.ACT['su-back'] = function () { if (W && W.i > 0 && !W.busy) { W.i--; draw(); } };
+
+  // Text questions post their form here. The required ones must have something typed.
+  B.FORM.su = async function (f, d) {
+    var s = STEPS[W.i];
+    var v = String(d[s.key] || '').trim();
+    if (s.required && !v) throw new Error(B.tx(s.key === 'shop_name' ? 'su_need_name' : 'su_need_trade'));
+    await answer(v);
+  };
+
+  // Sign-up form: the box must be ticked. The shop name and trade are now asked in the questions.
+  B.FORM.signup = async function (f, d) {
+    if (!d.consent) throw new Error(B.tx('su_consent_need'));
+    var lang = B.S.lang;
+    await B.api('/signup', 'POST', d);
+    await B.api('/language', 'PUT', { lang: lang }).catch(function () { /* demo: keep going */ });
+    B.S.me = await B.api('/me');
+    B.S.lang = (B.S.me.shop && B.S.me.shop.lang) || lang;
+    B.go('#/home');
+  };
+
+  // ---- privacy notice (sign-up link and the Privacy page) ----
+  var NOTICE = [['pn_collect_h', 'pn_collect'], ['pn_who_h', 'pn_who'], ['pn_why_h', 'pn_why'], ['pn_out_h', 'pn_out'], ['pn_contact_h', 'pn_contact'], ['pn_record_h', 'pn_record']];
+  function noticeBody() {
+    return NOTICE.map(function (p) {
+      return '<h4>' + esc(B.tx(p[0])) + '</h4><p>' + esc(B.tx(p[1], { v: CONSENT_VERSION })) + '</p>';
+    }).join('');
+  }
+  B.ACT['privacy-notice'] = function () {
+    B.modal('<h2>' + esc(B.tx('pn_title')) + '</h2><p class="small muted mb">' + esc(B.tx('pn_intro')) + '</p>' +
+      '<div class="su-notice">' + noticeBody() + '</div>' +
+      '<button class="btn block mt" onclick="this.closest(\'.ov\').close()">OK</button>');
+  };
+
+  function when(iso) {
+    var loc = { en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN', gu: 'gu-IN' }[B.S.lang] || 'en-IN';
+    try { return new Date(iso).toLocaleString(loc, { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+    catch (e) { return String(iso || ''); }
+  }
+
+  // Privacy page: the consent switch (top) and the full notice (bottom).
+  B.on('privacy', function (v) {
+    var rec = (B.S.me && B.S.me.consent) || null;
+    var on = !!(rec && rec.granted);
+    var consentCard =
+      '<div class="card" style="margin-bottom:14px"><h3>' + esc(B.tx('pv_consent_title')) + '</h3>' +
+      '<p class="muted small mb">' + esc(B.tx('pv_consent_sub')) + '</p>' +
+      '<label class="sw"><input type="checkbox" role="switch" data-v2="consent"' + (on ? ' checked' : '') + '>' +
+      '<span class="sw-track" aria-hidden="true"></span><span class="bold">' + esc(B.tx(on ? 'pv_on' : 'pv_off')) + '</span></label>' +
+      '<p class="muted small mt">' + (rec ? esc(B.tx('pv_record', { when: when(rec.at), v: rec.text_version || CONSENT_VERSION })) : esc(B.tx('pv_record_none'))) + '</p></div>';
+    B.placeTop(v, consentCard);
+    var grid = v.querySelector('.grid');
+    var notice = '<div class="card su-wide"><h3>' + esc(B.tx('pv_notice_title')) + '</h3>' +
+      '<p class="muted small mb">' + esc(B.tx('pv_notice_sub')) + '</p>' +
+      '<div class="su-notice">' + noticeBody() + '</div></div>';
+    if (grid) grid.insertAdjacentHTML('beforeend', notice);
+  });
+
+  // The switch records every change as a dated entry.
+  document.addEventListener('change', async function (e) {
+    var el = e.target;
+    if (!el || !el.matches || !el.matches('[data-v2="consent"]')) return;
+    var granted = el.checked;
+    el.disabled = true;
+    try {
+      var r = await B.api('/consent', 'POST', { granted: granted });
+      B.S.me.consent = r.consent;
+      B.toast(B.tx(granted ? 'pv_on' : 'pv_off'));
+      B.render();
+    } catch (err) {
+      el.checked = !granted;
+      B.toast(err.message || B.tx('pv_off'));
+    } finally { el.disabled = false; }
   });
 })();
 
