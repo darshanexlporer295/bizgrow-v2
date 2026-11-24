@@ -36,3 +36,10 @@
 - The staff remove check in the smoke test is loose (it checks the name is gone from the list). A manual check showed remove works.
 - The export button was not clicked to download a file in the bundle; the export route answers with data.
 - Not tested on a real phone, only at 390 px in a desktop browser.
+
+## Fixes (latest round)
+- Online store screen opens without a red error box.
+- An unknown screen address now shows Home, not a red raw error ("Cannot read properties of undefined").
+- New sale: the Scan and + Other buttons open their panels.
+- Reports: "Download for accountant" shows the Excel and PDF buttons for sales, expenses, products, customers, suppliers and the ledger. In the demo they save a spreadsheet file, or open a printable page for PDF.
+- Checked at 390 x 844 on the single-file bundle: every menu screen, plus an unknown address, with no JS errors.

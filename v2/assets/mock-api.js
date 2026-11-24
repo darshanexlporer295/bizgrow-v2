@@ -250,6 +250,10 @@
       need(st, 'settings', 'Only the owner can change shop details');
       if (b.name != null) st.shop.name = text(b.name, 'Shop name', 60);
       ['phone', 'address', 'gstin', 'upi_id', 'store_enabled'].forEach(function (f) { if (b[f] !== undefined) st.shop[f] = b[f]; });
+      // Turning the store on gives the shop a link name (the real server does the same).
+      if (st.shop.store_enabled && !st.shop.slug) {
+        st.shop.slug = String(st.shop.name || 'my-shop').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'my-shop';
+      }
       save(st); return { ok: true };
     }
     if (path === '/starter' && method === 'POST') { save(st); return { ok: true }; }
@@ -411,7 +415,7 @@
       need(st, 'view_money', 'Day report is for the owner, manager or accountant');
       var zd = todayS(); var zs = liveSales(st).filter(function (s) { return s.date === zd; });
       var zx = st.expenses.filter(function (x) { return !x.deleted_at && x.date === zd; });
-      return { date: zd, bills: zs.length, sales: sumBy(zs, function (s) { return s.total; }), cash: sumBy(zs.filter(function (s) { return s.method === 'cash'; }), function (s) { return s.paid; }), upi: sumBy(zs.filter(function (s) { return s.method === 'upi'; }), function (s) { return s.paid; }), udhar: sumBy(zs.filter(function (s) { return s.method === 'udhar'; }), function (s) { return s.total; }), discount: sumBy(zs, function (s) { return s.discount; }), expenses: sumBy(zx, function (x) { return x.amount; }) };
+      return { date: zd, shop: st.shop.name, bills: zs.length, sales: sumBy(zs, function (s) { return s.total; }), cash: sumBy(zs.filter(function (s) { return s.method === 'cash'; }), function (s) { return s.paid; }), upi: sumBy(zs.filter(function (s) { return s.method === 'upi'; }), function (s) { return s.paid; }), udhar: sumBy(zs.filter(function (s) { return s.method === 'udhar'; }), function (s) { return s.total; }), discount: sumBy(zs, function (s) { return s.discount; }), expenses: sumBy(zx, function (x) { return x.amount; }) };
     }
 
     // ---- team (owner only writes) ----
@@ -551,10 +555,81 @@
     var qs = new URLSearchParams(qi >= 0 ? url.slice(qi + 1) : '');
     await new Promise(function (r) { setTimeout(r, 30); });
     var status = 200, data;
-    try { data = route(method, path, body, qs); if (method === 'GET' && Array.isArray(data) && /^\/(products|customers|suppliers|tasks|expenses)$/.test(path)) data = { items: data }; }
+    try { data = route(method, path, body, qs); if (method === 'GET' && Array.isArray(data) && /^\/(products|customers|suppliers|tasks|expenses|sales)$/.test(path)) data = { items: data }; }
     catch (e) { status = e.status || 500; data = { error: e.status ? e.message : 'Something went wrong. Please try again.' }; }
     return new Response(JSON.stringify(data == null ? { ok: true } : data), { status: status, headers: { 'Content-Type': 'application/json' } });
   };
+
+  // ---- downloads (demo): spreadsheet files and printable pages built from the demo data ----
+  function hx(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function csvCell(v) { var s = v == null ? '' : String(v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+  function tableOf(k, st) {
+    var live = function (x) { return !x.deleted_at; };
+    if (k === 'sales') return { title: 'Sales', head: ['Date', 'Bill no', 'Customer', 'Payment', 'Total', 'Paid', 'Balance'], rows: liveSales(st).map(function (s) { return [s.date, s.bill_no, s.customer_name || 'Walk-in', s.method, s.total, s.paid, Math.max(0, s.total - s.paid)]; }) };
+    if (k === 'expenses') return { title: 'Expenses', head: ['Date', 'Category', 'Amount', 'Note'], rows: st.expenses.filter(live).map(function (x) { return [x.date, x.category, x.amount, x.note || '']; }) };
+    if (k === 'products') return { title: 'Products', head: ['Name', 'SKU', 'Category', 'Price', 'Cost', 'Stock', 'Reorder level'], rows: st.products.filter(live).map(function (p) { return [p.name, p.sku, p.category, p.price, p.cost, p.stock, p.reorder]; }) };
+    if (k === 'customers') return { title: 'Customers', head: ['Name', 'Phone', 'Balance due'], rows: st.customers.filter(live).map(function (c) { return [c.name, c.phone, balanceOf(st, c.id)]; }) };
+    if (k === 'suppliers') return { title: 'Suppliers', head: ['Name', 'Phone', 'Items'], rows: st.suppliers.filter(live).map(function (s) { return [s.name, s.phone, s.items]; }) };
+    if (k === 'ledger') return { title: 'Udhar ledger', head: ['Date', 'Customer', 'Bill no', 'Total', 'Paid', 'Balance due'], rows: liveSales(st).filter(function (s) { return s.method === 'udhar' || s.total > s.paid; }).map(function (s) { return [s.date, s.customer_name || 'Walk-in', s.bill_no, s.total, s.paid, Math.max(0, s.total - s.paid)]; }) };
+    return null;
+  }
+  function wrapPage(title, inner) {
+    return '<!doctype html><html><head><meta charset="utf-8"><title>' + hx(title) + '</title><style>body{font-family:Arial,sans-serif;color:#111;margin:24px}h1{font-size:20px;margin:0 0 6px}table{border-collapse:collapse;width:100%;font-size:13px;margin-top:12px}th,td{border:1px solid #bbb;padding:6px;text-align:left}th{background:#f1f1f1}.m{color:#555;font-size:12px}.bar{margin-bottom:16px}@media print{.bar{display:none}}</style></head><body><div class="bar"><button onclick="window.print()">Print / Save as PDF</button></div>' + inner + '</body></html>';
+  }
+  function tablePage(t, st) {
+    var head = '<tr>' + t.head.map(function (h) { return '<th>' + hx(h) + '</th>'; }).join('') + '</tr>';
+    var body = t.rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + hx(c) + '</td>'; }).join('') + '</tr>'; }).join('');
+    return wrapPage(t.title, '<h1>' + hx(t.title) + '</h1><p class="m">' + hx(st.shop.name) + ' · example demo data</p>' + (t.rows.length ? '<table><thead>' + head + '</thead><tbody>' + body + '</tbody></table>' : '<p>No rows yet.</p>'));
+  }
+  function invoicePage(s, st) {
+    var items = (s.items || []).map(function (i) { return '<tr><td>' + hx(i.name) + '</td><td>' + i.qty + '</td><td>₹' + i.price + '</td><td>₹' + (i.qty * i.price) + '</td></tr>'; }).join('');
+    var inner = '<h1>' + hx(st.shop.name) + '</h1><p class="m">' + hx(st.shop.address || '') + (st.shop.gstin ? ' · GSTIN ' + hx(st.shop.gstin) : '') + '</p>' +
+      '<p><b>Bill #' + hx(s.bill_no) + '</b> · ' + hx(s.date) + ' · ' + hx(s.customer_name || 'Walk-in') + '</p>' +
+      '<table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead><tbody>' + items + '</tbody></table>' +
+      '<p>Total: <b>₹' + s.total + '</b><br>Paid: ₹' + s.paid + '<br>Balance (udhar): ₹' + Math.max(0, s.total - s.paid) + '</p><p class="m">Example demo bill.</p>';
+    return wrapPage('Bill #' + s.bill_no, inner);
+  }
+  // Returns { html } for printable pages, { name, type, body } for spreadsheet files, { error } or null.
+  function demoFile(href) {
+    var st = load(); var u = me(st); if (!u) return null;
+    var qi = href.indexOf('?'); var p = qi >= 0 ? href.slice(0, qi) : href;
+    var q = new URLSearchParams(qi >= 0 ? href.slice(qi + 1) : '');
+    var m = p.match(/^\/api\/export\/([a-z]+)$/);
+    if (m) {
+      if (!can(u, 'export')) return { error: 'Only the owner can download data' };
+      var t = tableOf(m[1], st); if (!t) return null;
+      if (q.get('format') === 'pdf') return { html: tablePage(t, st) };
+      // Spreadsheet file: CSV with a byte-order mark so Excel shows names and rupee signs correctly.
+      var csv = '﻿' + [t.head].concat(t.rows).map(function (r) { return r.map(csvCell).join(','); }).join('\r\n') + '\r\n';
+      return { name: 'bizgrow-' + m[1] + '.csv', type: 'text/csv;charset=utf-8', body: csv };
+    }
+    m = p.match(/^\/api\/invoice\/(\d+)$/);
+    if (m) {
+      var s1 = st.sales.find(function (x) { return x.id === +m[1] && !x.deleted_at; });
+      if (!s1) return { error: 'That bill is not in this browser any more.' };
+      return { html: invoicePage(s1, st) };
+    }
+    return null;
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href^="/api/export"], a[href^="/api/invoice"]') : null;
+    if (!a) return;
+    e.preventDefault(); e.stopPropagation();
+    var say = function (m) { if (window.BGV2 && window.BGV2.toast) window.BGV2.toast(m); };
+    var f = demoFile(a.getAttribute('href'));
+    if (!f) return say('That file is not available in the demo.');
+    if (f.error) return say(f.error);
+    if (f.html) {
+      var w = window.open('', '_blank');
+      if (!w) return say('Your browser blocked the new tab. Allow pop-ups for this page and try again.');
+      w.document.open(); w.document.write(f.html); w.document.close();
+      return;
+    }
+    var url = URL.createObjectURL(new Blob([f.body], { type: f.type }));
+    var x = document.createElement('a'); x.href = url; x.download = f.name;
+    document.body.appendChild(x); x.click(); x.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }, true);
 
   // Exposed for the v2 layer (demo only)
   window.BGV2MOCK = {

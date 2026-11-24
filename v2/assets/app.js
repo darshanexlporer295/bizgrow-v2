@@ -377,7 +377,7 @@ function drawTiles(){
 ACT.gocart=()=>{const c=$('#cartcard');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});};
 ACT.cat=el=>{S.cat=el.dataset.c;drawTiles();document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.c===S.cat));};
 ACT.tile=el=>addToCart(el.dataset.id);
-function addToCart(id){const p=S.products.find(x=>x.id===id);if(!p)return;const l=S.cart.find(i=>i.product_id===id);if(l)l.qty+=1;else S.cart.push({product_id:id,name:p.name,price:p.price,qty:1});drawCart();}
+function addToCart(id){const p=S.products.find(x=>String(x.id)===String(id));if(!p)return;const l=S.cart.find(i=>String(i.product_id)===String(id));if(l)l.qty+=1;else S.cart.push({product_id:p.id,name:p.name,price:p.price,qty:1});drawCart();}
 ACT.addcustom=()=>{const o=modal(`<h2>Other item</h2><form data-form="custom"><div class="f"><label>${t('name')}</label><input class="in" name="name" required></div><div class="frow"><div class="f"><label>${t('price')} (₹)</label><input class="in" name="price" type="number" step="any" min="0" inputmode="decimal" required></div><div class="f"><label>${t('qty')}</label><input class="in" name="qty" type="number" step="any" min="0.001" value="1" inputmode="decimal"></div></div><button class="btn block" type="submit">${t('add')}</button></form>`);o.dataset.k='custom';};
 FORM.custom=(f,d)=>{S.cart.push({product_id:null,name:d.name,price:+d.price||0,qty:+d.qty||1});f.closest('.ov').close();drawCart();};
 function drawCart(){
@@ -406,7 +406,7 @@ function pickCustomer(){
   const draw=()=>{const q=($('#cq',o).value||'').toLowerCase();const l=S.customers.filter(c=>c.name.toLowerCase().includes(q));$('#cl',o).innerHTML=l.length?l.map(c=>`<button class="li" style="width:100%;text-align:left" data-act="udhar-to" data-id="${c.id}"><div class="avatar">${esc(c.name[0]||'?').toUpperCase()}</div><div class="grow"><div class="t">${esc(c.name)}</div><div class="d">${c.balance>0?'Already owes '+inr(c.balance):esc(c.phone||'')}</div></div></button>`).join(''):'<div class="muted small" style="padding:10px 0">No customer found.</div>';};
   $('#cq',o).addEventListener('input',draw);draw();
 }
-ACT['udhar-to']=async el=>{const o=el.closest('.ov');const c=S.customers.find(x=>x.id===el.dataset.id);
+ACT['udhar-to']=async el=>{const o=el.closest('.ov');const c=S.customers.find(x=>String(x.id)===String(el.dataset.id));if(!c){toast('Customer not found. Please pick again.');return;}
   const sub=cartSub(),tot=sub-Math.min(sub,S.discount||0);
   o.querySelector('.sheet').innerHTML=`<h2>Udhar for ${esc(c.name)}</h2><form data-form="udhar-sale"><input type="hidden" name="cid" value="${c.id}"><div class="f"><label>Bill total</label><div class="num bold" style="font-size:24px">${inr(tot)}</div></div><div class="f"><label>Paid now (₹) — leave 0 if nothing paid</label><input class="in" name="paid" type="number" min="0" max="${tot}" step="any" value="0" inputmode="decimal"></div><button class="btn block" type="submit">Save bill</button></form>`;};
 FORM['udhar-sale']=async(f,d)=>{const o=f.closest('.ov');await finishSale({method:'cash',customer_id:d.cid,paid:+d.paid||0});o.close();};
@@ -551,10 +551,10 @@ const itemForm=(p={})=>`<form data-form="item"><input type="hidden" name="id" va
  <div class="frow"><div class="f"><label>Barcode / code (optional)</label><div class="row"><input class="in grow" style="min-width:0" name="sku" value="${esc(p.sku||'')}" autocomplete="off"><button type="button" class="btn sec" style="flex:none" data-act="scanfill">📷 ${t('scan_btn')}</button></div></div><div class="f"><label>GST % (optional)</label><select class="in" name="gst_rate">${[0,5,12,18,28,3,0.25,0.1].map(g=>`<option value="${g}" ${(+p.gst_rate||0)===g?'selected':''}>${g?g+'%':'No GST'}</option>`).join('')}</select></div><div class="f"><label>HSN / SAC code (optional)</label><input class="in" name="hsn" value="${esc(p.hsn||'')}"></div><label class="chk f" style="align-self:end;padding-bottom:12px"><input type="checkbox" name="quick" ${p.quick?'checked':''}><span>Show first on Sell screen</span></label></div>
  <button class="btn block" type="submit">${t('save')}</button>${p.id?`<button type="button" class="link mt" style="color:var(--danger)" data-act="delitem" data-id="${p.id}">Delete item</button>`:''}</form>`;
 ACT.additem=()=>modal(`<h2>${t('add_item')}</h2>`+itemForm());
-ACT.edititem=el=>modal(`<h2>${t('edit')}</h2>`+itemForm(S.products.find(p=>p.id===el.dataset.id)));
+ACT.edititem=el=>modal(`<h2>${t('edit')}</h2>`+itemForm(S.products.find(p=>String(p.id)===String(el.dataset.id))));
 FORM.item=async(f,d)=>{if(d.id)await api('/products/'+d.id,'PUT',d);else await api('/products','POST',d);f.closest('.ov').close();render();};
 ACT.delitem=async el=>{if(!confirm('Delete this item? Past bills are not affected.'))return;await api('/products/'+el.dataset.id,'DELETE');el.closest('.ov').close();render();};
-ACT.adjust=async el=>{const p=S.products.find(x=>x.id===el.dataset.id);const h=await api('/products/'+p.id+'/history');
+ACT.adjust=async el=>{const p=S.products.find(x=>String(x.id)===String(el.dataset.id));const h=await api('/products/'+p.id+'/history');
   modal(`<h2>${esc(p.name)}</h2><p class="muted mb">In stock: <b>${qn(p.stock)} ${esc(p.unit)}</b></p><form data-form="adjust"><input type="hidden" name="id" value="${p.id}">
   <div class="f"><label>How many to add (+) or remove (−)?</label><input class="in" name="change" type="number" step="any" inputmode="decimal" placeholder="e.g. 10 or -2" required></div>
   <div class="f"><label>Reason</label><select class="in" name="reason"><option>New stock received</option><option>Damaged / expired</option><option>Counted again (correction)</option><option>Used at home</option></select></div><button class="btn block" type="submit">${t('save')}</button></form>
@@ -607,7 +607,7 @@ async function pSuppliers(v){
   v.innerHTML=head(t('suppliers'),'People you buy from',`<button class="btn" data-act="addsup">+ Add supplier</button>`)+`<div class="card">${l.length?`<div class="list">${l.map(s=>`<div class="li"><div class="avatar">${esc(s.name[0]||'?').toUpperCase()}</div><div class="grow"><div class="t">${esc(s.name)}</div><div class="d">${esc(s.items||'')}${s.note?' · '+esc(s.note):''}</div></div>${s.phone?`<a class="btn sec sm" href="tel:${esc(s.phone)}">Call</a><a class="btn sec sm" target="_blank" rel="noopener" href="${waLink(s.phone,t('wa_order').replace('{name}',s.name))}">WhatsApp</a>`:''}<button class="btn sec sm" data-act="editsup" data-id="${s.id}">${t('edit')}</button></div>`).join('')}</div>`:emptyBox('No suppliers yet','Save your wholesalers here so reordering is one tap.','<button class="btn" data-act="addsup">Add supplier</button>')}</div>${revoCard('stock')}`;
 }
 const supForm=(s={})=>`<form data-form="sup"><input type="hidden" name="id" value="${s.id||''}"><div class="f"><label>${t('name')}</label><input class="in" name="name" value="${esc(s.name||'')}" required></div><div class="f"><label>${t('phone')}</label><input class="in" name="phone" type="tel" value="${esc(s.phone||'')}"></div><div class="f"><label>What do they supply?</label><input class="in" name="items" value="${esc(s.items||'')}" placeholder="e.g. Atta, rice, oil"></div><div class="f"><label>${t('note')}</label><input class="in" name="note" value="${esc(s.note||'')}"></div><button class="btn block" type="submit">${t('save')}</button>${s.id?`<button type="button" class="link mt" style="color:var(--danger)" data-act="delsup" data-id="${s.id}">Delete supplier</button>`:''}</form>`;
-ACT.addsup=()=>modal('<h2>Add supplier</h2>'+supForm());ACT.editsup=el=>modal('<h2>'+t('edit')+'</h2>'+supForm(S.sup.find(x=>x.id===el.dataset.id)));
+ACT.addsup=()=>modal('<h2>Add supplier</h2>'+supForm());ACT.editsup=el=>modal('<h2>'+t('edit')+'</h2>'+supForm(S.sup.find(x=>String(x.id)===String(el.dataset.id))));
 FORM.sup=async(f,d)=>{if(d.id)await api('/suppliers/'+d.id,'PUT',d);else await api('/suppliers','POST',d);f.closest('.ov').close();render();};
 ACT.delsup=async el=>{if(!confirm('Delete this supplier?'))return;await api('/suppliers/'+el.dataset.id,'DELETE');el.closest('.ov').close();render();};
 
@@ -623,15 +623,16 @@ ACT.deltask=async el=>{await api('/tasks/'+el.dataset.id,'DELETE');render();};
 
 /* ---------- online store ---------- */
 async function pStore(v){
-  const sh=S.me.shop,link=sh.slug?location.origin+'/s/'+sh.slug:'';
+  const sh=S.me.shop,base=(location.origin&&location.origin!=='null')?location.origin:'',link=sh.slug?base+'/s/'+sh.slug:'';
   v.innerHTML=head(t('store'),'A simple catalogue your customers can open on their phone')+
   `<div class="card">${sh.store_enabled&&link?`<div class="okmsg">Your store is live.</div><div class="f"><label>Your store link</label><input class="in" readonly value="${esc(link)}" onclick="this.select()"></div>
-   <div class="row wrap"><a class="btn" target="_blank" rel="noopener" href="${waLink('',t('wa_store').replace('{shop}',sh.name).replace('{link}',link))}">${t('share_whatsapp')}</a><a class="btn sec" target="_blank" rel="noopener" href="${esc(link)}">Preview</a>${isOwner()?'<button class="btn red" data-act="storeoff">Turn off</button>':''}</div><p class="muted small mt">Shows item names, prices and whether in stock. Customers tap "Order on WhatsApp" and message you. Your cost prices and customer details are never shown.</p>`
+   <div class="row wrap"><a class="btn" target="_blank" rel="noopener" href="${waLink('',t('wa_store').replace('{shop}',sh.name).replace('{link}',link))}">${t('share_whatsapp')}</a><button class="btn sec" data-act="storepreview">Preview</button>${isOwner()?'<button class="btn red" data-act="storeoff">Turn off</button>':''}</div><p class="muted small mt">Shows item names, prices and whether in stock. Customers tap "Order on WhatsApp" and message you. Your cost prices and customer details are never shown.</p>`
    :`<p class="mb">Turn on a clean online catalogue for your shop. Share the link in WhatsApp groups so neighbours can see what you have and message you their order.</p>${isOwner()?(sh.phone?'<button class="btn" data-act="storeon">Turn on my store</button>':'<div class="err">Please add your shop phone number in Settings first, so customers can message you.</div><a class="btn" href="#/settings">Open Settings</a>'):'<p class="muted">Ask the owner to turn this on.</p>'}`}</div>
   <div class="card mt"><h3>Go further with RÊVO Systems</h3><p class="muted small mb">Your free catalogue stays free. These extras are built for you by RÊVO.</p>${revoLock('Your own branded shop website','store')}${revoLock('Online payments at checkout','store')}${revoLock('Order tracking and delivery updates','store')}</div>`;
 }
 ACT.storeon=async()=>{const s=S.me.shop;await api('/business','PUT',{...s,store_enabled:true});S.me=await api('/me');render();};
 ACT.storeoff=async()=>{const s=S.me.shop;await api('/business','PUT',{...s,store_enabled:false});S.me=await api('/me');render();};
+ACT.storepreview=async()=>{const ps=(await api('/products')).items||[];modal(`<h2>${esc(S.me.shop.name)}</h2><p class="muted small mb">This is how your customers will see your catalogue.</p>${ps.length?`<div class="list">${ps.map(p=>`<div class="li"><div class="grow"><div class="t">${esc(p.name)}</div><div class="d">${p.stock>0?'In stock':'Out of stock'}</div></div><b class="num">${inr(p.price)}</b></div>`).join('')}</div>`:'<p class="muted">No items yet.</p>'}`);};
 
 /* ---------- more (mobile) ---------- */
 async function pMore(v){
