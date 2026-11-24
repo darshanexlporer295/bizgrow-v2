@@ -151,6 +151,7 @@ async function renderAuth(){
    ${switchLink}
    ${terms}
   </div></div></div>`;
+  if(window.BGV2&&BGV2.authDone)BGV2.authDone(mode);
   const al=$('#authLang');
   if(al)al.onchange=()=>{S.lang=al.value;localStorage.setItem('bg_lang',S.lang);document.documentElement.lang=S.lang;renderAuth();};
 }
@@ -677,6 +678,6 @@ ACT.redoob=()=>onboarding();
 FORM.settings=async(f,d)=>{d.store_enabled=!!d.store_enabled;await api('/business','PUT',d);S.lang=d.lang;localStorage.setItem('bg_lang',d.lang);S.me=await api('/me');toast('Saved');render();};
 
 window.BGV2={ACT,FORM,S,api,render,toast,isOwner:()=>isOwner(),esc,inr,t,head,modal,go};
-boot();
+document.addEventListener('DOMContentLoaded',()=>boot());
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 })();

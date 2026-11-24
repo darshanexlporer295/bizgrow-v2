@@ -10,11 +10,23 @@ BizGrow is a simple app for small shops in India. It helps with billing, stock, 
 - **Sign-up in six short questions** (shop name, trade, city, team size, biggest problem, udhar customers), one per screen. Answers are stored through the demo stand-in, in the shape a real server will use.
 - **Consent and privacy.** The sign-up consent box starts unticked, and Continue waits until it is ticked. The Privacy screen has a privacy notice and a consent switch that can be turned off at any time.
 
-## Important: this is a demo
+## Status: stage 1 (real sign-in)
 
-- It runs **in the browser only**. The shop, people and sales are **example data**.
-- There is **no real server and no real accounts yet**. The "stand-in" backend is in `v2/assets/mock-api.js`, and it keeps data in the browser it is opened in.
-- Clearing the browser's site data deletes the demo data.
+- Sign-in is with **Google**, through the BizGrow Supabase project. The first login creates your shop. Sign-up asks six short questions after a consent step.
+- Only the public key is in the front end (`v2/assets/config.js`). Never add a secret or service key to any file.
+- Shop data is **not complete yet**. Sales, udhar, stock, expenses, staff, audit, summary and exports come in stage 2 (listed in `CHANGES.md`). Until then those screens show empty lists or a "comes in the next stage" message.
+- The **demo** is still there. Open the address with `?demo=1` added to force it. It uses example data kept in the browser, and clearing the browser's site data deletes it.
+
+### Setting up the database (once)
+
+1. In the Supabase SQL Editor, run `supabase/schema.sql`, then `supabase/patch-01.sql`.
+2. In Supabase, Authentication settings: turn on the **Google** provider (its client ID and secret are entered there, not in files), and add the live site address to the allowed redirect addresses.
+3. Open the live site address and tap **Continue with Google**.
+
+Google sign-in works only from the live website address, not from a file opened on your computer.
+
+## Important: before real customers sign up
+
 - The privacy notice and consent wording are a draft. **A lawyer should review them before any real customer signs up.** This project does not claim legal compliance. The notice describes what the app does; it is not legal advice.
 - Hindi, Marathi and Gujarati wording is a first draft and needs a native-speaker check.
 
@@ -29,10 +41,10 @@ BizGrow is a simple app for small shops in India. It helps with billing, stock, 
 ## How to open it
 
 1. Download this repository (green **Code** button, then **Download ZIP**), and unzip it.
-2. Open the file `v2/dist/bizgrow-v2.html` in Chrome or Edge, on a computer or a phone.
-3. Tap **Sign in**. Use `owner@example.com` with the password `example-pass-123`. Any password of 8 or more letters also works in the demo.
+2. Live site: open the live address and tap **Continue with Google**.
+3. Demo: open `v2/dist/bizgrow-v2.html` in Chrome or Edge, add `?demo=1` to the address, and sign in with `owner@example.com` and the password `example-pass-123`.
 
-That one file is the whole app. You do not need to install anything.
+The single file is the whole app. You do not need to install anything.
 
 ## What is in this repository
 
@@ -47,7 +59,7 @@ That one file is the whole app. You do not need to install anything.
 
 ## What comes next
 
-1. **A real backend and a new database** (Supabase), so that accounts and shop data are stored safely on a server and not only in one browser.
-2. **A public website** for the app, by linking this repository to a free hosting service such as Vercel or Netlify.
+1. **Stage 2**: sales and bills, udhar, stock, expenses, staff, audit log, summary and exports on the real database. The full list is in `CHANGES.md`.
+2. **Hosting**: the live site address is set in the hosting settings, and must also be added to the Supabase redirect addresses.
 
 Known gaps are listed in `CHANGES.md`. Voice input depends on the browser's microphone support, and typing always works.

@@ -1,6 +1,59 @@
-# BizGrow v2 - what changed (status: demo build, tested in a browser)
+# BizGrow v2 - what changed (status: stage 1 build, demo and real sign-in code, tested in a browser)
 
-## Latest round: sign-up, consent and database files
+## Stage 1: real sign-in with Supabase (latest)
+
+### What was built
+- Connected to the BizGrow Supabase project (Mumbai). Connection settings live in `v2/assets/config.js` and hold only the public (publishable) key. No secret or service key is in any file.
+- Sign-in is Google only, through Supabase Auth with PKCE. The sign-in screen shows one large "Continue with Google" button. Email and password forms are hidden in real mode. No password flows.
+- The Google return address is built from the live page address (origin plus path). Session is restored on reload. Sign-out ends the Supabase session.
+- First login creates the shop and the owner's staff row, through the `create_my_shop` function (`supabase/patch-01.sql`).
+- Sign-up wizard: a consent step comes first (unticked by default). Answers are saved to `signup_answers` and the consent to `consent_records`, with the text version. The owner's shop name, trade and city are copied to the shop through `update_my_shop`.
+- Privacy screen: switching consent off writes a new `consent_records` row with granted = false. The table has no update rule, so rows are only added, never changed.
+- Home loads for an empty shop. Reads for things not built yet return empty lists. Writes not built yet show a plain "comes in the next stage" message and change nothing.
+- Demo mode stays. It runs when the config is empty, and `?demo=1` forces it even when the config is set.
+- supabase-js 2.119.2 UMD is vendored at `v2/assets/vendor/supabase.js` (no runtime CDN for it). sha256 8816af04d9915dbba1882d6f84f0b402dc40268063a63d9c66d24f52f371c263.
+
+### Changed in v2/
+- `assets/app.js`: boot now runs on DOMContentLoaded (before, the first `/me` call was made while the page was still loading, so it reached the demo stand-in). One hook added in `renderAuth()`: `BGV2.authDone(mode)`, which does nothing in demo mode.
+- `assets/supabase-api.js` (new): real-mode adapter. It wraps `fetch` for `/api` calls only and does nothing in demo mode.
+- `assets/config.js` (new), `assets/v2-supabase.css` (new): big sign-in button and the consent step.
+- `index.html`: loads config, the vendored library and the adapter; links the new stylesheet.
+- `dist/bizgrow-v2.html`: rebuilt as one file (the new stylesheet is inlined; the hyv-type and hyv-layout meta tags and the storage shim are kept; the shim is used only when storage is blocked).
+
+### Database (run once, in order)
+1. `supabase/schema.sql` (from the previous round).
+2. `supabase/patch-01.sql`: adds `signup_answers.done`, the `create_my_shop` and `update_my_shop` functions, and grants them to signed-in users only.
+3. In Supabase Authentication settings: turn on Google, and add the live site address to the allowed redirect addresses. The Google client ID and secret are entered in Supabase only, never in a file.
+
+### Testing done
+- agent-browser at 390 x 844, real mode: the sign-in screen shows "Continue with Google", no email or password fields, no page errors, and no text below 12px.
+- Clicking the Google button goes to Google's sign-in page, with the return path set to the Supabase callback.
+- Demo mode (`?demo=1`): signed in as the demo owner, reached Home, 0 page errors, no text below 12px.
+- Single file (`dist/bizgrow-v2.html`): demo mode works when opened with `?demo=1`; real mode shows the Google button.
+
+### Not tested (be careful)
+- A real Google sign-in from start to finish. The test browser cannot complete a Google login.
+- First login creating a shop on the live project, the consent step on the live project, and the owner's shop edit.
+- `patch-01.sql` has not been run on the live project, and has not been syntax-checked against a real Postgres.
+- Row-level security has not been checked on the live project. From this build environment the sandbox network gateway has no credentials for the project's API host, so the live API could not be called.
+- Opening the single file from disk (file://) cannot sign in with Google. Use the live site address.
+
+### Known gaps (stage 1)
+- The barcode scanner library still loads from a public CDN in `assets/app.js`. This was already in the original app. It should be vendored in a later stage.
+- Hindi, Marathi and Gujarati text for the new sign-in and consent screens is a first draft and needs a native-speaker check.
+
+### STAGE 2 TODO (not started)
+- Sales and bills (create, edit, back-dated entries, stock effect).
+- Udhar (credit ledger, payments, reminders) on real data.
+- Stock (products, stock in and out, low-stock alerts) on real data.
+- Expenses (add, categories, reports).
+- Staff (invite by email, roles, suspend, remove) on real data.
+- Audit log (write and show) on real data.
+- Summary (evening summary, daily totals) on real data.
+- Exports (Excel and PDF downloads) on real data.
+- Dashboard and reports numbers on real data (now zero until the screens above exist).
+
+## Previous round: sign-up, consent and database files
 
 ### New sign-up flow (v2/assets/v2-signup.js, v2/assets/v2-i18n-signup.js)
 - A new user sees six short questions, one per screen, with large buttons and progress dots: shop name, trade (from a config list), city (optional), team size, the biggest problem (from a list), and udhar customers (optional). Language choice: English, Hindi, Marathi, Gujarati.

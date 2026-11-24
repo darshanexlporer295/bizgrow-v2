@@ -1,0 +1,6 @@
+/* BizGrow v2: sign-in with Google (stage 1) and the consent step before sign-up questions. */
+.gbtn.big { min-height: 56px; font-size: 17px; font-weight: 700; border-radius: 14px; margin: 18px 0 8px; }
+.gbtn.big:not([disabled]) { cursor: pointer; }
+.rc-box { padding-top: 8px; }
+.rc-chk { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; line-height: 1.5; margin: 18px 0; }
+.rc-chk input { margin-top: 4px; width: 20px; height: 20px; flex: none; }
