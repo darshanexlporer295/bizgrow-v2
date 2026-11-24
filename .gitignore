@@ -1,0 +1,20 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Dependencies and build leftovers
+node_modules/
+
+# Old or extra files that are not part of the demo
+bizgrow-v2-source.zip
+bizgrow-v2-demo.html
+
+# Secrets and local settings - never commit these
+.env
+.env.*
+*.pem
+*.key
+
+# Logs
+*.log
