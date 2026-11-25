@@ -191,8 +191,9 @@
       if (!owner) return fail(400, 'Only the owner can change settings.');
       var sv = body || {};
       if (sv.assistant_name == null) return reply(200, { ok: true });
-      await saveProfile(shopId, { assistant_name: sv.assistant_name }, 'The assistant name');
-      return reply(200, { ok: true, assistant_name: String(sv.assistant_name).trim() });
+      var an = String(sv.assistant_name).trim();
+      await saveProfile(shopId, { assistant_name: an }, 'The assistant name');
+      return reply(200, { ok: true, assistant_name: an });
     }
     if ((path === '/onboarding' && method === 'PUT') || (path === '/starter' && method === 'POST')) return reply(200, { ok: true });
 
