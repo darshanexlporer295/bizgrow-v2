@@ -166,11 +166,11 @@
     // Shop data that is real now: items, customers, people.
     if (path === '/products' && method === 'GET') {
       var prods = dataOf(await sb.from('products').select('*').is('deleted_at', null));
-      return reply(200, (prods || []).map(mapProduct));
+      return reply(200, { items: (prods || []).map(mapProduct) });
     }
     if (path === '/customers' && method === 'GET') {
       var custs = dataOf(await sb.from('customers').select('*'));
-      return reply(200, (custs || []).map(function (c) { return { id: c.id, name: c.name || '', phone: c.phone || '', balance: 0 }; }));
+      return reply(200, { items: (custs || []).map(function (c) { return { id: c.id, name: c.name || '', phone: c.phone || '', balance: 0 }; }) });
     }
     if (path === '/team' && method === 'GET' || path === '/v2/staff' && method === 'GET') {
       var mem = dataOf(await sb.from('staff').select('id,name,email,role,active').eq('shop_id', shopId));
@@ -193,10 +193,10 @@
       return reply(200, { totals: { revenue: 0, bills: 0, expenses: 0, profit: 0 }, daily: [], top: [], expenses_by_category: [] });
     }
     if (path === '/zreport' && method === 'GET') {
-      return reply(200, { date: B.today(), shop: '', bills: 0, sales: 0, cash: 0, upi: 0, expenses: 0 });
+      return reply(200, { date: B.today(), shop: '', bills: 0, total: 0, cash_sales: 0, upi_sales: 0, credit_given: 0, udhar_cash: 0, expenses: 0, expenses_cash: 0, cash_in_hand: 0 });
     }
     if (path === '/v2/audit' && method === 'GET') return reply(200, []);
-    if (path === '/v2/udhar' && method === 'GET') return reply(200, { total: 0, people: [], items: [] });
+    if (path === '/v2/udhar' && method === 'GET') return reply(200, { total: 0, overdue_total: 0, people: [], items: [] });
     if (path === '/v2/summary' && method === 'GET') return reply(200, { date: (qs && qs.get('date')) || B.today(), sales: 0, bills: 0, expenses: 0, profit: 0, collected: 0, items: [] });
 
     // Later-stage reads: an empty list until they are built.
