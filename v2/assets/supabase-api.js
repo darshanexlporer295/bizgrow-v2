@@ -190,6 +190,21 @@
     function ownerOnly() { need(owner, 'Only the owner can do this.'); }
     function moneyOnly() { need(money, 'Your role cannot see this. Ask the owner.'); }
 
+    // Online store (patch-06): owner turns it on or off; owner, manager and cashier see and move orders.
+    if (path === '/store' && method === 'PUT') {
+      ownerOnly();
+      return reply(200, await rpc('set_store_enabled', { p_shop: shopId, p_enabled: b.enabled === true }));
+    }
+    if (path === '/orders' && method === 'GET') {
+      need(['owner', 'manager', 'cashier'].indexOf(st.role) >= 0, 'Your role cannot see orders. Ask the owner.');
+      return reply(200, await rpc('list_store_orders', { p_shop: shopId, p_status: txt(qs && qs.get('status')) || null }));
+    }
+    var om = path.match(/^\/orders\/([0-9a-fA-F-]{36})\/status$/);
+    if (om && method === 'PUT') {
+      need(['owner', 'manager', 'cashier'].indexOf(st.role) >= 0, 'Your role cannot change orders. Ask the owner.');
+      return reply(200, await rpc('set_store_order_status', { p_order: om[1], p_status: txt(b.status) }));
+    }
+
     // Items (products)
     if (path === '/products') {
       if (method === 'GET') {
@@ -679,21 +694,6 @@
       return reply(200, { ok: true, assistant_name: an });
     }
     if ((path === '/onboarding' && method === 'PUT') || (path === '/starter' && method === 'POST')) return reply(200, { ok: true });
-
-    // Online store (patch-06): owner turns it on or off; owner, manager and cashier see and move orders.
-    if (path === '/store' && method === 'PUT') {
-      ownerOnly();
-      return reply(200, await rpc('set_store_enabled', { p_shop: shopId, p_enabled: b.enabled === true }));
-    }
-    if (path === '/orders' && method === 'GET') {
-      need(['owner', 'manager', 'cashier'].indexOf(st.role) >= 0, 'Your role cannot see orders. Ask the owner.');
-      return reply(200, await rpc('list_store_orders', { p_shop: shopId, p_status: txt(qs && qs.get('status')) || null }));
-    }
-    var om = path.match(/^\/orders\/([0-9a-fA-F-]{36})\/status$/);
-    if (om && method === 'PUT') {
-      need(['owner', 'manager', 'cashier'].indexOf(st.role) >= 0, 'Your role cannot change orders. Ask the owner.');
-      return reply(200, await rpc('set_store_order_status', { p_order: om[1], p_status: txt(b.status) }));
-    }
 
     // Shop data (stage 2): items, people, sales, expenses, tasks, reports, audit, staff and privacy.
     var shopRes = await shopRoute(path, method, body, qs, st);
