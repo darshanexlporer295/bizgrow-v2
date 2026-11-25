@@ -3653,7 +3653,13 @@ document.addEventListener('DOMContentLoaded',()=>boot());
   async function realApi(path, method, body, qs) {
     if (path === '/config') return reply(200, { reset_email: false });
     if (path === '/me') {
-      var me = await getMe();
+      var me;
+      try { me = await getMe(); }
+      catch (e) {
+        var sess = await session();
+        if (sess) { B.toast('Google sign-in worked, but your shop could not be opened. The database setup may be missing. Code: ' + String((e && e.message) || e).slice(0, 80)); }
+        return fail(401, SIGN_IN);
+      }
       return me ? reply(200, me) : fail(401, SIGN_IN);
     }
     if (path === '/logout' && method === 'POST') { await sb.auth.signOut(); return reply(200, { ok: true }); }
