@@ -158,7 +158,7 @@
     if (path === '/business' && method === 'PUT') {
       if (!owner) return fail(400, 'Only the owner can change the shop.');
       var b = body || {};
-      dataOf(await sb.rpc('update_my_shop', { p_shop: shopId, p_name: b.name || null, p_trade: b.trade || null, p_city: b.city || null, p_lang: null }));
+      dataOf(await sb.rpc('update_my_shop', { p_shop: shopId, p_name: b.name || null, p_trade: b.trade || null, p_city: b.city || null, p_lang: b.lang || null }));
       return reply(200, { ok: true });
     }
     if ((path === '/onboarding' && method === 'PUT') || (path === '/starter' && method === 'POST')) return reply(200, { ok: true });

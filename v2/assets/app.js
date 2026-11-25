@@ -126,7 +126,7 @@ async function renderAuth(){
   const switchLink=plain?'':(mode==='login'
     ?`<div class="auth-switch">${t('no_account_q')} <button type="button" class="link" data-act="mode" data-m="signup">${t('switch_signup')}</button></div>`
     :`<div class="auth-switch">${t('have_account')} <button type="button" class="link" data-act="mode" data-m="login">${t('switch_signin')}</button></div>`);
-  const terms=(mode==='login'||mode==='signup')?`<p class="auth-terms">${t('terms_line').replace('{t}',`<a href="/terms" target="_blank" rel="noopener">${t('terms_link')}</a>`).replace('{p}',`<a href="#" data-act="privacy-notice">${t('privacy_link')}</a>`)}</p>`:'';
+  const terms=(mode==='login'||mode==='signup')?`<p class="auth-terms">${t('terms_line').replace('{t}',`<span class="auth-terms-name">${t('terms_link')}</span>`).replace('{p}',`<a href="#" data-act="privacy-notice">${t('privacy_link')}</a>`)}</p>`:'';
   const langs=Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('');
   $('#app').innerHTML=`<div class="auth"><div class="l"><div><div class="row" style="gap:10px;font-weight:800;font-size:22px;font-family:'Plus Jakarta Sans'">${LOGO}BizGrow</div>
   <h1>Run your shop.<br>Effortlessly.</h1><p>Simple counter billing, smart stock alerts and daily accounts for kirana stores, cafés, salons and workshops.</p><ul>${ul.map(x=>`<li>${x}</li>`).join('')}</ul></div>

@@ -76,8 +76,6 @@
 .v2-mic svg{width:30px;height:30px;flex:0 0 auto}
 @media (max-width:480px){.v2-mic{width:auto;height:auto;min-height:64px}}
 
-/* Demo: the terms page needs a real server, so its link is hidden in the demo. */
-a[href="/terms"]{display:none!important}
 
 /* ---------- sign-up questions (v2-signup.js) ---------- */
 .su-wrap{min-height:100vh;min-height:100dvh;background:var(--bg);display:flex;align-items:flex-start;justify-content:center;padding:16px}
