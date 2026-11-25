@@ -9,6 +9,9 @@
   var LOC = { en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN', gu: 'gu-IN' };
   var MAXLINES = 30;
   var MUTE_KEY = 'bg_v2_voice_mute';
+  var LANG_KEY = 'bg_v2_voice_lang';
+  // Chooser buttons for Chotu's language. Each label is written in its own script.
+  var VLANGS = [['hi', 'हिन्दी'], ['en', 'English (India)'], ['mr', 'मराठी'], ['gu', 'ગુજરાતી']];
   var MIC = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
 
   // Plain messages for the helper. English is the fallback.
@@ -63,12 +66,24 @@
   function speechClass() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
   function $(id) { return document.getElementById(id); }
   function vt(k, vars) {
-    var d = VT[B.S.lang] || VT.en;
+    var d = VT[voiceLang()] || VT.en;
     var s = d[k] || VT.en[k] || '';
     if (vars) Object.keys(vars).forEach(function (n) { s = s.split('{' + n + '}').join(vars[n]); });
     return s;
   }
-  function langOf() { return LOC[B.S.lang] || 'en-IN'; }
+  function isCode(c) { return typeof c === 'string' && Object.prototype.hasOwnProperty.call(LOC, c); }
+  // Chotu's language: the member's own pick if one was saved, otherwise the app language.
+  function voiceLang() {
+    var v = VOICE_MEM;
+    if (v === null) { try { v = localStorage.getItem(LANG_KEY) || ''; } catch (e) { v = ''; } }
+    if (isCode(v)) return v;
+    return isCode(B.S.lang) ? B.S.lang : 'en';
+  }
+  function setVoiceLang(code) {
+    VOICE_MEM = code;
+    try { localStorage.setItem(LANG_KEY, code); } catch (e) { /* storage blocked: the choice lasts for this visit */ }
+  }
+  function langOf() { return LOC[voiceLang()] || 'en-IN'; }
   function canSpeak() { return !!(window.speechSynthesis && typeof window.SpeechSynthesisUtterance === 'function'); }
   function clearSpeech() { try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* nothing to stop */ } }
   function focusType() { var ti = $('v2-type'); if (ti) ti.focus(); }
@@ -84,6 +99,23 @@
   }
   function muteLabel() { return vt(isMuted() ? 'mute_off' : 'mute_on'); }
 
+  var VOICE_MEM = null;   // the language pick for this visit, used when storage is blocked
+  function chipsHtml() {
+    var cur = voiceLang();
+    return VLANGS.map(function (c) {
+      var on = c[0] === cur;
+      return '<button class="v2-chip' + (on ? ' on' : '') + '" data-v2="vlang" data-l="' + c[0] + '" aria-pressed="' + (on ? 'true' : 'false') + '">' + esc(c[1]) + '</button>';
+    }).join('');
+  }
+  function paintChips() {
+    var cur = voiceLang();
+    document.querySelectorAll('[data-v2="vlang"]').forEach(function (b) {
+      var on = b.getAttribute('data-l') === cur;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
   // Home card, shown to anyone who can make a bill.
   B.on('home', function (v) {
     if (v.querySelector('.v2-voice') || !B.can('sale')) return;
@@ -93,6 +125,7 @@
       '<h2>' + esc(B.tx('v2_voice_title', { name: B.assistant() })) + '</h2>' +
       '<p class="muted small">' + esc(B.tx('v2_voice_hint')) + '</p>' +
       '<button class="v2-mic" data-v2="mic" aria-pressed="false">' + MIC + '<span>' + esc(B.tx('v2_mic')) + '</span></button>' +
+      '<div class="v2-vlang" role="group" aria-label="Chotu language">' + chipsHtml() + '</div>' +
       '<div class="v2-type"><input class="in" id="v2-type" maxlength="200" placeholder="' + esc(B.tx('v2_type_here')) + '">' +
       '<button class="btn" data-v2="check">' + esc(B.tx('v2_check')) + '</button></div>' +
       '<p class="v2-msg" id="v2-voice-msg" role="status"></p>' +
@@ -242,6 +275,20 @@
     msg(hello);
     // The greeting ends first, so the microphone does not hear the assistant's own voice.
     speak(hello, function () { startRec(id); });
+  }
+
+  // The member picked a language chip. Save it. If Chotu is listening, start again in the new language.
+  function pickVoiceLang(code) {
+    if (!isCode(code)) return;
+    setVoiceLang(code);
+    paintChips();
+    if (!run.on) return;   // not listening: the next tap uses the new language
+    run.id++; run.on = false; run.stopping = false;
+    var r = run.rec; run.rec = null; clearTimeout(run.timer); run.timer = null;
+    if (r) { try { r.abort(); } catch (e) { /* already ended */ } }
+    clearSpeech();
+    run.finals = ''; run.interim = ''; run.err = '';
+    listen();
   }
 
   // Leaving the page ends any listening or greeting.
@@ -411,6 +458,7 @@
       el.setAttribute('aria-pressed', isMuted() ? 'true' : 'false');
       return;
     }
+    if (k === 'vlang') return pickVoiceLang(el.getAttribute('data-l'));
     if (k === 'check') return review(($('v2-type') || {}).value);
     if (k === 'rename') return rename();
     if (k === 'rename-save') {
