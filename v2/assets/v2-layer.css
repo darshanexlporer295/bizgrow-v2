@@ -41,6 +41,7 @@
 @keyframes v2pulse{0%{box-shadow:0 0 0 0 rgba(220,38,38,.5)}70%{box-shadow:0 0 0 18px rgba(220,38,38,0)}100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}}
 .v2-type{display:flex;gap:8px;width:100%}
 .v2-type .in{flex:1}
+.v2-voice .v2-mute{font-size:15px;min-height:44px;text-align:left;width:100%}
 .v2-check{width:100%}
 
 /* Confirm sheet for a voice bill */

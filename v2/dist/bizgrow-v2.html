@@ -201,6 +201,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 @keyframes v2pulse{0%{box-shadow:0 0 0 0 rgba(220,38,38,.5)}70%{box-shadow:0 0 0 18px rgba(220,38,38,0)}100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}}
 .v2-type{display:flex;gap:8px;width:100%}
 .v2-type .in{flex:1}
+.v2-voice .v2-mute{font-size:15px;min-height:44px;text-align:left;width:100%}
 .v2-check{width:100%}
 
 /* Confirm sheet for a voice bill */
@@ -2496,17 +2497,90 @@ document.addEventListener('DOMContentLoaded',()=>boot());
 
 </script><script>
 /* BizGrow v2: the voice bill. Mic card on Home, a confirm sheet, and the assistant rename.
-   A bill is never saved straight from speech. The member always taps Save on the confirm sheet. */
+   A bill is never saved straight from speech. The member always taps Save on the confirm sheet.
+   Listening: the assistant says hello (unless muted or the browser cannot speak), then the browser
+   listens with interim results. It restarts itself while nothing is heard, and stops when the member
+   taps the mic again or the speaker pauses after words. The typed box is always there as a fallback. */
 (function () {
   'use strict';
   var B = window.BGV2; if (!B) return;
   var LOC = { en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN', gu: 'gu-IN' };
   var MAXLINES = 30;
+  var MUTE_KEY = 'bg_v2_voice_mute';
   var MIC = '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+
+  // Plain messages for the helper. English is the fallback.
+  var VT = {
+    en: {
+      greet: 'Hello, I am {name}. Speak now.', bolo: 'Listening… bolo',
+      allow: 'Allow the microphone when the browser asks, then speak.',
+      denied: 'The microphone is blocked for this site. Allow it in the browser settings, then tap the mic again.',
+      nomic: 'No microphone was found on this device. Type instead.',
+      net: 'Voice needs an internet connection. Type instead.',
+      nosound: 'I did not hear anything. Tap the mic and speak again.',
+      noapi: 'Voice does not work in this browser. Type instead.',
+      failed: 'Voice stopped. Tap the mic to try again, or type instead.',
+      mute_on: 'Hello sound: on (tap to mute)', mute_off: 'Hello sound: muted (tap to turn on)'
+    },
+    hi: {
+      greet: 'नमस्ते, मैं {name} हूँ। बोलिए।', bolo: 'Listening… bolo',
+      allow: 'ब्राउज़र पूछे तो माइक्रोफ़ोन की अनुमति दें, फिर बोलें।',
+      denied: 'इस साइट के लिए माइक्रोफ़ोन बंद है। ब्राउज़र की सेटिंग में अनुमति दें, फिर माइक दबाएं।',
+      nomic: 'इस फ़ोन या लैपटॉप पर माइक्रोफ़ोन नहीं मिला। लिखकर बताएं।',
+      net: 'आवाज़ के लिए इंटरनेट चाहिए। लिखकर बताएं।',
+      nosound: 'कुछ सुनाई नहीं दिया। माइक दबाकर फिर बोलें।',
+      noapi: 'इस ब्राउज़र में आवाज़ काम नहीं करती। लिखकर बताएं।',
+      failed: 'आवाज़ रुक गई। माइक दबाकर फिर कोशिश करें, या लिखकर बताएं।',
+      mute_on: 'नमस्ते की आवाज़: चालू (बंद करने के लिए दबाएं)', mute_off: 'नमस्ते की आवाज़: बंद (चालू करने के लिए दबाएं)'
+    },
+    mr: {
+      greet: 'नमस्कार, मी {name} आहे. बोला.', bolo: 'ऐकत आहे… बोला',
+      allow: 'ब्राउझर विचारल्यावर मायक्रोफोनला परवानगी द्या, मग बोला.',
+      denied: 'या साइटसाठी मायक्रोफोन बंद आहे. ब्राउझरच्या सेटिंगमध्ये परवानगी द्या, मग पुन्हा माइक दाबा.',
+      nomic: 'या फोनवर मायक्रोफोन सापडला नाही. लिहून सांगा.',
+      net: 'आवाजासाठी इंटरनेट लागते. लिहून सांगा.',
+      nosound: 'काही ऐकू आले नाही. माइक दाबा आणि पुन्हा बोला.',
+      noapi: 'या ब्राउझरमध्ये आवाज चालत नाही. लिहून सांगा.',
+      failed: 'आवाज थांबला. माइक दाबून पुन्हा प्रयत्न करा, किंवा लिहून सांगा.',
+      mute_on: 'स्वागत आवाज: चालू (बंद करण्यासाठी दाबा)', mute_off: 'स्वागत आवाज: बंद (चालू करण्यासाठी दाबा)'
+    },
+    gu: {
+      greet: 'નમસ્તે, હું {name} છું. બોલો.', bolo: 'સાંભળી રહ્યો છું… બોલો',
+      allow: 'બ્રાઉઝર પૂછે ત્યારે માઇક્રોફોનની પરવાનગી આપો, પછી બોલો.',
+      denied: 'આ સાઇટ માટે માઇક્રોફોન બંધ છે. બ્રાઉઝરની સેટિંગમાં પરવાનગી આપો, પછી માઇક ફરી દબાવો.',
+      nomic: 'આ ફોન કે લેપટોપમાં માઇક્રોફોન મળ્યો નથી. લખીને કહો.',
+      net: 'અવાજ માટે ઇન્ટરનેટ જોઈએ. લખીને કહો.',
+      nosound: 'કંઈ સંભળાયું નહીં. માઇક દબાવીને ફરી બોલો.',
+      noapi: 'આ બ્રાઉઝરમાં અવાજ ચાલતો નથી. લખીને કહો.',
+      failed: 'અવાજ બંધ થયો. ફરી માઇક દબાવો, અથવા લખીને કહો.',
+      mute_on: 'સ્વાગત અવાજ: ચાલુ (બંધ કરવા દબાવો)', mute_off: 'સ્વાગત અવાજ: બંધ (ચાલુ કરવા દબાવો)'
+    }
+  };
 
   function esc(s) { return B.esc(s); }
   function speechClass() { return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
   function $(id) { return document.getElementById(id); }
+  function vt(k, vars) {
+    var d = VT[B.S.lang] || VT.en;
+    var s = d[k] || VT.en[k] || '';
+    if (vars) Object.keys(vars).forEach(function (n) { s = s.split('{' + n + '}').join(vars[n]); });
+    return s;
+  }
+  function langOf() { return LOC[B.S.lang] || 'en-IN'; }
+  function canSpeak() { return !!(window.speechSynthesis && typeof window.SpeechSynthesisUtterance === 'function'); }
+  function clearSpeech() { try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) { /* nothing to stop */ } }
+  function focusType() { var ti = $('v2-type'); if (ti) ti.focus(); }
+
+  var MUTE_MEM = null;
+  function isMuted() {
+    if (MUTE_MEM !== null) return MUTE_MEM;
+    try { return localStorage.getItem(MUTE_KEY) === '1'; } catch (e) { return false; }
+  }
+  function setMuted(v) {
+    MUTE_MEM = !!v;
+    try { localStorage.setItem(MUTE_KEY, v ? '1' : '0'); } catch (e) { /* storage blocked: the choice lasts for this visit */ }
+  }
+  function muteLabel() { return vt(isMuted() ? 'mute_off' : 'mute_on'); }
 
   // Home card, shown to anyone who can make a bill.
   B.on('home', function (v) {
@@ -2516,32 +2590,166 @@ document.addEventListener('DOMContentLoaded',()=>boot());
       '<section class="card v2-voice">' +
       '<h2>' + esc(B.tx('v2_voice_title', { name: B.assistant() })) + '</h2>' +
       '<p class="muted small">' + esc(B.tx('v2_voice_hint')) + '</p>' +
-      '<button class="v2-mic" data-v2="mic">' + MIC + '<span>' + esc(B.tx('v2_mic')) + '</span></button>' +
+      '<button class="v2-mic" data-v2="mic" aria-pressed="false">' + MIC + '<span>' + esc(B.tx('v2_mic')) + '</span></button>' +
       '<div class="v2-type"><input class="in" id="v2-type" maxlength="200" placeholder="' + esc(B.tx('v2_type_here')) + '">' +
       '<button class="btn" data-v2="check">' + esc(B.tx('v2_check')) + '</button></div>' +
       '<p class="v2-msg" id="v2-voice-msg" role="status"></p>' +
+      '<button class="linkbtn v2-mute" data-v2="mute" aria-pressed="' + (isMuted() ? 'true' : 'false') + '">' + esc(muteLabel()) + '</button>' +
       '<p class="muted small">' + esc(B.tx('v2_try')) + ': <i>"Ramesh ko 2 kg atta, 50 rupees udhar"</i></p>' +
       rename + '</section>');
   });
 
   function msg(t) { var m = $('v2-voice-msg'); if (m) m.textContent = t || ''; }
 
-  function listen() {
-    var R = speechClass();
-    if (!R) { msg(B.tx('v2_no_speech')); var ti = $('v2-type'); if (ti) ti.focus(); return; }
-    var r;
-    try { r = new R(); } catch (e) { msg(B.tx('v2_no_speech')); return; }
-    r.lang = LOC[B.S.lang] || 'en-IN'; r.interimResults = false; r.maxAlternatives = 1;
-    msg(B.tx('v2_listening'));
-    r.onresult = function (ev) {
-      var s = (ev.results && ev.results[0] && ev.results[0][0] && ev.results[0][0].transcript) || '';
-      var ti = $('v2-type'); if (ti) ti.value = s;
-      review(s);
-    };
-    r.onerror = function () { msg(B.tx('v2_no_speech')); };
-    r.onend = function () { if ($('v2-voice-msg') && $('v2-voice-msg').textContent === B.tx('v2_listening')) msg(B.tx('v2_nothing')); };
-    try { r.start(); } catch (e) { msg(B.tx('v2_no_speech')); }
+  // ---- listening ----
+  // run.rec is the one live recognition object. It is kept here so the browser does not lose it.
+  // Every callback checks that it is still the current one, so an old session cannot change the screen.
+  var run = { on: false, stopping: false, id: 0, rec: null, finals: '', interim: '', empty: 0, err: '', timer: null };
+
+  function paintMic(on) {
+    var b = document.querySelector('[data-v2="mic"]'); if (!b) return;
+    b.classList.toggle('on', !!on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var sp = b.querySelector('span'); if (sp) sp.textContent = on ? vt('bolo') : B.tx('v2_mic');
   }
+
+  // Pick a voice for the language if one is installed. If none is, the browser's default is used with the language set.
+  function pickVoice(lang) {
+    var list = [];
+    try { list = window.speechSynthesis.getVoices() || []; } catch (e) { list = []; }
+    var l = lang.toLowerCase(), base = l.split('-')[0], i;
+    for (i = 0; i < list.length; i++) if ((list[i].lang || '').toLowerCase() === l) return list[i];
+    for (i = 0; i < list.length; i++) if ((list[i].lang || '').toLowerCase().indexOf(base) === 0) return list[i];
+    return null;
+  }
+
+  // Say the greeting, then call done once. Done also runs if speech fails or never ends.
+  function speak(text, done) {
+    var S = window.speechSynthesis, U = window.SpeechSynthesisUtterance;
+    var fin = false, timer = null;
+    function end() { if (fin) return; fin = true; clearTimeout(timer); done(); }
+    if (!canSpeak()) { end(); return; }
+    try {
+      S.cancel();
+      var u = new U(text);
+      u.lang = langOf(); u.rate = 0.95; u.pitch = 1; u.volume = 1;
+      var v = pickVoice(u.lang); if (v) u.voice = v;
+      u.onend = end; u.onerror = end;
+      timer = setTimeout(function () { clearSpeech(); end(); }, 8000);
+      S.speak(u);
+    } catch (e) { end(); }
+  }
+
+  // Ask the browser whether the microphone is already allowed, blocked or still to be asked. Unknown counts as allowed.
+  function permState(cb) {
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'microphone' }).then(function (p) { cb(p.state); }, function () { cb(''); });
+        return;
+      }
+    } catch (e) { /* fall through */ }
+    cb('');
+  }
+
+  function stopWith(key) {
+    clearTimeout(run.timer); run.timer = null;
+    run.on = false; run.stopping = false; run.rec = null;
+    paintMic(false); clearSpeech(); msg(vt(key));
+    if (key === 'nomic' || key === 'noapi') focusType();
+  }
+
+  // Turn what was heard into the text box and check it as a bill. Nothing is saved here.
+  function finishRun() {
+    clearTimeout(run.timer); run.timer = null;
+    var text = (run.finals || run.interim || '').trim();
+    run.on = false; run.stopping = false; run.rec = null; run.finals = ''; run.interim = '';
+    paintMic(false);
+    if (!text) { msg(vt('nosound')); return; }
+    var box = $('v2-type'); if (box) box.value = text;
+    msg('');
+    review(text);
+  }
+
+  // The member tapped the mic again. Let the browser finish the last words, then check them.
+  function stopUser() {
+    if (!run.on) return;
+    run.on = false; paintMic(false); clearSpeech();
+    var r = run.rec;
+    if (!r) { msg(''); return; }
+    run.stopping = true;
+    try { r.stop(); } catch (e) { run.stopping = false; run.rec = null; finishRun(); return; }
+    run.timer = setTimeout(function () { run.rec = null; finishRun(); }, 1500);
+  }
+
+  function startRec(id) {
+    if (!run.on || id !== run.id) return;
+    var R = speechClass();
+    if (!R) { stopWith('noapi'); return; }
+    var r;
+    try { r = new R(); } catch (e) { stopWith('noapi'); return; }
+    r.lang = langOf(); r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
+    run.rec = r; run.err = '';
+    r.onstart = function () { if (run.rec === r) msg(vt('bolo')); };
+    r.onresult = function (ev) {
+      if (run.rec !== r) return;
+      var fin = '', mid = '';
+      for (var i = ev.resultIndex || 0; i < ev.results.length; i++) {
+        var res = ev.results[i], tr = (res && res[0] && res[0].transcript) || '';
+        if (res.isFinal) fin += tr + ' '; else mid += tr;
+      }
+      if (fin.trim()) { run.finals = (run.finals + ' ' + fin).trim(); run.empty = 0; }
+      run.interim = mid.trim();
+      var box = $('v2-type'); if (box) box.value = (run.finals + ' ' + run.interim).trim();
+    };
+    r.onerror = function (ev) { if (run.rec === r) run.err = (ev && ev.error) || 'failed'; };
+    r.onend = function () {
+      if (run.rec !== r) return;
+      run.rec = null;
+      var k = run.err; run.err = '';
+      if (run.stopping) { finishRun(); return; }
+      if (!run.on) return;
+      if (run.finals || run.interim) { finishRun(); return; }   // the speaker paused after words: check them
+      if (k === 'not-allowed' || k === 'service-not-allowed') { stopWith('denied'); return; }
+      if (k === 'audio-capture') { stopWith('nomic'); return; }
+      if (k === 'network') { stopWith('net'); return; }
+      if (k === 'no-speech' || k === '' || k === 'aborted') {
+        run.empty++;
+        if (run.empty < 3) { startRec(run.id); return; }   // keep listening a little longer
+        stopWith('nosound'); return;
+      }
+      stopWith('failed');
+    };
+    permState(function (state) {
+      if (run.rec !== r || !run.on) return;
+      if (state === 'denied') { run.rec = null; stopWith('denied'); return; }
+      msg(state === 'prompt' ? vt('allow') : vt('bolo'));
+      try { r.start(); } catch (e) { run.rec = null; stopWith('failed'); }
+    });
+  }
+
+  function listen() {
+    if (run.on) { stopUser(); return; }
+    if (!speechClass()) { msg(vt('noapi')); focusType(); return; }
+    if (run.rec) { var old = run.rec; run.rec = null; try { old.abort(); } catch (e) { /* already ended */ } }
+    clearTimeout(run.timer); run.timer = null;
+    run.id++; run.on = true; run.stopping = false; run.finals = ''; run.interim = ''; run.empty = 0; run.err = '';
+    paintMic(true);
+    var id = run.id;
+    if (isMuted() || !canSpeak()) { msg(''); startRec(id); return; }
+    var hello = vt('greet', { name: B.assistant() });
+    msg(hello);
+    // The greeting ends first, so the microphone does not hear the assistant's own voice.
+    speak(hello, function () { startRec(id); });
+  }
+
+  // Leaving the page ends any listening or greeting.
+  window.addEventListener('hashchange', function () {
+    if (!run.on && !run.rec) return;
+    run.id++; run.on = false; run.stopping = false;
+    var r = run.rec; run.rec = null; clearTimeout(run.timer); run.timer = null;
+    if (r) { try { r.abort(); } catch (e) { /* already ended */ } }
+    clearSpeech();
+  });
 
   // Turn the words into a bill to check. Nothing is saved here.
   async function review(txt) {
@@ -2694,6 +2902,13 @@ document.addEventListener('DOMContentLoaded',()=>boot());
     var el = e.target.closest && e.target.closest('[data-v2]'); if (!el) return;
     var k = el.getAttribute('data-v2');
     if (k === 'mic') return listen();
+    if (k === 'mute') {
+      setMuted(!isMuted());
+      if (isMuted()) clearSpeech();
+      el.textContent = muteLabel();
+      el.setAttribute('aria-pressed', isMuted() ? 'true' : 'false');
+      return;
+    }
     if (k === 'check') return review(($('v2-type') || {}).value);
     if (k === 'rename') return rename();
     if (k === 'rename-save') {
