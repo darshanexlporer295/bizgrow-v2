@@ -1,0 +1,18 @@
+/* BizGrow v2 stage 3: tap targets on phones, and a clean bill for printing. */
+
+/* Every button, link-button, chip and input is at least 44px tall on phones (about a finger). */
+@media (max-width:760px){
+  body .btn,body .btn.sec,body .btn.sm,body .linkbtn,body .chip,body .link{min-height:44px}
+  body .btn.sm{padding-top:10px;padding-bottom:10px}
+  body .in,body input,body select,body textarea{min-height:44px}
+  body button.li,body a.li{min-height:44px}
+}
+
+/* Print: only the bill (the element with class printable) is printed. */
+@media print{
+  body *{visibility:hidden !important}
+  .printable,.printable *{visibility:visible !important}
+  .ov{position:static !important;background:none !important;display:block !important;padding:0 !important}
+  .printable{position:absolute !important;left:0;top:0;width:80mm;max-width:80mm;margin:0;padding:4mm;background:#fff !important;color:#000 !important;box-shadow:none !important;border:0 !important}
+  .printable .r{display:flex;justify-content:space-between}
+}

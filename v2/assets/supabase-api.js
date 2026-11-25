@@ -113,7 +113,7 @@
       role: appRole(st.role), v2role: st.role,
       shop: { id: shop.id, name: shop.name || 'My shop', phone: shop.phone || '', address: shop.address || '', gstin: shop.gstin || '', city: shop.city || '',
         trade: shop.trade || '', upi_id: shop.upi_id || '', category: '', lang: shop.lang || 'en', store_enabled: false, onboarded: true,
-        assistant_name: shop.assistant_name || '', staff_discount_limit: shop.staff_discount_limit == null ? 50 : num(shop.staff_discount_limit) },
+        assistant_name: shop.assistant_name || '', business_type: shop.business_type || '', staff_discount_limit: shop.staff_discount_limit == null ? 50 : num(shop.staff_discount_limit) },
       onboarded: true, answers: {}, lang: shop.lang || 'en',
       signup_done: !!(row && row.done), signup_answers: answers,
       consent: await loadConsent(u.id)
@@ -639,6 +639,14 @@
       try { await saveProfile(shopId, { phone: b.phone, upi_id: b.upi_id, address: b.address }, 'Phone, UPI ID and address'); }
       catch (e) { if (/cannot be saved yet/.test(e.message)) return reply(200, { ok: true, warning: e.message }); throw e; }
       return reply(200, { ok: true });
+    }
+    // Business type (patch-04). Until that update is run, the app keeps the choice on the phone and says so.
+    if (path === '/business-type' && method === 'PUT') {
+      if (!owner) return fail(400, 'Only the owner can change the shop.');
+      var bt = String((body && body.business_type) || '').trim() || null;
+      try { dataOf(await sb.rpc('update_my_business_type', { p_shop: shopId, p_type: bt })); }
+      catch (e) { if (e.message === PATCH_NOTE) return reply(200, { ok: true, saved_here: true }); throw e; }
+      return reply(200, { ok: true, business_type: bt || '' });
     }
     if (path === '/v2/settings' && method === 'PUT') {
       if (!owner) return fail(400, 'Only the owner can change settings.');

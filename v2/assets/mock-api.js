@@ -288,6 +288,12 @@
     }
     if (path === '/language' && method === 'PUT') { st.shop.lang = b.lang || 'en'; save(st); return { ok: true }; }
     if (path === '/onboarding' && method === 'PUT') return { ok: true };
+    if (path === '/business-type' && method === 'PUT') {
+      need(st, 'settings', 'Only the owner can change shop details');
+      var bt = String(b.business_type || '').trim();
+      if (bt && ['textile_trader', 'yarn_fabric', 'raw_material', 'other'].indexOf(bt) < 0) throw E('Please pick a business type from the list');
+      st.shop.business_type = bt; save(st); return { ok: true, business_type: bt };
+    }
     if (path === '/business' && method === 'PUT') {
       need(st, 'settings', 'Only the owner can change shop details');
       if (b.name != null) st.shop.name = text(b.name, 'Shop name', 60);
@@ -396,7 +402,8 @@
     if (k === 'sales' && !parts[1] && method === 'POST') { var r0 = createSale(st, cu, b); save(st); return r0; }
     if (k === 'sales' && id && !sub && method === 'GET') {
       var s1 = st.sales.find(function (s) { return s.id === id && !s.deleted_at; }); if (!s1) throw E('Bill not found', 404);
-      return Object.assign({}, s1, { items: s1.items });
+      // Same shape as the real server: the bill fields, the items, and the bill again under sale.
+      return Object.assign({}, s1, { items: s1.items, sale: Object.assign({}, s1, { items: s1.items }) });
     }
     if (k === 'sales' && id && !sub && method === 'PUT') {
       need(st, 'sale.edit', 'Only the owner or manager can edit a bill');

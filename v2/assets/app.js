@@ -433,13 +433,28 @@ function slipText(r,cart,discount,cname){
 function receipt(r,cart,discount,extra){
   const cust=extra.customer_id?S.customers.find(c=>c.id===extra.customer_id):null;
   const o=modal(`<div class="row sp"><h2>✓ Bill saved</h2><span class="badge">#${r.bill_no}</span></div>
-   <div class="slip" id="slip"><div style="text-align:center"><b>${esc(S.me.shop.name)}</b><br>${esc(S.me.shop.address||'')}${S.me.shop.phone?'<br>Ph: '+esc(S.me.shop.phone):''}</div><hr>
+   <div class="slip printable" id="slip"><div style="text-align:center"><b>${esc(S.me.shop.name)}</b><br>${esc(S.me.shop.address||'')}${S.me.shop.phone?'<br>Ph: '+esc(S.me.shop.phone):''}</div><hr>
    ${cart.map(i=>`<div class="r"><span>${esc(i.name)} × ${qn(i.qty)}</span><span>${inr(i.qty*i.price)}</span></div>`).join('')}<hr>
    ${discount?`<div class="r"><span>Discount</span><span>-${inr(discount)}</span></div>`:''}<div class="r"><b>TOTAL</b><b>${inr(r.total)}</b></div>
    ${r.due>0?`<div class="r"><span>Paid</span><span>${inr(r.paid)}</span></div><div class="r"><b>Balance (udhar)</b><b>${inr(r.due)}</b></div>`:`<div class="r"><span>Paid by</span><span>${extra.method==='upi'?'UPI':'Cash'}</span></div>`}<hr><div style="text-align:center">Thank you!</div></div>
    <div class="grid g2 mt"><a class="btn" target="_blank" rel="noopener" href="${waLink(cust&&cust.phone,slipText(r,cart,discount))}">${t('share_whatsapp')}</a><button class="btn sec" onclick="window.print()">${t('print')}</button></div>
+   <div id="planNote"></div>
    <a class="btn sec block mt" target="_blank" rel="noopener" href="/api/invoice/${r.id}">Invoice / GST bill (PDF)</a>
    <button class="btn sec block mt" onclick="this.closest('.ov').close()">New sale</button>`);
+  planNote();
+}
+/* the bill text for WhatsApp, from a saved bill (same layout as the slip) */
+function billText(s,items){
+  const L=[`*${S.me.shop.name}*`,`${t('m_bill')} #${s.bill_no} · ${dtime(s.created_at)}`];
+  if(s.customer_name)L.push(`${t('s3_bill_for')}: ${s.customer_name}`);
+  L.push('');
+  items.forEach(i=>L.push(`${i.name} × ${qn(i.qty)} = ${inr(i.qty*i.price)}`));
+  if(s.discount)L.push(`${t('m_discount')}: -${inr(s.discount)}`);
+  L.push('',`*${t('m_total')}: ${inr(s.total)}*`);
+  const due=s.total-s.paid;
+  if(due>0)L.push(`${t('m_paid')}: ${inr(s.paid)}`,`*${t('m_balance')}: ${inr(due)}*`);
+  if(due>0&&S.me.shop.upi_id)L.push('',`${t('m_pay_upi')}: ${S.me.shop.upi_id}`);
+  L.push('',t('m_thanks'));return L.join('\n');
 }
 
 /* ---------- bills: list by day, open a bill, edit or delete (owner) ---------- */
@@ -449,13 +464,14 @@ async function pBills(v,args){
   v.innerHTML=head(t('bills'),'Tap a bill to see it'+(isOwner()?', edit or delete':''),`<input type="date" class="in" style="width:auto" value="${day}" onchange="location.hash='#/bills/'+this.value">`)+
   `<div class="card">${r.items.length?`<div class="list">${r.items.map(s=>`<button class="li" style="width:100%;text-align:left" data-act="bill-open" data-id="${s.id}"><div class="grow"><div class="t">Bill #${s.bill_no} · ${esc(s.customer_name||'Walk-in')}</div><div class="d">${dtime(s.created_at)} · ${s.method==='upi'?'UPI':'Cash'}${s.total-s.paid>0?' · udhar '+inr(s.total-s.paid):''}</div></div><b class="num">${inr(s.total)}</b></button>`).join('')}</div>`:emptyBox('No bills on this day','Bills you save will show here.')}</div>`;
 }
-ACT['bill-open']=async el=>{const d=await api('/sales/'+el.dataset.id);const s=d.sale;
+ACT['bill-open']=async el=>{const d=await api('/sales/'+el.dataset.id);const s=d.sale;await loadCustomers();const cu=s.customer_id?S.customers.find(c=>c.id===s.customer_id):null;
   modal(`<div class="row sp"><h2>Bill #${s.bill_no}</h2><span class="muted small">${dtime(s.created_at)}</span></div>
   <p class="muted small">${esc(s.customer_name||'Walk-in')}</p>
-  <div class="slip">${d.items.map(i=>`<div class="r"><span>${esc(i.name)} × ${qn(i.qty)}</span><span>${inr(i.qty*i.price)}</span></div>`).join('')}<hr>
+  <div class="slip printable">${d.items.map(i=>`<div class="r"><span>${esc(i.name)} × ${qn(i.qty)}</span><span>${inr(i.qty*i.price)}</span></div>`).join('')}<hr>
   ${s.discount?`<div class="r"><span>Discount</span><span>-${inr(s.discount)}</span></div>`:''}<div class="r"><b>TOTAL</b><b>${inr(s.total)}</b></div>
   <div class="r"><span>Paid (${s.method==='upi'?'UPI':'Cash'})</span><span>${inr(s.paid)}</span></div>
   ${s.total-s.paid>0?`<div class="r"><b>Balance (udhar)</b><b>${inr(s.total-s.paid)}</b></div>`:''}</div>
+  <div class="grid g2 mt"><a class="btn" target="_blank" rel="noopener" href="${waLink(cu&&cu.phone,billText(s,d.items))}">${t('s3_share_bill')}</a><button class="btn sec" onclick="window.print()">${t('s3_print')}</button></div>
   <a class="btn sec block mt" target="_blank" rel="noopener" href="/api/invoice/${s.id}">Invoice / GST bill (PDF)</a>
   ${isOwner()?`<div class="grid g2 mt"><button class="btn sec" data-act="bill-edit" data-id="${s.id}">${t('edit')}</button><button class="btn red" data-act="bill-del" data-id="${s.id}" data-no="${s.bill_no}" data-total="${s.total}">Delete</button></div>`:''}`);
 };
@@ -480,16 +496,20 @@ function remText(tpl,c,amt){const base=t(REM_TPL[tpl]).replace('{name}',c.name).
 async function pReminders(v){
   await loadCustomers();
   const tpl=S.remTpl&&REM_TPL[S.remTpl]?S.remTpl:'polite';
-  const rows=S.customers.filter(c=>c.balance>0).sort((a,b)=>b.balance-a.balance);
-  const opened=JSON.parse(localStorage.getItem(remKey())||'[]');
   const days=c=>c.last_credit?Math.floor((Date.now()-new Date(c.last_credit))/864e5):null;
+  const owing=S.customers.filter(c=>c.balance>0).sort((a,b)=>b.balance-a.balance);
+  const rows=S.remOnly?owing.filter(c=>(days(c)||0)>=7):owing;
+  const opened=JSON.parse(localStorage.getItem(remKey())||'[]');
   v.innerHTML=head('Send reminders','Open WhatsApp with each message ready, then tap Send there.')+
    `<div class="card mb"><p class="small">BizGrow opens WhatsApp with the message ready. You tap Send in WhatsApp. Sending on its own needs a WhatsApp Business account, which BizGrow does not use yet.</p>
-    <div class="row wrap mt">${Object.keys(REM_TPL).map(k=>`<button class="btn sm ${k===tpl?'':'sec'}" data-act="rtpl" data-k="${k}">${REM_TPL_NAME[k]}</button>`).join('')}</div></div>
-   <div class="card">${rows.length?`<div class="small muted mb">${opened.length} of ${rows.length} opened today</div><div class="list">${rows.map(c=>{const d=days(c);const done=opened.includes(c.id);
-     return `<div class="li"><div class="grow"><div class="t">${esc(c.name)}</div><div class="d">${inr(c.balance)}${d!=null&&d>=1?` · ${d} day${d>1?'s':''} since last udhar`:''}</div></div>${c.phone?`<a class="btn sm ${done?'sec':''}" target="_blank" rel="noopener" data-rem="${c.id}" href="${waLink(c.phone,remText(tpl,c,c.balance))}">${done?'Opened':'Open WhatsApp'}</a>`:`<a class="btn sec sm" href="#/khata/${c.id}">Add phone</a>`}</div>`;}).join('')}</div>`
-     :emptyBox('Nobody owes you right now','Reminders show here when a customer has udhar pending.','<a class="btn sec" href="#/khata">Back to khata</a>')}</div>`;
+    <div class="row wrap mt">${Object.keys(REM_TPL).map(k=>`<button class="btn sm ${k===tpl?'':'sec'}" data-act="rtpl" data-k="${k}">${REM_TPL_NAME[k]}</button>`).join('')}</div>
+    <div class="row wrap mt">${[[false,t('s3_all')],[true,t('s3_overdue_only')]].map(([k,l])=>`<button class="btn sm ${!!S.remOnly===k?'':'sec'}" data-act="remfilter" data-k="${k?1:0}">${l}</button>`).join('')}</div></div>
+   <div class="card">${rows.length?`<div class="row sp mb"><span class="small muted">${t('s3_opened_of').replace('{n}',opened.length).replace('{m}',rows.length)}</span><button class="btn sm" data-act="remnext">${t('s3_open_next')}</button></div><div class="list">${rows.map(c=>{const d=days(c);const done=opened.includes(c.id);
+     return `<div class="li"><div class="grow"><div class="t">${esc(c.name)}</div><div class="d">${inr(c.balance)}${d!=null&&d>=1?` · ${d} day${d>1?'s':''} since last udhar`:''}</div></div>${c.phone?`<a class="btn sm ${done?'sec':''}" target="_blank" rel="noopener" data-rem="${c.id}" href="${waLink(c.phone,remText(tpl,c,c.balance))}">${done?'Opened':t('s3_remind_wa')}</a>`:`<a class="btn sec sm" href="#/khata/${c.id}">${t('s3_add_phone')}</a>`}</div>`;}).join('')}</div>`
+     :emptyBox(S.remOnly?t('s3_nobody_overdue'):'Nobody owes you right now','Reminders show here when a customer has udhar pending.','<a class="btn sec" href="#/khata">Back to khata</a>')}</div>`;
 }
+ACT.remfilter=el=>{S.remOnly=el.dataset.k==='1';render();};
+ACT.remnext=()=>{const opened=JSON.parse(localStorage.getItem(remKey())||'[]');const next=[...document.querySelectorAll('a[data-rem]')].find(a=>!opened.includes(a.dataset.rem));if(!next){toast(t('s3_all_done'));return;}next.click();};
 ACT.rtpl=el=>{S.remTpl=el.dataset.k;render();};
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[data-rem]');if(!a)return;const k=remKey();const arr=JSON.parse(localStorage.getItem(k)||'[]');if(!arr.includes(a.dataset.rem)){arr.push(a.dataset.rem);localStorage.setItem(k,JSON.stringify(arr));}a.textContent='Opened';a.classList.add('sec');});
 
@@ -517,7 +537,7 @@ async function pCustomer(v,id){
    `<div class="grid g21"><div class="card"><div class="row sp mb"><h3 style="margin:0">History</h3><button class="link" data-act="addcredit" data-id="${c.id}">+ Add old udhar</button></div>
    ${d.ledger.length?`<div class="list">${d.ledger.map(x=>`<div class="li"><div class="grow"><div class="t">${x.kind==='credit'?esc(x.note||'Udhar'):'Payment received'+(x.method?' ('+(x.method==='upi'?'UPI':'cash')+')':'')}</div><div class="d">${dtime(x.created_at)}${x.kind==='payment'&&x.note?' · '+esc(x.note):''}</div></div><div class="bold ${x.kind==='credit'?'dn':'up'}">${x.kind==='credit'?'+':'−'}${inr(x.amount)}</div></div>`).join('')}</div>`:emptyBox('No entries yet','Udhar bills and payments will show here.')}</div>
    <div class="card"><div class="k muted small">${d.balance>0?'Owes you':d.balance<0?'Advance paid':'Balance'}</div><div class="num bold ${d.balance>0?'dn':''}" style="font-size:32px">${inr(Math.abs(d.balance))}</div>${days>=7&&d.balance>0?`<div class="badge amber mt">Pending for ${days} days</div>`:''}
-   <div class="grid mt">${d.balance>0?`<button class="btn" data-act="receive" data-id="${c.id}" data-bal="${d.balance}">${t('record_payment')}</button><a class="btn sec" target="_blank" rel="noopener" href="${waLink(c.phone,msg)}">${t('send_reminder')} (WhatsApp)</a>`:''}</div>
+   <div class="grid mt">${d.balance>0?`<button class="btn" data-act="receive" data-id="${c.id}" data-bal="${d.balance}">${t('record_payment')}</button>${c.phone?`<a class="btn sec" target="_blank" rel="noopener" href="${waLink(c.phone,msg)}">${t('s3_remind_wa')}</a>`:`<p class="small">${t('s3_no_phone')}</p><button class="btn sec" data-act="editcust" data-id="${c.id}">${t('s3_add_phone')}</button>`}`:''}</div>
    ${c.note?`<p class="muted small mt">${esc(c.note)}</p>`:''}${isOwner()?`<button class="link mt" style="color:var(--danger)" data-act="delcust" data-id="${c.id}">Delete customer</button>`:''}</div></div>`;
 }
 ACT.receive=el=>modal(`<h2>${t('record_payment')}</h2><form data-form="receive"><input type="hidden" name="id" value="${el.dataset.id}"><div class="f"><label>${t('amount')} (₹)</label><input class="in" name="amount" type="number" step="any" min="0" value="${el.dataset.bal}" inputmode="decimal" required></div><div class="f"><label>How did they pay?</label><select class="in" name="method"><option value="cash">${t('cash')}</option><option value="upi">${t('upi')}</option></select></div><div class="f"><label>${t('note')}</label><input class="in" name="note"></div><button class="btn block" type="submit">${t('save')}</button></form>`);
@@ -665,16 +685,37 @@ ACT.erase=()=>modal(`<h2 style="color:var(--danger)">Delete everything?</h2><p c
 FORM.erase=async(f,d)=>{await api('/privacy/erase','POST',d);S.me=null;location.hash='';render();};
 
 /* ---------- settings ---------- */
-async function pSettings(v){
+/* plans: notice only, nothing is blocked and nothing is charged (see v2-i18n-stage3.js) */
+async function planCount(){const r=await api('/sales?from='+today().slice(0,8)+'01&to='+today());return (r.items||[]).length;}
+function billNotice(n){if(n>=30)return `<p class="small mt" style="color:#7a4a00">${t('s3_bills_limit')}</p>`;if(n>=25)return `<p class="small mt" style="color:#7a4a00">${t('s3_bills_near')}</p>`;return '';}
+async function planNote(){const el=$('#planNote');if(!el)return;try{el.innerHTML=billNotice(await planCount());}catch(e){}}
+async function pPlan(v){
+  const n=await planCount();
+  const card=(name,price,yearly,desc,extra)=>`<div class="card"><div class="row sp"><h3 style="margin:0">${name}</h3><span class="badge amber">${t('s3_proposed')}</span></div><div class="num bold" style="font-size:24px;margin-top:8px">${price}</div>${yearly?`<div class="small muted">${yearly}</div>`:''}<p class="small mt">${desc}</p>${extra||''}</div>`;
+  v.innerHTML=`<a class="link" href="#/settings">← ${t('settings')}</a>`+head(t('s3_plan_title'),t('s3_plan_sub'))+
+  `<div class="plans" style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">`+
+  card(t('s3_starter'),t('s3_starter_price'),'',t('s3_starter_desc'),`<div class="mt"><b>${t('s3_current')}</b><div class="small">${t('s3_bills_used').replace('{n}',n)}</div>${billNotice(n)}</div>`)+
+  card(t('s3_pro'),t('s3_pro_price'),t('s3_pro_yearly'),t('s3_pro_desc'))+
+  card(t('s3_team'),t('s3_team_price'),t('s3_team_yearly'),t('s3_team_desc'))+
+  `</div><div class="card mt"><b>${t('s3_soon')}</b><p class="small muted">${t('s3_soon_note')}</p><button class="btn sec" data-act="plansoon">${t('s3_soon')}</button></div>`;
+}
+ACT.plansoon=()=>toast(t('s3_soon_note'));
+async function pSettings(v,args){
+  if(args&&args[0]==='plan')return pPlan(v);
   const s=S.me.shop;
+  const cur=s.business_type||localStorage.getItem('bg_biztype_'+s.id)||'';
+  const bizOpts=[['','—'],...['textile_trader','yarn_fabric','raw_material','other'].map(k=>[k,t('s3_bt_'+k)])].map(([k,l])=>`<option value="${k}" ${cur===k?'selected':''}>${l}</option>`).join('');
   v.innerHTML=head(t('settings'),'Your shop details')+`<div class="card" style="max-width:640px"><form data-form="settings"><div class="f"><label>${t('shop_name')}</label><input class="in" name="name" value="${esc(s.name)}" required></div>
   <div class="frow"><div class="f"><label>Shop ${t('phone').toLowerCase()}</label><input class="in" name="phone" type="tel" value="${esc(s.phone||'')}"></div></div>
   <div class="f"><label>Your UPI ID</label><input class="in" name="upi_id" value="${esc(s.upi_id||'')}" placeholder="name@bank"><div class="hint">Shown on udhar bills and reminders so customers can pay you.</div></div>
   <div class="f"><label>Address (on bills)</label><input class="in" name="address" value="${esc(s.address||'')}"></div>
   <div class="frow"><div class="f"><label>GST number (optional)</label><input class="in" name="gstin" value="${esc(s.gstin||'')}"></div><div class="f"><label>${t('language')}</label><select class="in" name="lang">${Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('')}</select></div></div>
-  <input type="hidden" name="store_enabled" value="${s.store_enabled?'1':''}"><button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>`;
+  <input type="hidden" name="store_enabled" value="${s.store_enabled?'1':''}"><button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>
+  <div class="card mt" style="max-width:640px"><h3>${t('s3_biz_title')}</h3><p class="muted small mb">${t('s3_biz_sub')}</p><form data-form="biztype"><div class="f"><select class="in" name="business_type">${bizOpts}</select></div><button class="btn sec" type="submit">${t('save')}</button></form></div>
+  <div class="card mt" style="max-width:640px"><h3>${t('s3_plan_title')}</h3><a class="btn sec" href="#/settings/plan">${t('s3_plan_link')}</a></div>`;
 }
 ACT.redoob=()=>onboarding();
+FORM.biztype=async(f,d)=>{const v=d.business_type||'';localStorage.setItem('bg_biztype_'+S.me.shop.id,v);const r=await api('/business-type','PUT',{business_type:v});S.me=await api('/me');toast(r&&r.saved_here?t('s3_biz_local'):t('s3_biz_saved'));render();};
 FORM.settings=async(f,d)=>{d.store_enabled=!!d.store_enabled;const r=await api('/business','PUT',d);S.lang=d.lang;localStorage.setItem('bg_lang',d.lang);S.me=await api('/me');toast((r&&r.warning)||'Saved');render();};
 
 window.BGV2={ACT,FORM,S,api,render,toast,isOwner:()=>isOwner(),esc,inr,t,head,modal,go};

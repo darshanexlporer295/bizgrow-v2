@@ -280,6 +280,26 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 .rc-chk { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; line-height: 1.5; margin: 18px 0; }
 .rc-chk input { margin-top: 4px; width: 20px; height: 20px; flex: none; }
 
+</style><style>
+/* BizGrow v2 stage 3: tap targets on phones, and a clean bill for printing. */
+
+/* Every button, link-button, chip and input is at least 44px tall on phones (about a finger). */
+@media (max-width:760px){
+  body .btn,body .btn.sec,body .btn.sm,body .linkbtn,body .chip,body .link{min-height:44px}
+  body .btn.sm{padding-top:10px;padding-bottom:10px}
+  body .in,body input,body select,body textarea{min-height:44px}
+  body button.li,body a.li{min-height:44px}
+}
+
+/* Print: only the bill (the element with class printable) is printed. */
+@media print{
+  body *{visibility:hidden !important}
+  .printable,.printable *{visibility:visible !important}
+  .ov{position:static !important;background:none !important;display:block !important;padding:0 !important}
+  .printable{position:absolute !important;left:0;top:0;width:80mm;max-width:80mm;margin:0;padding:4mm;background:#fff !important;color:#000 !important;box-shadow:none !important;border:0 !important}
+  .printable .r{display:flex;justify-content:space-between}
+}
+
 </style></head>
 <body><div id="app"></div><noscript>BizGrow needs JavaScript to run.</noscript><script>
 window.I18N={"en": {"home": "Home","sell": "Sell","khata": "Udhar","stock": "Stock","expenses": "Expenses","reports": "Reports","suppliers": "Suppliers","tasks": "Tasks","store": "Online store","settings": "Settings","more": "More","team": "Team","privacy": "Privacy","save": "Save","cancel": "Cancel","add": "Add","delete": "Delete","edit": "Edit","search": "Search","name": "Name","phone": "Phone","amount": "Amount","note": "Note","total": "Total","today": "Today","signout": "Sign out","hello": "Hello","sales_today": "Sales today","bills": "Bills","spent": "Spent today","profit": "Profit today","to_collect": "To collect (udhar)","low_stock": "Running low","cash": "Cash","upi": "UPI","on_udhar": "Put on udhar","charge": "Pay","cart": "Current bill","empty_cart": "Tap an item to add it","discount": "Discount","customer": "Customer","add_item": "Add item","price": "Price","qty": "Quantity","received": "Payment received","send_reminder": "Send reminder","record_payment": "Record payment","share_whatsapp": "Share on WhatsApp","print": "Print","language": "Language","signin": "Sign in","signup": "Create account","email": "Email","password": "Password","shop_name": "Shop name","your_name": "Your name","items": "Items","customers": "Customers","new_sale": "New sale","week": "7 days","month": "30 days","revenue": "Sales","top_items": "Best sellers","expense_split": "Where money went","cash_in_hand": "Cash in hand","day_end": "Day-end report","export": "Download for accountant","owed_by": "owes you","all_clear": "All clear","in_stock": "In stock","c_sell": "Invoice","c_khata": "Clients","c_customers": "Clients","c_stock": "Services","c_reports": "Profit","c_expenses": "Expenses","c_to_collect": "Pending from clients","c_clips_tag": "RÊVO Clips","c_clips_title": "Want your reels edited for you?","c_clips_body": "Short video editing, podcast clipping, social media design and comment-to-DM funnels, by RÊVO Clips.","c_clips_cta": "Talk to RÊVO Clips","c_clips_pop": "Posting consistently is the hard part. Want us to make your reels?","c_not_now": "Not now","c_exp_tools": "Tools & software","c_exp_gear": "Gear & equipment","c_exp_ads": "Ads & promotion","c_exp_internet": "Internet & phone","c_exp_travel": "Travel","c_exp_freelance": "Freelancers & editors","c_exp_other": "Other","scan_btn": "Scan","scan_title": "Scan barcode","scan_bill_title": "Scan to add to bill","scan_item_title": "Scan item code","scan_starting": "Starting the camera…","scan_point": "Point the camera at the barcode.","scan_or_type": "Or type the code","scan_type_ph": "Type or paste the code","scan_use": "Use","scan_done": "Done","scan_no_device": "Camera is not available on this device. Type the code above.","scan_denied": "Camera permission is off. Allow the camera for this site in your browser settings, or type the code above.","scan_no_cam": "No camera found. Type the code above.","scan_cam_fail": "The camera could not start. Type the code above.","scan_loading": "Loading the scanner…","scan_lib_fail": "The scanner could not load. Type the code above.","scan_not_found": "No item has the code {code}. Add it under Stock first.","scan_added": "Added {name}","scan_filled": "Code filled in","m_bill": "Bill","m_discount": "Discount","m_total": "Total","m_paid": "Paid","m_balance": "Balance (udhar)","m_pay_upi": "Pay by UPI","m_thanks": "Thank you! 🙏","m_udhar_given": "Udhar given","wa_reminder": "Namaste {name}, this is a gentle reminder from {shop}: {amount} is pending on your account.","wa_upi": "You can pay by UPI to {upi}.","wa_order": "Hello {name}, I want to place an order.","wa_store": "Hello! See what's available at {shop} and order on WhatsApp: {link}","wa_join": "Join {shop} on BizGrow: {link}","rem_firm": "{name}, your balance at {shop} is {amount}. Please clear it this week.","rem_friendly": "Hi {name}! Quick note from {shop}: {amount} is pending on your account.","out_of_stock": "Out of stock"},"hi": {"home": "होम","sell": "बेचें","khata": "उधार","stock": "स्टॉक","expenses": "खर्चे","reports": "रिपोर्ट","suppliers": "सप्लायर","tasks": "काम","store": "ऑनलाइन दुकान","settings": "सेटिंग","more": "और","team": "टीम","privacy": "गोपनीयता","save": "सेव करें","cancel": "रद्द करें","add": "जोड़ें","delete": "हटाएं","edit": "बदलें","search": "खोजें","name": "नाम","phone": "फ़ोन","amount": "रकम","note": "नोट","total": "कुल","today": "आज","signout": "साइन आउट","hello": "नमस्ते","sales_today": "आज की बिक्री","bills": "बिल","spent": "आज का खर्च","profit": "आज का मुनाफ़ा","to_collect": "वसूलना है (उधार)","low_stock": "कम स्टॉक","cash": "नकद","upi": "UPI","on_udhar": "उधार में लिखें","charge": "बिल बनाएं","cart": "मौजूदा बिल","empty_cart": "आइटम पर टैप करें","discount": "छूट","customer": "ग्राहक","add_item": "आइटम जोड़ें","price": "कीमत","qty": "मात्रा","received": "पैसे मिले","send_reminder": "याद दिलाएं","record_payment": "पेमेंट दर्ज करें","share_whatsapp": "WhatsApp पर भेजें","print": "प्रिंट","language": "भाषा","signin": "साइन इन","signup": "खाता बनाएं","email": "ईमेल","password": "पासवर्ड","shop_name": "दुकान का नाम","your_name": "आपका नाम","items": "आइटम","customers": "ग्राहक","new_sale": "नई बिक्री","week": "7 दिन","month": "30 दिन","revenue": "बिक्री","top_items": "सबसे ज़्यादा बिकने वाले","expense_split": "पैसा कहाँ गया","cash_in_hand": "गल्ले में नकद","day_end": "दिन का हिसाब","export": "CA के लिए डाउनलोड","owed_by": "आपसे बकाया","all_clear": "सब ठीक","in_stock": "स्टॉक में","c_sell": "इनवॉइस","c_khata": "क्लाइंट","c_customers": "क्लाइंट","c_stock": "सेवाएं","c_reports": "मुनाफ़ा","c_expenses": "खर्च","c_to_collect": "क्लाइंट से बकाया","c_clips_tag": "RÊVO Clips","c_clips_title": "क्या अपनी रील्स एडिट करवानी हैं?","c_clips_body": "शॉर्ट वीडियो एडिटिंग, पॉडकास्ट क्लिपिंग, सोशल मीडिया डिज़ाइन और कमेंट से DM फ़नल। RÊVO Clips की ओर से।","c_clips_cta": "RÊVO Clips से बात करें","c_clips_pop": "लगातार पोस्ट करना ही सबसे मुश्किल है। क्या हम आपकी रील्स बनाएं?","c_not_now": "अभी नहीं","c_exp_tools": "टूल्स और सॉफ़्टवेयर","c_exp_gear": "गियर और उपकरण","c_exp_ads": "विज्ञापन और प्रमोशन","c_exp_internet": "इंटरनेट और फ़ोन","c_exp_travel": "यात्रा","c_exp_freelance": "फ़्रीलांसर और एडिटर","c_exp_other": "अन्य","scan_btn": "स्कैन करें","scan_title": "बारकोड स्कैन करें","scan_bill_title": "बिल में जोड़ने के लिए स्कैन करें","scan_item_title": "आइटम का कोड स्कैन करें","scan_starting": "कैमरा चालू हो रहा है…","scan_point": "कैमरा बारकोड की तरफ़ रखें।","scan_or_type": "या कोड टाइप करें","scan_type_ph": "कोड लिखें या पेस्ट करें","scan_use": "जोड़ें","scan_done": "हो गया","scan_no_device": "इस फ़ोन में कैमरा उपलब्ध नहीं है। ऊपर कोड लिखें।","scan_denied": "कैमरे की अनुमति बंद है। ब्राउज़र सेटिंग में इस साइट को कैमरा दें, या ऊपर कोड लिखें।","scan_no_cam": "कोई कैमरा नहीं मिला। ऊपर कोड लिखें।","scan_cam_fail": "कैमरा शुरू नहीं हो सका। ऊपर कोड लिखें।","scan_loading": "स्कैनर लोड हो रहा है…","scan_lib_fail": "स्कैनर लोड नहीं हो सका। ऊपर कोड लिखें।","scan_not_found": "{code} कोड वाला कोई आइटम नहीं है। पहले स्टॉक में जोड़ें।","scan_added": "{name} जोड़ा गया","scan_filled": "कोड भर दिया गया","m_bill": "बिल","m_discount": "छूट","m_total": "कुल","m_paid": "जमा किए","m_balance": "बकाया (उधार)","m_pay_upi": "UPI से भुगतान करें","m_thanks": "धन्यवाद! 🙏","m_udhar_given": "उधार दिया","wa_reminder": "नमस्ते {name}, {shop} की ओर से याद दिलाना है: आपका {amount} बकाया है।","wa_upi": "आप UPI से {upi} पर भुगतान कर सकते हैं।","wa_order": "नमस्ते {name}, मुझे एक ऑर्डर देना है।","wa_store": "नमस्ते! देखें {shop} पर क्या उपलब्ध है और WhatsApp पर ऑर्डर करें: {link}","wa_join": "BizGrow पर {shop} से जुड़ें: {link}","rem_firm": "{name}, {shop} पर आपका बकाया {amount} है। कृपया इस हफ़्ते चुकता करें।","rem_friendly": "नमस्ते {name}! {shop} की तरफ़ से छोटी सी याद: आपका {amount} बकाया है।","out_of_stock": "स्टॉक में नहीं है"},"mr": {"home": "मुख्यपृष्ठ","sell": "विक्री","khata": "उधार","stock": "स्टॉक","expenses": "खर्च","reports": "अहवाल","suppliers": "पुरवठादार","tasks": "कामे","store": "ऑनलाइन दुकान","settings": "सेटिंग्ज","more": "अधिक","team": "टीम","privacy": "गोपनीयता","save": "जतन करा","cancel": "रद्द करा","add": "जोडा","delete": "हटवा","edit": "बदला","search": "शोधा","name": "नाव","phone": "फोन","amount": "रक्कम","note": "टीप","total": "एकूण","today": "आज","signout": "साइन आउट","hello": "नमस्कार","sales_today": "आजची विक्री","bills": "बिले","spent": "आजचा खर्च","profit": "आजचा नफा","to_collect": "वसूल करायचे (उधार)","low_stock": "कमी स्टॉक","cash": "रोख","upi": "UPI","on_udhar": "उधारीत लिहा","charge": "बिल करा","cart": "सध्याचे बिल","empty_cart": "वस्तूवर टॅप करा","discount": "सवलत","customer": "ग्राहक","add_item": "वस्तू जोडा","price": "किंमत","qty": "प्रमाण","received": "पैसे मिळाले","send_reminder": "आठवण पाठवा","record_payment": "पेमेंट नोंदवा","share_whatsapp": "WhatsApp वर पाठवा","print": "प्रिंट","language": "भाषा","signin": "साइन इन","signup": "खाते उघडा","email": "ईमेल","password": "पासवर्ड","shop_name": "दुकानाचे नाव","your_name": "तुमचे नाव","items": "वस्तू","customers": "ग्राहक","new_sale": "नवीन विक्री","week": "७ दिवस","month": "३० दिवस","revenue": "विक्री","top_items": "सर्वाधिक विकले जाणारे","expense_split": "पैसे कुठे गेले","cash_in_hand": "गल्ल्यातील रोख","day_end": "दिवसअखेरचा हिशोब","export": "CA साठी डाउनलोड","owed_by": "तुमचे येणे बाकी","all_clear": "सर्व ठीक","in_stock": "स्टॉकमध्ये","c_sell": "इनव्हॉइस","c_khata": "क्लायंट","c_customers": "क्लायंट","c_stock": "सेवा","c_reports": "नफा","c_expenses": "खर्च","c_to_collect": "क्लायंटकडून येणे बाकी","c_clips_tag": "RÊVO Clips","c_clips_title": "तुमच्या रील्स एडिट करून हव्यात का?","c_clips_body": "शॉर्ट व्हिडिओ एडिटिंग, पॉडकास्ट क्लिपिंग, सोशल मीडिया डिझाइन आणि कमेंट-टू-DM फनेल. RÊVO Clips कडून.","c_clips_cta": "RÊVO Clips शी बोला","c_clips_pop": "सातत्याने पोस्ट करणे हेच अवघड आहे. तुमच्या रील्स आम्ही बनवाव्यात का?","c_not_now": "आत्ता नको","c_exp_tools": "टूल्स आणि सॉफ्टवेअर","c_exp_gear": "गिअर आणि उपकरणे","c_exp_ads": "जाहिरात आणि प्रमोशन","c_exp_internet": "इंटरनेट आणि फोन","c_exp_travel": "प्रवास","c_exp_freelance": "फ्रीलान्सर आणि एडिटर","c_exp_other": "इतर","scan_btn": "स्कॅन करा","scan_title": "बारकोड स्कॅन करा","scan_bill_title": "बिलात टाकण्यासाठी स्कॅन करा","scan_item_title": "वस्तूचा कोड स्कॅन करा","scan_starting": "कॅमेरा सुरू होत आहे…","scan_point": "कॅमेरा बारकोडकडे धरा.","scan_or_type": "किंवा कोड टाइप करा","scan_type_ph": "कोड टाइप करा किंवा पेस्ट करा","scan_use": "वापरा","scan_done": "झाले","scan_no_device": "या उपकरणात कॅमेरा उपलब्ध नाही. वर कोड टाइप करा.","scan_denied": "कॅमेराची परवानगी बंद आहे. ब्राउझर सेटिंगमध्ये या साइटला कॅमेरा द्या, किंवा वर कोड टाइप करा.","scan_no_cam": "कॅमेरा सापडला नाही. वर कोड टाइप करा.","scan_cam_fail": "कॅमेरा सुरू होऊ शकला नाही. वर कोड टाइप करा.","scan_loading": "स्कॅनर लोड होत आहे…","scan_lib_fail": "स्कॅनर लोड होऊ शकला नाही. वर कोड टाइप करा.","scan_not_found": "{code} कोड असलेली कोणतीही वस्तू नाही. आधी स्टॉकमध्ये जोडा.","scan_added": "{name} जोडले","scan_filled": "कोड भरला","m_bill": "बिल","m_discount": "सवलत","m_total": "एकूण","m_paid": "दिले","m_balance": "बाकी (उधार)","m_pay_upi": "UPI ने पैसे द्या","m_thanks": "धन्यवाद! 🙏","m_udhar_given": "उधार दिले","wa_reminder": "नमस्कार {name}, {shop} कडून आठवण: तुमचे {amount} बाकी आहेत.","wa_upi": "तुम्ही UPI ने {upi} वर पैसे देऊ शकता.","wa_order": "नमस्कार {name}, मला एक ऑर्डर द्यायची आहे.","wa_store": "नमस्कार! {shop} वर काय उपलब्ध आहे ते पाहा आणि WhatsApp वर ऑर्डर करा: {link}","wa_join": "BizGrow वर {shop} मध्ये सामील व्हा: {link}","rem_firm": "{name}, {shop} वर तुमची बाकी {amount} आहे. कृपया या आठवड्यात भरा.","rem_friendly": "नमस्कार {name}! {shop} कडून छोटीशी आठवण: तुमचे {amount} बाकी आहेत.","out_of_stock": "स्टॉक संपला"},"gu": {"home": "હોમ","sell": "વેચો","khata": "ઉધાર","stock": "સ્ટોક","expenses": "ખર્ચ","reports": "રિપોર્ટ","suppliers": "સપ્લાયર","tasks": "કામ","store": "ઓનલાઇન દુકાન","settings": "સેટિંગ્સ","more": "વધુ","team": "ટીમ","privacy": "ગોપનીયતા","save": "સાચવો","cancel": "રદ કરો","add": "ઉમેરો","delete": "કાઢી નાખો","edit": "સુધારો","search": "શોધો","name": "નામ","phone": "ફોન","amount": "રકમ","note": "નોંધ","total": "કુલ","today": "આજ","signout": "સાઇન આઉટ","hello": "નમસ્તે","sales_today": "આજનું વેચાણ","bills": "બિલ","spent": "આજનો ખર્ચ","profit": "આજનો નફો","to_collect": "વસૂલવાના (ઉધાર)","low_stock": "ઓછો સ્ટોક","cash": "રોકડ","upi": "UPI","on_udhar": "ઉધારમાં લખો","charge": "બિલ બનાવો","cart": "હાલનું બિલ","empty_cart": "વસ્તુ પર ટૅપ કરો","discount": "છૂટ","customer": "ગ્રાહક","add_item": "વસ્તુ ઉમેરો","price": "કિંમત","qty": "જથ્થો","received": "પૈસા મળ્યા","send_reminder": "યાદ અપાવો","record_payment": "ચુકવણી નોંધો","share_whatsapp": "WhatsApp પર મોકલો","print": "પ્રિન્ટ","language": "ભાષા","signin": "સાઇન ઇન","signup": "ખાતું બનાવો","email": "ઇમેઇલ","password": "પાસવર્ડ","shop_name": "દુકાનનું નામ","your_name": "તમારું નામ","items": "વસ્તુઓ","customers": "ગ્રાહકો","new_sale": "નવું વેચાણ","week": "૭ દિવસ","month": "૩૦ દિવસ","revenue": "વેચાણ","top_items": "સૌથી વધુ વેચાતા","expense_split": "પૈસા ક્યાં ગયા","cash_in_hand": "ગલ્લામાં રોકડ","day_end": "દિવસનો હિસાબ","export": "CA માટે ડાઉનલોડ","owed_by": "તમારી પાસે બાકી","all_clear": "બધું ક્લિયર","in_stock": "સ્ટોકમાં","c_sell": "ઇન્વૉઇસ","c_khata": "ક્લાયન્ટ","c_customers": "ક્લાયન્ટ","c_stock": "સેવાઓ","c_reports": "નફો","c_expenses": "ખર્ચ","c_to_collect": "ક્લાયન્ટ પાસે બાકી","c_clips_tag": "RÊVO Clips","c_clips_title": "તમારી રીલ્સ એડિટ કરાવવી છે?","c_clips_body": "શોર્ટ વિડિયો એડિટિંગ, પોડકાસ્ટ ક્લિપિંગ, સોશિયલ મીડિયા ડિઝાઇન અને કમેન્ટ-થી-DM ફનલ. RÊVO Clips તરફથી.","c_clips_cta": "RÊVO Clips સાથે વાત કરો","c_clips_pop": "સતત પોસ્ટ કરવું એ જ અઘરું છે. તમારી રીલ્સ અમે બનાવીએ?","c_not_now": "હમણાં નહીં","c_exp_tools": "ટૂલ્સ અને સોફ્ટવેર","c_exp_gear": "ગિયર અને સાધનો","c_exp_ads": "જાહેરાત અને પ્રમોશન","c_exp_internet": "ઇન્ટરનેટ અને ફોન","c_exp_travel": "મુસાફરી","c_exp_freelance": "ફ્રીલાન્સર અને એડિટર","c_exp_other": "અન્ય","scan_btn": "સ્કેન કરો","scan_title": "બારકોડ સ્કેન કરો","scan_bill_title": "બિલમાં ઉમેરવા સ્કેન કરો","scan_item_title": "વસ્તુનો કોડ સ્કેન કરો","scan_starting": "કેમેરા ચાલુ થઈ રહ્યો છે…","scan_point": "કેમેરાને બારકોડ તરફ રાખો.","scan_or_type": "અથવા કોડ લખો","scan_type_ph": "કોડ લખો અથવા પેસ્ટ કરો","scan_use": "વાપરો","scan_done": "થઈ ગયું","scan_no_device": "આ ફોનમાં કેમેરા ઉપલબ્ધ નથી. ઉપર કોડ લખો.","scan_denied": "કેમેરાની પરવાનગી બંધ છે. બ્રાઉઝર સેટિંગમાં આ સાઇટને કેમેરા આપો, અથવા ઉપર કોડ લખો.","scan_no_cam": "કોઈ કેમેરા મળ્યો નહીં. ઉપર કોડ લખો.","scan_cam_fail": "કેમેરો શરૂ થઈ શક્યો નહીં. ઉપર કોડ લખો.","scan_loading": "સ્કેનર લોડ થઈ રહ્યું છે…","scan_lib_fail": "સ્કેનર લોડ થઈ શક્યું નહીં. ઉપર કોડ લખો.","scan_not_found": "{code} કોડવાળી કોઈ વસ્તુ નથી. પહેલા સ્ટૉકમાં ઉમેરો.","scan_added": "{name} ઉમેર્યું","scan_filled": "કોડ ભરાઈ ગયો","m_bill": "બિલ","m_discount": "છૂટ","m_total": "કુલ","m_paid": "ચૂકવ્યા","m_balance": "બાકી (ઉધાર)","m_pay_upi": "UPI થી ચુકવણી કરો","m_thanks": "આભાર! 🙏","m_udhar_given": "ઉધાર આપ્યું","wa_reminder": "નમસ્તે {name}, {shop} તરફથી યાદ અપાવવા: તમારા {amount} બાકી છે.","wa_upi": "તમે UPI થી {upi} પર ચુકવણી કરી શકો છો.","wa_order": "નમસ્તે {name}, મારે એક ઓર્ડર આપવો છે.","wa_store": "નમસ્તે! {shop} પર શું ઉપલબ્ધ છે તે જુઓ અને WhatsApp પર ઓર્ડર કરો: {link}","wa_join": "BizGrow પર {shop} સાથે જોડાઓ: {link}","rem_firm": "{name}, {shop} પર તમારી બાકી {amount} છે. કૃપા કરી આ અઠવાડિયે ચૂકવી દો.","rem_friendly": "નમસ્તે {name}! {shop} તરફથી નાની યાદ: તમારા {amount} બાકી છે.","out_of_stock": "સ્ટોક નથી"}};
@@ -822,6 +842,194 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
 })();
 
 </script><script>
+/* BizGrow v2 stage 3: text for udhar reminders, bill sharing and print, plans, business type (en, hi, mr, gu).
+   Loaded after v2-i18n-signup.js and merged into window.I18N. The Hindi, Marathi and Gujarati wording is a first draft and needs a native-speaker check. */
+(function () {
+  'use strict';
+  var X = {
+    en: {
+      s3_remind_wa: 'Remind on WhatsApp',
+      s3_all_done: 'All of these are opened today.',
+      s3_no_phone: 'No phone number saved for this customer. Add one, then you can send a reminder.',
+      s3_add_phone: 'Add phone number',
+      s3_overdue_only: 'Overdue only (7+ days)',
+      s3_all: 'Everyone who owes',
+      s3_open_next: 'Open next',
+      s3_nobody_overdue: 'Nobody is overdue right now.',
+      s3_opened_of: '{n} of {m} opened today',
+      s3_share_bill: 'Share on WhatsApp',
+      s3_print: 'Print',
+      s3_plan_link: 'See plans',
+      s3_plan_title: 'Plans',
+      s3_plan_sub: 'These prices are proposed. Nothing is charged yet.',
+      s3_proposed: 'Proposed',
+      s3_current: 'Your plan now',
+      s3_starter: 'Starter',
+      s3_starter_price: '₹0',
+      s3_starter_desc: '1 shop, 30 bills a month',
+      s3_pro: 'Pro',
+      s3_pro_price: '₹299 a month',
+      s3_pro_yearly: '₹249 a month if paid yearly',
+      s3_pro_desc: 'Unlimited bills, udhar reminders, stock and expenses',
+      s3_team: 'Team',
+      s3_team_price: '₹599 per user a month',
+      s3_team_yearly: '₹499 per user a month if paid yearly',
+      s3_team_desc: 'Staff roles and accountant access',
+      s3_bills_used: 'Bills this month: {n} of 30',
+      s3_bills_near: 'You are close to 30 bills this month. Keep billing as usual. Paid plans are coming soon.',
+      s3_bills_limit: 'You have reached 30 bills this month. Nothing is blocked, so keep billing. Upgrade is coming soon.',
+      s3_soon: 'Upgrade coming soon',
+      s3_soon_note: 'Paid plans are not open yet. No payment is taken.',
+      s3_biz_title: 'Your business type',
+      s3_biz_sub: 'Helps us show the right help for your shop.',
+      s3_bt_textile_trader: 'Textile trader',
+      s3_bt_yarn_fabric: 'Yarn / fabric',
+      s3_bt_raw_material: 'Raw material',
+      s3_bt_other: 'Other',
+      s3_biz_saved: 'Business type saved',
+      s3_biz_local: 'Saved on this phone for now. The shop database needs one update before it is kept online.',
+      s3_bill_for: 'Bill for',
+      s3_paid_by: 'Paid by'
+    },
+    hi: {
+      s3_remind_wa: 'व्हाट्सऐप पर याद दिलाएँ',
+      s3_all_done: 'आज ये सब खुल चुके हैं।',
+      s3_no_phone: 'इस ग्राहक का फ़ोन नंबर सेव नहीं है। पहले नंबर जोड़ें, फिर याद दिला सकेंगे।',
+      s3_add_phone: 'फ़ोन नंबर जोड़ें',
+      s3_overdue_only: 'सिर्फ़ बकाया (7+ दिन)',
+      s3_all: 'जिन पर बाकी है वे सब',
+      s3_open_next: 'अगला खोलें',
+      s3_nobody_overdue: 'अभी कोई बकाया देर से नहीं है।',
+      s3_opened_of: 'आज {m} में से {n} खोले गए',
+      s3_share_bill: 'व्हाट्सऐप पर भेजें',
+      s3_print: 'प्रिंट',
+      s3_plan_link: 'प्लान देखें',
+      s3_plan_title: 'प्लान',
+      s3_plan_sub: 'ये कीमतें प्रस्तावित हैं। अभी कोई पैसा नहीं लिया जा रहा।',
+      s3_proposed: 'प्रस्तावित',
+      s3_current: 'आपका अभी का प्लान',
+      s3_starter: 'स्टार्टर',
+      s3_starter_price: '₹0',
+      s3_starter_desc: '1 दुकान, हर महीने 30 बिल',
+      s3_pro: 'प्रो',
+      s3_pro_price: '₹299 हर महीने',
+      s3_pro_yearly: 'सालाना लेने पर ₹249 हर महीने',
+      s3_pro_desc: 'बेहिसाब बिल, उधार की याद, स्टॉक और खर्च',
+      s3_team: 'टीम',
+      s3_team_price: '₹599 प्रति यूज़र हर महीने',
+      s3_team_yearly: 'सालाना लेने पर ₹499 प्रति यूज़र हर महीने',
+      s3_team_desc: 'स्टाफ़ की भूमिका और अकाउंटेंट की पहुँच',
+      s3_bills_used: 'इस महीने के बिल: 30 में से {n}',
+      s3_bills_near: 'इस महीने 30 बिल के करीब हैं। हमेशा की तरह बिल बनाते रहें। पेड प्लान जल्द आ रहे हैं।',
+      s3_bills_limit: 'इस महीने के 30 बिल पूरे हो गए। कुछ भी रुका नहीं है, बिल बनाते रहें। अपग्रेड जल्द आ रहा है।',
+      s3_soon: 'अपग्रेड जल्द आ रहा है',
+      s3_soon_note: 'पेड प्लान अभी नहीं खुले हैं। कोई पैसा नहीं लिया जाता।',
+      s3_biz_title: 'आपका कारोबार का प्रकार',
+      s3_biz_sub: 'इससे आपकी दुकान के लिए सही मदद दिखाने में मदद मिलती है।',
+      s3_bt_textile_trader: 'कपड़ा व्यापारी',
+      s3_bt_yarn_fabric: 'धागा / कपड़ा',
+      s3_bt_raw_material: 'कच्चा माल',
+      s3_bt_other: 'अन्य',
+      s3_biz_saved: 'कारोबार का प्रकार सेव हो गया',
+      s3_biz_local: 'अभी इस फ़ोन में सेव है। दुकान के डेटाबेस में सेव करने के लिए एक अपडेट चाहिए।',
+      s3_bill_for: 'बिल किसके लिए',
+      s3_paid_by: 'भुगतान'
+    },
+    mr: {
+      s3_remind_wa: 'व्हॉट्सॲपवर आठवण करा',
+      s3_all_done: 'आज हे सर्व उघडले आहेत.',
+      s3_no_phone: 'या ग्राहकाचा फोन नंबर सेव्ह नाही. आधी नंबर जोडा, मग आठवण पाठवता येईल.',
+      s3_add_phone: 'फोन नंबर जोडा',
+      s3_overdue_only: 'फक्त थकलेले (7+ दिवस)',
+      s3_all: 'ज्यांच्याकडे बाकी आहे ते सर्व',
+      s3_open_next: 'पुढचा उघडा',
+      s3_nobody_overdue: 'सध्या कोणाची मुदत संपलेली नाही.',
+      s3_opened_of: 'आज {m} पैकी {n} उघडले',
+      s3_share_bill: 'व्हॉट्सॲपवर पाठवा',
+      s3_print: 'प्रिंट',
+      s3_plan_link: 'प्लॅन पहा',
+      s3_plan_title: 'प्लॅन',
+      s3_plan_sub: 'या किमती प्रस्तावित आहेत. आत्ता कोणतेही पैसे घेतले जात नाहीत.',
+      s3_proposed: 'प्रस्तावित',
+      s3_current: 'तुमचा सध्याचा प्लॅन',
+      s3_starter: 'स्टार्टर',
+      s3_starter_price: '₹0',
+      s3_starter_desc: '1 दुकान, दर महिन्याला 30 बिले',
+      s3_pro: 'प्रो',
+      s3_pro_price: '₹299 दरमहा',
+      s3_pro_yearly: 'वार्षिक भरल्यास ₹249 दरमहा',
+      s3_pro_desc: 'अमर्याद बिले, उधारीची आठवण, स्टॉक आणि खर्च',
+      s3_team: 'टीम',
+      s3_team_price: '₹599 प्रति वापरकर्ता दरमहा',
+      s3_team_yearly: 'वार्षिक भरल्यास ₹499 प्रति वापरकर्ता दरमहा',
+      s3_team_desc: 'कर्मचाऱ्यांच्या भूमिका आणि अकाउंटंटचा प्रवेश',
+      s3_bills_used: 'या महिन्यातील बिले: 30 पैकी {n}',
+      s3_bills_near: 'या महिन्यात तुम्ही 30 बिलांच्या जवळ आहात. नेहमीप्रमाणे बिल करत रहा. सशुल्क प्लॅन लवकरच येत आहेत.',
+      s3_bills_limit: 'या महिन्यातील 30 बिले पूर्ण झाली. काहीही अडवलेले नाही, बिल करत रहा. अपग्रेड लवकरच येत आहे.',
+      s3_soon: 'अपग्रेड लवकरच येत आहे',
+      s3_soon_note: 'सशुल्क प्लॅन अजून उघडलेले नाहीत. कोणतेही पैसे घेतले जात नाहीत.',
+      s3_biz_title: 'तुमचा व्यवसायाचा प्रकार',
+      s3_biz_sub: 'तुमच्या दुकानासाठी योग्य मदत दाखवण्यासाठी.',
+      s3_bt_textile_trader: 'कापड व्यापारी',
+      s3_bt_yarn_fabric: 'सूत / कापड',
+      s3_bt_raw_material: 'कच्चा माल',
+      s3_bt_other: 'इतर',
+      s3_biz_saved: 'व्यवसायाचा प्रकार सेव्ह झाला',
+      s3_biz_local: 'सध्या हा फोनमध्ये सेव्ह आहे. दुकानाच्या डेटाबेसमध्ये ठेवण्यासाठी एक अपडेट लागेल.',
+      s3_bill_for: 'बिल कोणासाठी',
+      s3_paid_by: 'पैसे कसे दिले'
+    },
+    gu: {
+      s3_remind_wa: 'વોટ્સએપ પર યાદ અપાવો',
+      s3_all_done: 'આજે આ બધા ખૂલી ગયા છે.',
+      s3_no_phone: 'આ ગ્રાહકનો ફોન નંબર સેવ નથી. પહેલાં નંબર ઉમેરો, પછી યાદ મોકલી શકશો.',
+      s3_add_phone: 'ફોન નંબર ઉમેરો',
+      s3_overdue_only: 'ફક્ત બાકી (7+ દિવસ)',
+      s3_all: 'બાકી હોય તે બધા',
+      s3_open_next: 'આગળનું ખોલો',
+      s3_nobody_overdue: 'અત્યારે કોઈની મુદત વીતી નથી.',
+      s3_opened_of: 'આજે {m} માંથી {n} ખોલ્યા',
+      s3_share_bill: 'વોટ્સએપ પર મોકલો',
+      s3_print: 'પ્રિન્ટ',
+      s3_plan_link: 'પ્લાન જુઓ',
+      s3_plan_title: 'પ્લાન',
+      s3_plan_sub: 'આ કિંમતો પ્રસ્તાવિત છે. અત્યારે કોઈ ચાર્જ લેવાતો નથી.',
+      s3_proposed: 'પ્રસ્તાવિત',
+      s3_current: 'તમારો અત્યારનો પ્લાન',
+      s3_starter: 'સ્ટાર્ટર',
+      s3_starter_price: '₹0',
+      s3_starter_desc: '1 દુકાન, મહિને 30 બિલ',
+      s3_pro: 'પ્રો',
+      s3_pro_price: '₹299 મહિને',
+      s3_pro_yearly: 'વાર્ષિક ભરો તો ₹249 મહિને',
+      s3_pro_desc: 'અમર્યાદ બિલ, ઉધારની યાદ, સ્ટોક અને ખર્ચ',
+      s3_team: 'ટીમ',
+      s3_team_price: '₹599 પ્રતિ યુઝર મહિને',
+      s3_team_yearly: 'વાર્ષિક ભરો તો ₹499 પ્રતિ યુઝર મહિને',
+      s3_team_desc: 'સ્ટાફની ભૂમિકા અને એકાઉન્ટન્ટની પહોંચ',
+      s3_bills_used: 'આ મહિનાના બિલ: 30 માંથી {n}',
+      s3_bills_near: 'આ મહિને તમે 30 બિલની નજીક છો. હંમેશની જેમ બિલ બનાવતા રહો. પેઇડ પ્લાન જલદી આવશે.',
+      s3_bills_limit: 'આ મહિનાના 30 બિલ પૂરા થયા. કંઈ અટકાવેલું નથી, બિલ બનાવતા રહો. અપગ્રેડ જલદી આવશે.',
+      s3_soon: 'અપગ્રેડ જલદી આવશે',
+      s3_soon_note: 'પેઇડ પ્લાન હજુ ખુલ્યા નથી. કોઈ પૈસા લેવાતા નથી.',
+      s3_biz_title: 'તમારા વ્યવસાયનો પ્રકાર',
+      s3_biz_sub: 'તમારી દુકાન માટે યોગ્ય મદદ બતાવવા માટે.',
+      s3_bt_textile_trader: 'કાપડ વેપારી',
+      s3_bt_yarn_fabric: 'યાર્ન / કાપડ',
+      s3_bt_raw_material: 'કાચો માલ',
+      s3_bt_other: 'અન્ય',
+      s3_biz_saved: 'વ્યવસાયનો પ્રકાર સેવ થયો',
+      s3_biz_local: 'અત્યારે આ ફોનમાં સેવ છે. દુકાનના ડેટાબેઝમાં રાખવા એક અપડેટ જોઈશે.',
+      s3_bill_for: 'બિલ કોના માટે',
+      s3_paid_by: 'ચુકવણી'
+    }
+  };
+  Object.keys(X).forEach(function (l) {
+    window.I18N[l] = Object.assign(window.I18N[l] || {}, X[l]);
+  });
+})();
+
+</script><script>
 /* BizGrow v2: connection settings. Only the public (publishable) key lives here, and that is safe in the browser.
    Never put a secret or service key in this file. Leave both values empty to run the demo only.
    Add ?demo=1 to the web address to open the demo even when these values are set. */
@@ -1133,6 +1341,12 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     }
     if (path === '/language' && method === 'PUT') { st.shop.lang = b.lang || 'en'; save(st); return { ok: true }; }
     if (path === '/onboarding' && method === 'PUT') return { ok: true };
+    if (path === '/business-type' && method === 'PUT') {
+      need(st, 'settings', 'Only the owner can change shop details');
+      var bt = String(b.business_type || '').trim();
+      if (bt && ['textile_trader', 'yarn_fabric', 'raw_material', 'other'].indexOf(bt) < 0) throw E('Please pick a business type from the list');
+      st.shop.business_type = bt; save(st); return { ok: true, business_type: bt };
+    }
     if (path === '/business' && method === 'PUT') {
       need(st, 'settings', 'Only the owner can change shop details');
       if (b.name != null) st.shop.name = text(b.name, 'Shop name', 60);
@@ -1241,7 +1455,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     if (k === 'sales' && !parts[1] && method === 'POST') { var r0 = createSale(st, cu, b); save(st); return r0; }
     if (k === 'sales' && id && !sub && method === 'GET') {
       var s1 = st.sales.find(function (s) { return s.id === id && !s.deleted_at; }); if (!s1) throw E('Bill not found', 404);
-      return Object.assign({}, s1, { items: s1.items });
+      // Same shape as the real server: the bill fields, the items, and the bill again under sale.
+      return Object.assign({}, s1, { items: s1.items, sale: Object.assign({}, s1, { items: s1.items }) });
     }
     if (k === 'sales' && id && !sub && method === 'PUT') {
       need(st, 'sale.edit', 'Only the owner or manager can edit a bill');
@@ -1967,13 +2182,28 @@ function slipText(r,cart,discount,cname){
 function receipt(r,cart,discount,extra){
   const cust=extra.customer_id?S.customers.find(c=>c.id===extra.customer_id):null;
   const o=modal(`<div class="row sp"><h2>✓ Bill saved</h2><span class="badge">#${r.bill_no}</span></div>
-   <div class="slip" id="slip"><div style="text-align:center"><b>${esc(S.me.shop.name)}</b><br>${esc(S.me.shop.address||'')}${S.me.shop.phone?'<br>Ph: '+esc(S.me.shop.phone):''}</div><hr>
+   <div class="slip printable" id="slip"><div style="text-align:center"><b>${esc(S.me.shop.name)}</b><br>${esc(S.me.shop.address||'')}${S.me.shop.phone?'<br>Ph: '+esc(S.me.shop.phone):''}</div><hr>
    ${cart.map(i=>`<div class="r"><span>${esc(i.name)} × ${qn(i.qty)}</span><span>${inr(i.qty*i.price)}</span></div>`).join('')}<hr>
    ${discount?`<div class="r"><span>Discount</span><span>-${inr(discount)}</span></div>`:''}<div class="r"><b>TOTAL</b><b>${inr(r.total)}</b></div>
    ${r.due>0?`<div class="r"><span>Paid</span><span>${inr(r.paid)}</span></div><div class="r"><b>Balance (udhar)</b><b>${inr(r.due)}</b></div>`:`<div class="r"><span>Paid by</span><span>${extra.method==='upi'?'UPI':'Cash'}</span></div>`}<hr><div style="text-align:center">Thank you!</div></div>
    <div class="grid g2 mt"><a class="btn" target="_blank" rel="noopener" href="${waLink(cust&&cust.phone,slipText(r,cart,discount))}">${t('share_whatsapp')}</a><button class="btn sec" onclick="window.print()">${t('print')}</button></div>
+   <div id="planNote"></div>
    <a class="btn sec block mt" target="_blank" rel="noopener" href="/api/invoice/${r.id}">Invoice / GST bill (PDF)</a>
    <button class="btn sec block mt" onclick="this.closest('.ov').close()">New sale</button>`);
+  planNote();
+}
+/* the bill text for WhatsApp, from a saved bill (same layout as the slip) */
+function billText(s,items){
+  const L=[`*${S.me.shop.name}*`,`${t('m_bill')} #${s.bill_no} · ${dtime(s.created_at)}`];
+  if(s.customer_name)L.push(`${t('s3_bill_for')}: ${s.customer_name}`);
+  L.push('');
+  items.forEach(i=>L.push(`${i.name} × ${qn(i.qty)} = ${inr(i.qty*i.price)}`));
+  if(s.discount)L.push(`${t('m_discount')}: -${inr(s.discount)}`);
+  L.push('',`*${t('m_total')}: ${inr(s.total)}*`);
+  const due=s.total-s.paid;
+  if(due>0)L.push(`${t('m_paid')}: ${inr(s.paid)}`,`*${t('m_balance')}: ${inr(due)}*`);
+  if(due>0&&S.me.shop.upi_id)L.push('',`${t('m_pay_upi')}: ${S.me.shop.upi_id}`);
+  L.push('',t('m_thanks'));return L.join('\n');
 }
 
 /* ---------- bills: list by day, open a bill, edit or delete (owner) ---------- */
@@ -1983,13 +2213,14 @@ async function pBills(v,args){
   v.innerHTML=head(t('bills'),'Tap a bill to see it'+(isOwner()?', edit or delete':''),`<input type="date" class="in" style="width:auto" value="${day}" onchange="location.hash='#/bills/'+this.value">`)+
   `<div class="card">${r.items.length?`<div class="list">${r.items.map(s=>`<button class="li" style="width:100%;text-align:left" data-act="bill-open" data-id="${s.id}"><div class="grow"><div class="t">Bill #${s.bill_no} · ${esc(s.customer_name||'Walk-in')}</div><div class="d">${dtime(s.created_at)} · ${s.method==='upi'?'UPI':'Cash'}${s.total-s.paid>0?' · udhar '+inr(s.total-s.paid):''}</div></div><b class="num">${inr(s.total)}</b></button>`).join('')}</div>`:emptyBox('No bills on this day','Bills you save will show here.')}</div>`;
 }
-ACT['bill-open']=async el=>{const d=await api('/sales/'+el.dataset.id);const s=d.sale;
+ACT['bill-open']=async el=>{const d=await api('/sales/'+el.dataset.id);const s=d.sale;await loadCustomers();const cu=s.customer_id?S.customers.find(c=>c.id===s.customer_id):null;
   modal(`<div class="row sp"><h2>Bill #${s.bill_no}</h2><span class="muted small">${dtime(s.created_at)}</span></div>
   <p class="muted small">${esc(s.customer_name||'Walk-in')}</p>
-  <div class="slip">${d.items.map(i=>`<div class="r"><span>${esc(i.name)} × ${qn(i.qty)}</span><span>${inr(i.qty*i.price)}</span></div>`).join('')}<hr>
+  <div class="slip printable">${d.items.map(i=>`<div class="r"><span>${esc(i.name)} × ${qn(i.qty)}</span><span>${inr(i.qty*i.price)}</span></div>`).join('')}<hr>
   ${s.discount?`<div class="r"><span>Discount</span><span>-${inr(s.discount)}</span></div>`:''}<div class="r"><b>TOTAL</b><b>${inr(s.total)}</b></div>
   <div class="r"><span>Paid (${s.method==='upi'?'UPI':'Cash'})</span><span>${inr(s.paid)}</span></div>
   ${s.total-s.paid>0?`<div class="r"><b>Balance (udhar)</b><b>${inr(s.total-s.paid)}</b></div>`:''}</div>
+  <div class="grid g2 mt"><a class="btn" target="_blank" rel="noopener" href="${waLink(cu&&cu.phone,billText(s,d.items))}">${t('s3_share_bill')}</a><button class="btn sec" onclick="window.print()">${t('s3_print')}</button></div>
   <a class="btn sec block mt" target="_blank" rel="noopener" href="/api/invoice/${s.id}">Invoice / GST bill (PDF)</a>
   ${isOwner()?`<div class="grid g2 mt"><button class="btn sec" data-act="bill-edit" data-id="${s.id}">${t('edit')}</button><button class="btn red" data-act="bill-del" data-id="${s.id}" data-no="${s.bill_no}" data-total="${s.total}">Delete</button></div>`:''}`);
 };
@@ -2014,16 +2245,20 @@ function remText(tpl,c,amt){const base=t(REM_TPL[tpl]).replace('{name}',c.name).
 async function pReminders(v){
   await loadCustomers();
   const tpl=S.remTpl&&REM_TPL[S.remTpl]?S.remTpl:'polite';
-  const rows=S.customers.filter(c=>c.balance>0).sort((a,b)=>b.balance-a.balance);
-  const opened=JSON.parse(localStorage.getItem(remKey())||'[]');
   const days=c=>c.last_credit?Math.floor((Date.now()-new Date(c.last_credit))/864e5):null;
+  const owing=S.customers.filter(c=>c.balance>0).sort((a,b)=>b.balance-a.balance);
+  const rows=S.remOnly?owing.filter(c=>(days(c)||0)>=7):owing;
+  const opened=JSON.parse(localStorage.getItem(remKey())||'[]');
   v.innerHTML=head('Send reminders','Open WhatsApp with each message ready, then tap Send there.')+
    `<div class="card mb"><p class="small">BizGrow opens WhatsApp with the message ready. You tap Send in WhatsApp. Sending on its own needs a WhatsApp Business account, which BizGrow does not use yet.</p>
-    <div class="row wrap mt">${Object.keys(REM_TPL).map(k=>`<button class="btn sm ${k===tpl?'':'sec'}" data-act="rtpl" data-k="${k}">${REM_TPL_NAME[k]}</button>`).join('')}</div></div>
-   <div class="card">${rows.length?`<div class="small muted mb">${opened.length} of ${rows.length} opened today</div><div class="list">${rows.map(c=>{const d=days(c);const done=opened.includes(c.id);
-     return `<div class="li"><div class="grow"><div class="t">${esc(c.name)}</div><div class="d">${inr(c.balance)}${d!=null&&d>=1?` · ${d} day${d>1?'s':''} since last udhar`:''}</div></div>${c.phone?`<a class="btn sm ${done?'sec':''}" target="_blank" rel="noopener" data-rem="${c.id}" href="${waLink(c.phone,remText(tpl,c,c.balance))}">${done?'Opened':'Open WhatsApp'}</a>`:`<a class="btn sec sm" href="#/khata/${c.id}">Add phone</a>`}</div>`;}).join('')}</div>`
-     :emptyBox('Nobody owes you right now','Reminders show here when a customer has udhar pending.','<a class="btn sec" href="#/khata">Back to khata</a>')}</div>`;
+    <div class="row wrap mt">${Object.keys(REM_TPL).map(k=>`<button class="btn sm ${k===tpl?'':'sec'}" data-act="rtpl" data-k="${k}">${REM_TPL_NAME[k]}</button>`).join('')}</div>
+    <div class="row wrap mt">${[[false,t('s3_all')],[true,t('s3_overdue_only')]].map(([k,l])=>`<button class="btn sm ${!!S.remOnly===k?'':'sec'}" data-act="remfilter" data-k="${k?1:0}">${l}</button>`).join('')}</div></div>
+   <div class="card">${rows.length?`<div class="row sp mb"><span class="small muted">${t('s3_opened_of').replace('{n}',opened.length).replace('{m}',rows.length)}</span><button class="btn sm" data-act="remnext">${t('s3_open_next')}</button></div><div class="list">${rows.map(c=>{const d=days(c);const done=opened.includes(c.id);
+     return `<div class="li"><div class="grow"><div class="t">${esc(c.name)}</div><div class="d">${inr(c.balance)}${d!=null&&d>=1?` · ${d} day${d>1?'s':''} since last udhar`:''}</div></div>${c.phone?`<a class="btn sm ${done?'sec':''}" target="_blank" rel="noopener" data-rem="${c.id}" href="${waLink(c.phone,remText(tpl,c,c.balance))}">${done?'Opened':t('s3_remind_wa')}</a>`:`<a class="btn sec sm" href="#/khata/${c.id}">${t('s3_add_phone')}</a>`}</div>`;}).join('')}</div>`
+     :emptyBox(S.remOnly?t('s3_nobody_overdue'):'Nobody owes you right now','Reminders show here when a customer has udhar pending.','<a class="btn sec" href="#/khata">Back to khata</a>')}</div>`;
 }
+ACT.remfilter=el=>{S.remOnly=el.dataset.k==='1';render();};
+ACT.remnext=()=>{const opened=JSON.parse(localStorage.getItem(remKey())||'[]');const next=[...document.querySelectorAll('a[data-rem]')].find(a=>!opened.includes(a.dataset.rem));if(!next){toast(t('s3_all_done'));return;}next.click();};
 ACT.rtpl=el=>{S.remTpl=el.dataset.k;render();};
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[data-rem]');if(!a)return;const k=remKey();const arr=JSON.parse(localStorage.getItem(k)||'[]');if(!arr.includes(a.dataset.rem)){arr.push(a.dataset.rem);localStorage.setItem(k,JSON.stringify(arr));}a.textContent='Opened';a.classList.add('sec');});
 
@@ -2051,7 +2286,7 @@ async function pCustomer(v,id){
    `<div class="grid g21"><div class="card"><div class="row sp mb"><h3 style="margin:0">History</h3><button class="link" data-act="addcredit" data-id="${c.id}">+ Add old udhar</button></div>
    ${d.ledger.length?`<div class="list">${d.ledger.map(x=>`<div class="li"><div class="grow"><div class="t">${x.kind==='credit'?esc(x.note||'Udhar'):'Payment received'+(x.method?' ('+(x.method==='upi'?'UPI':'cash')+')':'')}</div><div class="d">${dtime(x.created_at)}${x.kind==='payment'&&x.note?' · '+esc(x.note):''}</div></div><div class="bold ${x.kind==='credit'?'dn':'up'}">${x.kind==='credit'?'+':'−'}${inr(x.amount)}</div></div>`).join('')}</div>`:emptyBox('No entries yet','Udhar bills and payments will show here.')}</div>
    <div class="card"><div class="k muted small">${d.balance>0?'Owes you':d.balance<0?'Advance paid':'Balance'}</div><div class="num bold ${d.balance>0?'dn':''}" style="font-size:32px">${inr(Math.abs(d.balance))}</div>${days>=7&&d.balance>0?`<div class="badge amber mt">Pending for ${days} days</div>`:''}
-   <div class="grid mt">${d.balance>0?`<button class="btn" data-act="receive" data-id="${c.id}" data-bal="${d.balance}">${t('record_payment')}</button><a class="btn sec" target="_blank" rel="noopener" href="${waLink(c.phone,msg)}">${t('send_reminder')} (WhatsApp)</a>`:''}</div>
+   <div class="grid mt">${d.balance>0?`<button class="btn" data-act="receive" data-id="${c.id}" data-bal="${d.balance}">${t('record_payment')}</button>${c.phone?`<a class="btn sec" target="_blank" rel="noopener" href="${waLink(c.phone,msg)}">${t('s3_remind_wa')}</a>`:`<p class="small">${t('s3_no_phone')}</p><button class="btn sec" data-act="editcust" data-id="${c.id}">${t('s3_add_phone')}</button>`}`:''}</div>
    ${c.note?`<p class="muted small mt">${esc(c.note)}</p>`:''}${isOwner()?`<button class="link mt" style="color:var(--danger)" data-act="delcust" data-id="${c.id}">Delete customer</button>`:''}</div></div>`;
 }
 ACT.receive=el=>modal(`<h2>${t('record_payment')}</h2><form data-form="receive"><input type="hidden" name="id" value="${el.dataset.id}"><div class="f"><label>${t('amount')} (₹)</label><input class="in" name="amount" type="number" step="any" min="0" value="${el.dataset.bal}" inputmode="decimal" required></div><div class="f"><label>How did they pay?</label><select class="in" name="method"><option value="cash">${t('cash')}</option><option value="upi">${t('upi')}</option></select></div><div class="f"><label>${t('note')}</label><input class="in" name="note"></div><button class="btn block" type="submit">${t('save')}</button></form>`);
@@ -2199,16 +2434,37 @@ ACT.erase=()=>modal(`<h2 style="color:var(--danger)">Delete everything?</h2><p c
 FORM.erase=async(f,d)=>{await api('/privacy/erase','POST',d);S.me=null;location.hash='';render();};
 
 /* ---------- settings ---------- */
-async function pSettings(v){
+/* plans: notice only, nothing is blocked and nothing is charged (see v2-i18n-stage3.js) */
+async function planCount(){const r=await api('/sales?from='+today().slice(0,8)+'01&to='+today());return (r.items||[]).length;}
+function billNotice(n){if(n>=30)return `<p class="small mt" style="color:#7a4a00">${t('s3_bills_limit')}</p>`;if(n>=25)return `<p class="small mt" style="color:#7a4a00">${t('s3_bills_near')}</p>`;return '';}
+async function planNote(){const el=$('#planNote');if(!el)return;try{el.innerHTML=billNotice(await planCount());}catch(e){}}
+async function pPlan(v){
+  const n=await planCount();
+  const card=(name,price,yearly,desc,extra)=>`<div class="card"><div class="row sp"><h3 style="margin:0">${name}</h3><span class="badge amber">${t('s3_proposed')}</span></div><div class="num bold" style="font-size:24px;margin-top:8px">${price}</div>${yearly?`<div class="small muted">${yearly}</div>`:''}<p class="small mt">${desc}</p>${extra||''}</div>`;
+  v.innerHTML=`<a class="link" href="#/settings">← ${t('settings')}</a>`+head(t('s3_plan_title'),t('s3_plan_sub'))+
+  `<div class="plans" style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">`+
+  card(t('s3_starter'),t('s3_starter_price'),'',t('s3_starter_desc'),`<div class="mt"><b>${t('s3_current')}</b><div class="small">${t('s3_bills_used').replace('{n}',n)}</div>${billNotice(n)}</div>`)+
+  card(t('s3_pro'),t('s3_pro_price'),t('s3_pro_yearly'),t('s3_pro_desc'))+
+  card(t('s3_team'),t('s3_team_price'),t('s3_team_yearly'),t('s3_team_desc'))+
+  `</div><div class="card mt"><b>${t('s3_soon')}</b><p class="small muted">${t('s3_soon_note')}</p><button class="btn sec" data-act="plansoon">${t('s3_soon')}</button></div>`;
+}
+ACT.plansoon=()=>toast(t('s3_soon_note'));
+async function pSettings(v,args){
+  if(args&&args[0]==='plan')return pPlan(v);
   const s=S.me.shop;
+  const cur=s.business_type||localStorage.getItem('bg_biztype_'+s.id)||'';
+  const bizOpts=[['','—'],...['textile_trader','yarn_fabric','raw_material','other'].map(k=>[k,t('s3_bt_'+k)])].map(([k,l])=>`<option value="${k}" ${cur===k?'selected':''}>${l}</option>`).join('');
   v.innerHTML=head(t('settings'),'Your shop details')+`<div class="card" style="max-width:640px"><form data-form="settings"><div class="f"><label>${t('shop_name')}</label><input class="in" name="name" value="${esc(s.name)}" required></div>
   <div class="frow"><div class="f"><label>Shop ${t('phone').toLowerCase()}</label><input class="in" name="phone" type="tel" value="${esc(s.phone||'')}"></div></div>
   <div class="f"><label>Your UPI ID</label><input class="in" name="upi_id" value="${esc(s.upi_id||'')}" placeholder="name@bank"><div class="hint">Shown on udhar bills and reminders so customers can pay you.</div></div>
   <div class="f"><label>Address (on bills)</label><input class="in" name="address" value="${esc(s.address||'')}"></div>
   <div class="frow"><div class="f"><label>GST number (optional)</label><input class="in" name="gstin" value="${esc(s.gstin||'')}"></div><div class="f"><label>${t('language')}</label><select class="in" name="lang">${Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('')}</select></div></div>
-  <input type="hidden" name="store_enabled" value="${s.store_enabled?'1':''}"><button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>`;
+  <input type="hidden" name="store_enabled" value="${s.store_enabled?'1':''}"><button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>
+  <div class="card mt" style="max-width:640px"><h3>${t('s3_biz_title')}</h3><p class="muted small mb">${t('s3_biz_sub')}</p><form data-form="biztype"><div class="f"><select class="in" name="business_type">${bizOpts}</select></div><button class="btn sec" type="submit">${t('save')}</button></form></div>
+  <div class="card mt" style="max-width:640px"><h3>${t('s3_plan_title')}</h3><a class="btn sec" href="#/settings/plan">${t('s3_plan_link')}</a></div>`;
 }
 ACT.redoob=()=>onboarding();
+FORM.biztype=async(f,d)=>{const v=d.business_type||'';localStorage.setItem('bg_biztype_'+S.me.shop.id,v);const r=await api('/business-type','PUT',{business_type:v});S.me=await api('/me');toast(r&&r.saved_here?t('s3_biz_local'):t('s3_biz_saved'));render();};
 FORM.settings=async(f,d)=>{d.store_enabled=!!d.store_enabled;const r=await api('/business','PUT',d);S.lang=d.lang;localStorage.setItem('bg_lang',d.lang);S.me=await api('/me');toast((r&&r.warning)||'Saved');render();};
 
 window.BGV2={ACT,FORM,S,api,render,toast,isOwner:()=>isOwner(),esc,inr,t,head,modal,go};
@@ -3654,7 +3910,7 @@ document.addEventListener('DOMContentLoaded',()=>boot());
       role: appRole(st.role), v2role: st.role,
       shop: { id: shop.id, name: shop.name || 'My shop', phone: shop.phone || '', address: shop.address || '', gstin: shop.gstin || '', city: shop.city || '',
         trade: shop.trade || '', upi_id: shop.upi_id || '', category: '', lang: shop.lang || 'en', store_enabled: false, onboarded: true,
-        assistant_name: shop.assistant_name || '', staff_discount_limit: shop.staff_discount_limit == null ? 50 : num(shop.staff_discount_limit) },
+        assistant_name: shop.assistant_name || '', business_type: shop.business_type || '', staff_discount_limit: shop.staff_discount_limit == null ? 50 : num(shop.staff_discount_limit) },
       onboarded: true, answers: {}, lang: shop.lang || 'en',
       signup_done: !!(row && row.done), signup_answers: answers,
       consent: await loadConsent(u.id)
@@ -4180,6 +4436,14 @@ document.addEventListener('DOMContentLoaded',()=>boot());
       try { await saveProfile(shopId, { phone: b.phone, upi_id: b.upi_id, address: b.address }, 'Phone, UPI ID and address'); }
       catch (e) { if (/cannot be saved yet/.test(e.message)) return reply(200, { ok: true, warning: e.message }); throw e; }
       return reply(200, { ok: true });
+    }
+    // Business type (patch-04). Until that update is run, the app keeps the choice on the phone and says so.
+    if (path === '/business-type' && method === 'PUT') {
+      if (!owner) return fail(400, 'Only the owner can change the shop.');
+      var bt = String((body && body.business_type) || '').trim() || null;
+      try { dataOf(await sb.rpc('update_my_business_type', { p_shop: shopId, p_type: bt })); }
+      catch (e) { if (e.message === PATCH_NOTE) return reply(200, { ok: true, saved_here: true }); throw e; }
+      return reply(200, { ok: true, business_type: bt || '' });
     }
     if (path === '/v2/settings' && method === 'PUT') {
       if (!owner) return fail(400, 'Only the owner can change settings.');
