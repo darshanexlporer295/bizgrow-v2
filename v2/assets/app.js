@@ -668,7 +668,7 @@ FORM.erase=async(f,d)=>{await api('/privacy/erase','POST',d);S.me=null;location.
 async function pSettings(v){
   const s=S.me.shop;
   v.innerHTML=head(t('settings'),'Your shop details')+`<div class="card" style="max-width:640px"><form data-form="settings"><div class="f"><label>${t('shop_name')}</label><input class="in" name="name" value="${esc(s.name)}" required></div>
-  <div class="frow"><div class="f"><label>What do you sell?</label><select class="in" name="category">${CATS.map(c=>`<option value="${c[0]}" ${s.category===c[0]?'selected':''}>${c[1]}</option>`).join('')}</select></div><div class="f"><label>Shop ${t('phone').toLowerCase()}</label><input class="in" name="phone" type="tel" value="${esc(s.phone||'')}"></div></div>
+  <div class="frow"><div class="f"><label>Shop ${t('phone').toLowerCase()}</label><input class="in" name="phone" type="tel" value="${esc(s.phone||'')}"></div></div>
   <div class="f"><label>Your UPI ID</label><input class="in" name="upi_id" value="${esc(s.upi_id||'')}" placeholder="name@bank"><div class="hint">Shown on udhar bills and reminders so customers can pay you.</div></div>
   <div class="f"><label>Address (on bills)</label><input class="in" name="address" value="${esc(s.address||'')}"></div>
   <div class="frow"><div class="f"><label>GST number (optional)</label><input class="in" name="gstin" value="${esc(s.gstin||'')}"></div><div class="f"><label>${t('language')}</label><select class="in" name="lang">${Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('')}</select></div></div>
