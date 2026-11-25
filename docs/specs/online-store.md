@@ -73,6 +73,16 @@ An order takes its stock when it is placed, in the same step that saves it. It h
 42. Does the stock take refuse a short order by itself, as a second check behind the per-line check? Must be **yes**. Check: C38.
 43. Does the demo show the same stock rules (take, refuse, put back on cancel, reopen, bulk cancel)? Must be **yes**. Demo check: `stage5-smoke.js`, 24 of 24.
 
+## J. Invoice for a bill and for an online order (stage 6, no database change)
+
+44. Does each bill open a printable invoice from its bill view, showing the shop name, bill number, date, items with quantity and price, total, paid, balance (when part is paid) and a WhatsApp share link? Must be **yes**. Demo check: `stage6-smoke.js` ("bill link writes an invoice page", "invoice lists every item", "balance is shown when part is paid").
+45. Does each online order on the Orders page have an Invoice button that opens the same kind of page, with the buyer's name, the items, the total and the note? Must be **yes**. Demo check: "each order card has an Invoice button", "order invoice names the buyer", "order invoice shows the note".
+46. Does the WhatsApp share text carry the shop name, the total and the balance? Must be **yes**. Demo check: "WhatsApp text has the total and balance", "WhatsApp text names the shop".
+47. Does the invoice fit a 360 px phone with no sideways scrolling, including a very long item name? Must be **yes**. Demo check: "invoice fits 360 px without sideways scroll".
+48. Does the printed page hide the Print and share buttons (print rules)? Must be **yes**. Demo check: "invoice has print rules that hide the buttons". Not checked on paper or in a PDF printer yet.
+49. Do the invoice labels show in Hindi when the member's language is Hindi, and in English otherwise? Must be **yes**. Demo check: "Hindi labels show". Marathi and Gujarati labels are in the file but not checked by a test yet.
+50. Does the invoice need no database change (it reads the bill or order that already exists)? Must be **yes**. Review only: no SQL file is changed in stage 6.
+
 ## H. Known gaps and future work
 
 - **Two sessions at once are not tested.** Stock is locked per item, so two orders for the last of an item should not both succeed, but no check runs two orders at the same moment. The existing sale function (`create_sale`) locks items in cart order, so a rare deadlock between a sale and an online order placed at the same moment is possible. Postgres would stop one of them with an error; no wrong stock is written.

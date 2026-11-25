@@ -764,7 +764,13 @@
     var body = t.rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + hx(c) + '</td>'; }).join('') + '</tr>'; }).join('');
     return wrapPage(t.title, '<h1>' + hx(t.title) + '</h1><p class="m">' + hx(st.shop.name) + ' · example demo data</p>' + (t.rows.length ? '<table><thead>' + head + '</thead><tbody>' + body + '</tbody></table>' : '<p>No rows yet.</p>'));
   }
+  // The same invoice layout the live app uses (v2-invoice.js). Falls back to the plain page if that file is missing.
   function invoicePage(s, st) {
+    if (window.BGV2_INV) {
+      var inv = window.BGV2_INV.bill(s, s.items || [], st.shop);
+      inv.note = inv.note || 'Example demo bill.';
+      return window.BGV2_INV.doc(inv);
+    }
     var items = (s.items || []).map(function (i) { return '<tr><td>' + hx(i.name) + '</td><td>' + i.qty + '</td><td>₹' + i.price + '</td><td>₹' + (i.qty * i.price) + '</td></tr>'; }).join('');
     var inner = '<h1>' + hx(st.shop.name) + '</h1><p class="m">' + hx(st.shop.address || '') + (st.shop.gstin ? ' · GSTIN ' + hx(st.shop.gstin) : '') + '</p>' +
       '<p><b>Bill #' + hx(s.bill_no) + '</b> · ' + hx(s.date) + ' · ' + hx(s.customer_name || 'Walk-in') + '</p>' +

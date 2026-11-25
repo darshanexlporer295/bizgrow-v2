@@ -172,7 +172,17 @@
       }).join('') +
       '</select></label>' +
       '<a class="btn sec" target="_blank" rel="noopener" href="' + esc(waUrl(phone, B.tx('ord_reply_text', { name: o.name, ref: o.ref }))) + '">' + esc(B.tx('ord_reply')) + '</a>' +
-      '<a class="btn sec" href="tel:' + esc(phone) + '">' + esc(B.tx('ord_call')) + '</a></div></section>';
+      '<a class="btn sec" href="tel:' + esc(phone) + '">' + esc(B.tx('ord_call')) + '</a>' +
+      '<button class="btn sec" data-v2s="inv" data-id="' + esc(o.id) + '">' + esc(B.tx('inv_button')) + '</button></div></section>';
+  }
+
+  // Opens the printable invoice for one order from the list already on the page (no extra request).
+  function showInvoice(id) {
+    var o = ordItems.find(function (x) { return String(x.id) === String(id); });
+    if (!o || !window.BGV2_INV) return;
+    var w = window.open('', '_blank');
+    if (!w) return B.toast(B.tx('inv_popup'));
+    window.BGV2_INV.open(w, window.BGV2_INV.order(o, B.S.me && B.S.me.shop));
   }
 
   document.addEventListener('change', async function (e) {
@@ -189,7 +199,8 @@
   document.addEventListener('click', async function (e) {
     var el = e.target.closest && e.target.closest('[data-v2s]'); if (!el) return;
     var act = el.getAttribute('data-v2s');
-    if (['filter', 'hide', 'older', 'cancelnew'].indexOf(act) < 0) return;
+    if (['filter', 'hide', 'older', 'cancelnew', 'inv'].indexOf(act) < 0) return;
+    if (act === 'inv') return showInvoice(el.getAttribute('data-id'));
     var v = document.getElementById('view'); if (!v) return;
     if (act === 'filter') { ordStatus = el.getAttribute('data-status') || ''; return renderOrders(v, false); }
     if (act === 'hide') { ordHide = !ordHide; return renderOrders(v, false); }

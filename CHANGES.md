@@ -1,6 +1,32 @@
 # BizGrow v2 - what changed (status: stage 1 build, demo and real sign-in code, tested in a browser)
 
-## Stage 5: orders take stock (patch-08, latest)
+## Stage 6: printable and shareable invoice (no database change, latest)
+
+### What was built
+- Each bill has an invoice page: shop name, address, phone and GSTIN when set, bill number, date, customer (or walk-in), items with quantity, price and amount, discount, total, paid, balance when part is paid, UPI when set, the note, and a footer.
+- Each online order on the Orders page has an "Invoice" button that opens the same kind of page (order number, buyer, items, total, note). Cancelled orders are labelled as cancelled.
+- The invoice has a Print / Save as PDF button and a WhatsApp share link with the shop name, the items, the total and the balance.
+- Fits a 360 px phone without sideways scrolling. Print rules hide the buttons on paper.
+- Labels are in English, Hindi, Marathi and Gujarati (new `inv_` keys, used only where the existing translation files have no key).
+- One shared renderer, `v2/assets/v2-invoice.js` (new), used by the live bill path (`supabase-api.js`), the demo bill path (`mock-api.js`) and the order Invoice button (`v2-store.js`).
+- The bill links keep their existing `/api/invoice/<id>` form. Clicking one opens the invoice in a new tab, as before.
+
+### Changed
+- `v2/assets/v2-invoice.js` (new), `v2/assets/supabase-api.js` (old invoice markup replaced by a call to the shared renderer), `v2/assets/mock-api.js` (demo bill page uses the shared renderer), `v2/assets/v2-store.js` (order Invoice button and `showInvoice`), `v2/index.html` (loads `v2-invoice.js`). `v2/dist/bizgrow-v2.html` rebuilt.
+- No SQL change. There is no `patch-09.sql`. The bill and the order already hold every field the invoice shows.
+
+### Tests
+- Headless browser, demo mode, 360 px (`stage6-smoke.js`, kept outside the repo with the other smoke tests): **27 of 27 checks passed**, no page errors. Covers the bill link, every item listed, the balance line, the WhatsApp text, the 360 px fit with a very long item name, the order Invoice button, the buyer and note on the order invoice, and Hindi labels.
+- Re-run of `stage5-smoke.js` (24 of 24) and `stage4-smoke.js` (22 of 22) after the change: both passed, no page errors.
+- Checked in the demo UI: the "Invoice / GST bill (PDF)" link is visible after opening a bill, and the export links are visible on the Reports page.
+
+### Not yet tested
+- Real database bills and orders (needs the owner's sign-in and the store link `?shop=`). The live code path (`invoiceData` in `supabase-api.js`) is written but not run against the live project.
+- Printing on paper or saving to PDF in a real browser print dialog.
+- Marathi and Gujarati labels (in the file, not checked by a test).
+- The live site has not been checked after the deploy yet (see the commit note).
+
+## Stage 5: orders take stock (patch-08)
 
 ### What was built
 - Placing an order from the online store takes its stock in the database, in the same step that saves the order. If any line is short at that moment, the whole order is refused and nothing is saved.

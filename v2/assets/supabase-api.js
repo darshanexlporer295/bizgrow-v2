@@ -577,15 +577,12 @@
       return rows.map(function (x) { return [x.name, x.phone, x.gstin]; });
     } }
   };
-  async function invoiceHtml(id) {
+  // The bill as the shared invoice layout needs it (v2-invoice.js).
+  async function invoiceData(id) {
     var r = await realApi('/sales/' + id, 'GET');
     var d = await r.json();
     if (!r.ok || d.error) throw new Error(d.error || 'That bill was not found.');
-    var shopName = (B.S && B.S.me && B.S.me.shop && B.S.me.shop.name) || 'My shop';
-    var lines = (d.items || []).map(function (i) { return [i.name, i.qty, i.price, +(i.qty * i.price).toFixed(2)]; });
-    return '<h2>' + esc(shopName) + '</h2><p>Bill ' + esc(d.bill_no) + ' &middot; ' + esc(d.date) + '</p>' +
-      '<p>' + esc(d.customer_name || '') + '</p>' + tableHtml(['Item', 'Qty', 'Price', 'Amount'], lines) +
-      '<p>Discount: ' + esc(d.discount) + '<br>Total: ' + esc(d.total) + '<br>Paid: ' + esc(d.paid) + '</p>';
+    return window.BGV2_INV.bill(d, d.items || [], (B.S && B.S.me && B.S.me.shop) || {});
   }
 
   // Capture-phase click on export and invoice links. The mock version of this listener stands down in real mode.
@@ -600,7 +597,7 @@
     (async function () {
       if (parts[2] === 'invoice') {
         if (!win) throw new Error('Allow pop-ups for this site to see the bill.');
-        printPage(win, 'Bill', await invoiceHtml(parts[3]));
+        window.BGV2_INV.open(win, await invoiceData(parts[3]));
         return;
       }
       var kind = EXPORTS[parts[3]];
