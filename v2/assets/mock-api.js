@@ -654,6 +654,7 @@
     return null;
   }
   document.addEventListener('click', function (e) {
+    if (window.BGV2 && window.BGV2.real) return; // real mode: supabase-api.js answers these links
     var a = e.target && e.target.closest ? e.target.closest('a[href^="/api/export"], a[href^="/api/invoice"]') : null;
     if (!a) return;
     e.preventDefault(); e.stopPropagation();
