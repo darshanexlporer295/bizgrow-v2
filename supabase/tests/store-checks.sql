@@ -1,7 +1,7 @@
--- Online store checks (stage 4). Each check has an id that matches docs/specs/online-store.md.
+-- Online store checks (stage 4 and 5). Each check has an id that matches docs/specs/online-store.md.
 -- SCRATCH DATABASE ONLY: this file creates test users, a test shop and test orders.
 -- Do not run it on the live Supabase project. Run it with supabase/tests/run-checks.cjs,
--- which loads schema.sql and patch-07.sql into an empty scratch database first.
+-- which loads schema.sql, patch-07.sql and patch-08.sql into an empty scratch database first.
 -- The last result lists one row per check: ok = true means the check passed.
 
 create temp table if not exists store_check_results (id text primary key, ok boolean, detail text);
@@ -329,6 +329,152 @@ begin
   exception when others then v := sqlerrm;
   end;
   insert into store_check_results values ('C26', v like 'Only the owner, manager or cashier%', v);
+end $$;
+
+-- ---------- C27 to C38: orders move stock (stage 5) ----------
+-- A second shop, so these checks do not share the order limits of the shop above.
+insert into public.shops (id, name, phone, city, lang, store_enabled, store_slug) values
+  ('00000000-0000-0000-0000-0000000000b2', 'Stock Shop', '9822222222', 'Jaipur', 'en', true, 'stock-shop-2');
+insert into public.staff (shop_id, auth_user_id, name, email, role) values
+  ('00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000a1', 'Owner', 'owner@test.local', 'owner');
+insert into public.products (id, shop_id, name, category, unit, buy_price, sell_price, stock_qty) values
+  ('00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000b2', 'Stock Item', 'misc', 'kg', 5, 10, 10);
+
+-- Small helpers for the checks below (temporary, gone when the session ends).
+create or replace function pg_temp.try_place(p_qty numeric, p_phone text)
+returns text language plpgsql as $$
+begin
+  perform public.place_store_order('stock-shop-2', 'Stock Buyer', p_phone, null,
+    jsonb_build_array(jsonb_build_object('product_id', '00000000-0000-0000-0000-0000000000d1', 'qty', p_qty)));
+  return 'ok';
+exception when others then
+  return sqlerrm;
+end
+$$;
+create or replace function pg_temp.order_id(p_phone text)
+returns uuid language sql as $$
+  select o.id from public.store_orders o
+   where o.customer_phone = p_phone and o.shop_id = '00000000-0000-0000-0000-0000000000b2'
+$$;
+create or replace function pg_temp.stock()
+returns numeric language sql as $$
+  select p.stock_qty from public.products p where p.id = '00000000-0000-0000-0000-0000000000d1'
+$$;
+create or replace function pg_temp.set_status(p_id uuid, p_status text)
+returns text language plpgsql as $$
+begin
+  perform public.set_store_order_status(p_id, p_status);
+  return 'ok';
+exception when others then
+  return sqlerrm;
+end
+$$;
+
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', false);
+
+do $$
+declare
+  v text; v2 text; s text; r jsonb;
+  a uuid; c uuid; e uuid; h uuid;
+  shop uuid := '00000000-0000-0000-0000-0000000000b2';
+begin
+  -- C27: an order of 2 takes 2 out of stock, and the order is marked as holding it
+  v := pg_temp.try_place(2, '9800000001');
+  a := pg_temp.order_id('9800000001');
+  insert into store_check_results values ('C27',
+    v = 'ok' and pg_temp.stock() = 8 and (select o.stock_taken from public.store_orders o where o.id = a),
+    'order of 2 kg: result ' || v || ', stock now ' || pg_temp.stock());
+
+  -- C28: more than the stock left is refused, nothing is saved and stock does not change
+  v := pg_temp.try_place(9, '9800000002');
+  insert into store_check_results values ('C28',
+    v = 'Only 8 kg of Stock Item is left. Please lower the quantity.' and pg_temp.stock() = 8
+      and pg_temp.order_id('9800000002') is null,
+    'refused: ' || v || '; stock ' || pg_temp.stock());
+
+  -- C29: taking the last of the stock works, and the next order is refused (stock never below zero)
+  v := pg_temp.try_place(8, '9800000003');
+  c := pg_temp.order_id('9800000003');
+  s := pg_temp.try_place(1, '9800000004');
+  insert into store_check_results values ('C29',
+    v = 'ok' and pg_temp.stock() = 0 and s = 'Stock Item is out of stock. Please remove it from your order.'
+      and pg_temp.order_id('9800000004') is null,
+    'stock ' || pg_temp.stock() || '; next order: ' || s);
+
+  -- C30: the owner cancels order A, and its 2 kg go back
+  v := pg_temp.set_status(a, 'cancelled');
+  insert into store_check_results values ('C30',
+    v = 'ok' and pg_temp.stock() = 2 and not (select o.stock_taken from public.store_orders o where o.id = a),
+    'cancel result ' || v || '; stock now ' || pg_temp.stock());
+
+  -- C31: cancelling again, or putting back again, does not add stock twice
+  v := pg_temp.set_status(a, 'cancelled');
+  perform public._store_put_back(a);
+  insert into store_check_results values ('C31', v = 'ok' and pg_temp.stock() = 2,
+    'stock after repeat cancel and put-back: ' || pg_temp.stock());
+
+  -- C32: a reopen is refused while the stock is not there, and the order stays cancelled
+  e := null;
+  v := pg_temp.try_place(2, '9800000005');
+  e := pg_temp.order_id('9800000005');
+  s := pg_temp.set_status(a, 'new');
+  insert into store_check_results values ('C32',
+    v = 'ok' and s = 'Stock Item is out of stock. Please remove it from your order.'
+      and pg_temp.stock() = 0 and (select o.status from public.store_orders o where o.id = a) = 'cancelled',
+    'reopen refused: ' || s || '; stock ' || pg_temp.stock());
+
+  -- C33: cancel the other order (its 2 kg go back), then reopen A, which takes its 2 kg again
+  v := pg_temp.set_status(e, 'cancelled');
+  v2 := pg_temp.set_status(a, 'new');
+  insert into store_check_results values ('C33',
+    v = 'ok' and v2 = 'ok' and pg_temp.stock() = 0 and (select o.stock_taken from public.store_orders o where o.id = a),
+    'reopen result ' || v2 || '; stock now ' || pg_temp.stock());
+
+  -- C34: taking again for an order that already holds its stock does nothing
+  perform public._store_take(a);
+  insert into store_check_results values ('C34', pg_temp.stock() = 0,
+    'stock after repeat take: ' || pg_temp.stock());
+
+  -- C35: the owner cancels a delivered order, and its stock comes back
+  s := pg_temp.set_status(a, 'accepted');
+  s := pg_temp.set_status(a, 'packed');
+  s := pg_temp.set_status(a, 'delivered');
+  v := pg_temp.set_status(a, 'cancelled');
+  insert into store_check_results values ('C35', v = 'ok' and pg_temp.stock() = 2,
+    'cancel from delivered: ' || v || '; stock now ' || pg_temp.stock());
+
+  -- C36: owner bulk cancel of the new orders puts all their stock back
+  v := pg_temp.try_place(1, '9800000006');
+  v2 := pg_temp.try_place(1, '9800000007');
+  r := public.cancel_new_store_orders(shop);
+  insert into store_check_results values ('C36',
+    v = 'ok' and v2 = 'ok' and (r->>'cancelled')::int = 3 and pg_temp.stock() = 10,
+    'bulk cancelled ' || (r->>'cancelled') || '; stock now ' || pg_temp.stock());
+
+  -- C37: stock = starting stock less what open orders hold, every order's flag matches its status, and no negatives
+  insert into store_check_results values ('C37',
+    pg_temp.stock() = 10 - coalesce((select sum(i.qty) from public.store_order_items i
+                                       join public.store_orders o on o.id = i.order_id
+                                      where o.shop_id = shop and o.status <> 'cancelled'), 0)
+    and (select bool_and(o.stock_taken = (o.status <> 'cancelled')) from public.store_orders o where o.shop_id = shop)
+    and pg_temp.stock() >= 0,
+    'stock ' || pg_temp.stock() || ' matches open orders; flags match statuses');
+
+  -- C38: backstop: an order saved with more than the stock left is refused when its stock is taken
+  insert into public.store_orders (shop_id, customer_name, customer_phone, status, item_count, total)
+    values (shop, 'Forced Buyer', '9800000099', 'new', 1, 120) returning id into h;
+  insert into public.store_order_items (order_id, product_id, name, unit, price, qty, line_total)
+    values (h, '00000000-0000-0000-0000-0000000000d1', 'Stock Item', 'kg', 10, 12, 120);
+  s := 'no error';
+  begin
+    perform public._store_take(h);
+  exception when others then
+    s := sqlerrm;
+  end;
+  insert into store_check_results values ('C38',
+    s = 'Only 10 kg of Stock Item is left. Please lower the quantity.' and pg_temp.stock() = 10
+      and not (select o.stock_taken from public.store_orders o where o.id = h),
+    'backstop: ' || s || '; stock ' || pg_temp.stock());
 end $$;
 
 select id, ok, detail from store_check_results order by id;

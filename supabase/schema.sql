@@ -1773,6 +1773,7 @@ create table if not exists public.store_orders (
                  check (status in ('new', 'accepted', 'packed', 'delivered', 'cancelled')),
   item_count     int not null default 0,
   total          numeric(12,2) not null default 0,
+  stock_taken    boolean not null default false,
   created_at     timestamptz not null default now(),
   updated_at     timestamptz not null default now()
 );
@@ -1871,7 +1872,79 @@ begin
 end
 $$;
 
--- ---------- public: place an order ----------
+-- ---------- internal: take and put back the stock of one order ----------
+
+-- Products are locked in id order, so two orders with the same items cannot deadlock.
+-- Only the database functions call these; nobody gets a grant on them.
+
+create or replace function public._store_take(p_order uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_taken boolean;
+  v_r record;
+  v_p public.products%rowtype;
+begin
+  select o.stock_taken into v_taken from public.store_orders o where o.id = p_order;
+  if v_taken is null or v_taken then
+    return;
+  end if;
+  for v_r in
+    select i.product_id, sum(i.qty) as q, max(i.name) as name
+      from public.store_order_items i
+     where i.order_id = p_order and i.product_id is not null
+     group by i.product_id
+     order by i.product_id
+  loop
+    select * into v_p from public.products where id = v_r.product_id for update;
+    if not found or v_p.deleted_at is not null then
+      raise exception '% is no longer available. Please remove it from the order.', v_r.name;
+    end if;
+    if v_p.stock_qty < v_r.q then
+      if v_p.stock_qty <= 0 then
+        raise exception '% is out of stock. Please remove it from your order.', v_p.name;
+      end if;
+      raise exception 'Only % % of % is left. Please lower the quantity.',
+        trim_scale(v_p.stock_qty), coalesce(nullif(v_p.unit, ''), 'units'), v_p.name;
+    end if;
+    update public.products set stock_qty = stock_qty - v_r.q where id = v_r.product_id;
+  end loop;
+  update public.store_orders set stock_taken = true where id = p_order;
+end
+$$;
+
+create or replace function public._store_put_back(p_order uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_taken boolean;
+  v_r record;
+begin
+  select o.stock_taken into v_taken from public.store_orders o where o.id = p_order for update;
+  if not coalesce(v_taken, false) then
+    return;
+  end if;
+  for v_r in
+    select i.product_id, sum(i.qty) as q
+      from public.store_order_items i
+     where i.order_id = p_order and i.product_id is not null
+     group by i.product_id
+     order by i.product_id
+  loop
+    perform 1 from public.products where id = v_r.product_id for update;
+    update public.products set stock_qty = stock_qty + v_r.q where id = v_r.product_id;
+  end loop;
+  update public.store_orders set stock_taken = false where id = p_order;
+end
+$$;
+
+-- ---------- public: place an order (takes the stock) ----------
 
 create or replace function public.place_store_order(
   p_slug text, p_name text, p_phone text, p_note text, p_items jsonb)
@@ -1963,6 +2036,7 @@ begin
       raise exception 'Some items are no longer available. Please refresh the store and try again.';
     end if;
     -- Stock check: the same item may appear twice in one cart, so count what is already in this order.
+    -- The real take happens below, under a row lock, and checks again.
     select coalesce(sum(i.qty), 0) into v_ordered from public.store_order_items i
      where i.order_id = v_order and i.product_id = v_p.id;
     if v_p.stock_qty - v_ordered <= 0 then
@@ -1983,6 +2057,10 @@ begin
          total = (select coalesce(sum(i.line_total), 0) from public.store_order_items i where i.order_id = v_order)
    where id = v_order
    returning item_count, total into v_count, v_total;
+
+  -- Take the stock now, in this same transaction. If another order has taken the last
+  -- of an item since the check above, this raises, and the whole order is rolled back.
+  perform public._store_take(v_order);
 
   -- The lines and total come from the saved rows, so the WhatsApp message matches the order.
   select coalesce(jsonb_agg(jsonb_build_object(
@@ -2064,11 +2142,12 @@ begin
 end
 $$;
 
--- ---------- staff: change one order's status ----------
+-- ---------- staff: change one order's status (moves the stock) ----------
 
 -- Moves allowed for owner, manager and cashier:
 --   new -> accepted -> packed -> delivered, and cancel from new, accepted or packed.
 -- Anything else (reopen from delivered or cancelled, skip a step) is owner only.
+-- Cancel puts the stock back. Reopening a cancelled order takes it again.
 -- Every real change writes one audit line with the old and the new status.
 create or replace function public.set_store_order_status(p_order uuid, p_status text)
 returns jsonb
@@ -2099,6 +2178,11 @@ begin
   if not v_step then
     perform public._need(v_o.shop_id, array['owner'], 'Only the owner can reopen an order or skip a step');
   end if;
+  if p_status = 'cancelled' then
+    perform public._store_put_back(p_order);
+  elsif v_o.status = 'cancelled' then
+    perform public._store_take(p_order);
+  end if;
   update public.store_orders set status = p_status, updated_at = now() where id = p_order;
   v_ref := upper(substr(md5(p_order::text), 1, 6));
   perform public._audit(v_o.shop_id, 'edit', 'store_orders', p_order,
@@ -2107,7 +2191,7 @@ begin
 end
 $$;
 
--- ---------- owner only: cancel new (junk) orders in one go ----------
+-- ---------- owner only: cancel new (junk) orders in one go (puts the stock back) ----------
 
 -- With no ids, cancels every order still marked new. With ids, only those that are new.
 create or replace function public.cancel_new_store_orders(p_shop uuid, p_ids uuid[] default null)
@@ -2125,8 +2209,10 @@ begin
   for v_o in
     select * from public.store_orders
      where shop_id = p_shop and status = 'new' and (p_ids is null or id = any(p_ids))
+     order by id
      for update
   loop
+    perform public._store_put_back(v_o.id);
     update public.store_orders set status = 'cancelled', updated_at = now() where id = v_o.id;
     v_ref := upper(substr(md5(v_o.id::text), 1, 6));
     perform public._audit(p_shop, 'edit', 'store_orders', v_o.id,
@@ -2136,6 +2222,9 @@ begin
   return jsonb_build_object('ok', true, 'cancelled', v_n);
 end
 $$;
+
+revoke all on function public._store_take(uuid) from public, anon, authenticated;
+revoke all on function public._store_put_back(uuid) from public, anon, authenticated;
 
 -- Grants: anonymous visitors may only read the public store and place an order.
 grant usage on schema public to anon;

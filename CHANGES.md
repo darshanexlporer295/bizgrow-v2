@@ -1,6 +1,29 @@
 # BizGrow v2 - what changed (status: stage 1 build, demo and real sign-in code, tested in a browser)
 
-## Stage 4: online store hardening (patch-07, latest)
+## Stage 5: orders take stock (patch-08, latest)
+
+### What was built
+- Placing an order from the online store takes its stock in the database, in the same step that saves the order. If any line is short at that moment, the whole order is refused and nothing is saved.
+- An order holds its stock while it is new, accepted, packed or delivered. Cancelling it puts the stock back. Reopening a cancelled order takes the stock again; if the stock is gone, the reopen is refused with the same "out of stock" or "Only N left" message as the store.
+- Taking and putting back are safe to repeat: a flag on each order records whether it holds stock, so stock is taken once and put back once.
+- Owner bulk cancel of new orders puts their stock back.
+- The demo (mock backend) follows the same rules.
+- Database: `supabase/patch-08.sql` (new, safe to run again). `supabase/schema.sql` includes the same changes for fresh installs. `run-checks.cjs` runs patch-08 twice. New checks C27 to C38 in `store-checks.sql`.
+
+### Orders placed before patch-08
+- They never took stock, so they still do not. Cancelling one leaves stock as it is. Reopening one takes stock if it is there, the same as a new order.
+
+### Tests (local Postgres, scratch databases only)
+- Fresh empty database, full run (schema, patch-07 twice, patch-08 twice, checks): **38 of 38 passed**.
+- Fresh install from `schema.sql` alone: **38 of 38 passed**.
+- Headless browser, demo mode, 360 px (`stage5-smoke.js`): **24 of 24 checks passed**, no page errors. Covers the take on placing, the refusal, cancel and reopen, the refused reopen when stock is gone, and bulk cancel.
+- Headless browser, demo mode, 360 px (`stage4-smoke.js`): **22 of 22 checks passed**. Its bulk step now restocks the items first, because placed orders take stock.
+- Not run on the live Supabase project yet. Two sessions placing orders at the same moment were not tested.
+
+### Known limits
+- The existing sale function (`create_sale`, not changed in this stage) locks items in cart order, so a rare deadlock with an online order at the same moment is possible. Postgres stops one of them with an error; no wrong stock is written.
+
+## Stage 4: online store hardening (patch-07)
 
 ### What was built
 - Stock cap: the public store shows "Up to N at a time" for each item (stock left, capped at 999). An order asking for more than the stock left is refused, and the message names the item and the amount left.
@@ -27,7 +50,6 @@
 - Not run on the live Supabase project yet. The live site has not been checked against the new SQL.
 
 ### Known gaps
-- Orders do not reduce `stock_qty`. The stock check looks at the stock now, so two orders together can ask for more than the shop has.
 - The Turnstile bot check is not built.
 - The shop-wide 300 orders an hour cap has no automated check yet.
 - Cancel from accepted or packed has no automated check yet (the rule is in the function).

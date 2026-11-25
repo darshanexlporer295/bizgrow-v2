@@ -1606,6 +1606,26 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     return { lines: out, stockNeed: need };
   }
   function applyStock(st, need, sign) { Object.keys(need).forEach(function (pid) { var p = st.products.find(function (x) { return x.id === +pid; }); if (p) p.stock = Math.round((p.stock + sign * need[pid]) * 1000) / 1000; }); }
+  // Stage 5 (same rule as patch-08): an order holds its stock from placement until it is cancelled.
+  // o.stock_need = { product id: qty } for the whole order; o.taken = true while the order holds it.
+  function takeOrderStock(st, o) {
+    if (o.taken || !o.stock_need) return;
+    var need = o.stock_need;
+    Object.keys(need).forEach(function (pid) {
+      var p = st.products.find(function (x) { return x.id === +pid; });
+      if (!p || p.deleted_at) throw E('Some items are no longer available. Remove them from the order.');
+      if (p.stock < need[pid]) {
+        if (p.stock <= 0) throw E(p.name + ' is out of stock. Please remove it from your order.');
+        throw E('Only ' + p.stock + ' ' + (p.unit || 'units') + ' of ' + p.name + ' is left. Please lower the quantity.');
+      }
+    });
+    applyStock(st, need, -1);
+    o.taken = true;
+  }
+  function putBackOrderStock(st, o) {
+    if (o.taken && o.stock_need) applyStock(st, o.stock_need, 1);
+    o.taken = false;
+  }
 
   function createSale(st, u, b) {
     if (!can(u, 'sale')) throw E('Your role cannot make bills. Ask the owner.', 403);
@@ -1714,7 +1734,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       lines2.sort(function (x, y) { return x.name < y.name ? -1 : (x.name > y.name ? 1 : 0); });
       var oid = nid(st);
       var ord = { id: oid, ref: refOf(oid), name: on2, phone: ph2, note: String(b.note || '').trim().slice(0, 300) || null, status: 'new',
-        item_count: lines2.length, total: sumLines(lines2), created_at: nowIso(), lines: lines2 };
+        item_count: lines2.length, total: sumLines(lines2), created_at: nowIso(), lines: lines2, stock_need: ordered2, taken: false };
+      takeOrderStock(st, ord);
       st.orders.unshift(ord); save(st);
       // The lines and total come from the saved order, so the WhatsApp message matches it.
       return { ok: true, ref: ord.ref, item_count: ord.item_count, total: ord.total, lines: ord.lines };
@@ -1792,6 +1813,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       var stepOk = (was === 'new' && ns === 'accepted') || (was === 'accepted' && ns === 'packed') ||
         (was === 'packed' && ns === 'delivered') || (['new', 'accepted', 'packed'].indexOf(was) >= 0 && ns === 'cancelled');
       if (!stepOk && ou.v2role !== 'owner') throw E('Only the owner can reopen an order or skip a step', 403);
+      if (ns === 'cancelled') putBackOrderStock(st, so);
+      else if (was === 'cancelled') takeOrderStock(st, so);
       so.status = ns; so.updated_at = nowIso();
       audit(st, ou, 'edit', 'order', id, 'Order ' + so.ref + ' changed from ' + was + ' to ' + ns, { status: was }, { status: ns });
       save(st); return { ok: true, status: ns, from: was, changed: true };
@@ -1802,6 +1825,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       if (cnU.v2role !== 'owner') throw E('Only the owner can cancel orders in bulk', 403);
       var junk = st.orders.filter(function (o) { return o.status === 'new'; });
       junk.forEach(function (o) {
+        putBackOrderStock(st, o);
         o.status = 'cancelled'; o.updated_at = nowIso();
         audit(st, cnU, 'edit', 'order', o.id, 'Order ' + o.ref + ' changed from new to cancelled (bulk cancel)', { status: 'new' }, { status: 'cancelled' });
       });

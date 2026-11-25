@@ -2,7 +2,7 @@
 // Usage (from this folder, after `npm install pg`):
 //   DATABASE_URL=postgres://user:pass@host:5432/scratch node run-checks.cjs --scratch
 // The database must be empty. The script loads the local auth stand-in, schema.sql,
-// patch-07.sql (twice, to prove it is safe to re-run), then store-checks.sql.
+// patch-07.sql and patch-08.sql (each twice, to prove it is safe to re-run), then store-checks.sql.
 // --scratch is required on purpose: the stand-in replaces auth.uid() and must never run on the live project.
 const fs = require('fs');
 const path = require('path');
@@ -14,6 +14,8 @@ const steps = [
   path.join(root, 'schema.sql'),
   path.join(root, 'patch-07.sql'),
   path.join(root, 'patch-07.sql'),
+  path.join(root, 'patch-08.sql'),
+  path.join(root, 'patch-08.sql'),
   path.join(__dirname, 'store-checks.sql'),
 ];
 

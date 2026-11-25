@@ -54,11 +54,28 @@ How the owner turns the store on: from the **Store** page (not Settings). The st
 ## G. Database file
 
 30. Can `supabase/patch-07.sql` be run twice on the same database without an error? Must be **yes**. Checked: `run-checks.cjs` runs it twice, and the run passes.
-31. Does a fresh database built from `supabase/schema.sql` pass all 26 checks? Must be **yes**. Checked on a local Postgres copy (see CHANGES.md). Not yet checked on the live Supabase project.
+31. Does a fresh database built from `supabase/schema.sql` pass all 38 checks? Must be **yes**. Checked on a local Postgres copy (see CHANGES.md). Not yet checked on the live Supabase project.
+
+## I. Stock taken by orders (stage 5, `supabase/patch-08.sql`)
+
+An order takes its stock when it is placed, in the same step that saves it. It holds that stock until it is cancelled, and cancelling puts it back. Orders placed before patch-08 never took stock; cancelling one leaves stock as it is.
+
+32. Does placing an order take its stock in the database, in the same step as saving the order? Must be **yes**. Check: C27.
+33. Does a refused order (more than is left) leave stock unchanged? Must be **yes**. Check: C28.
+34. Is an order for an item with no stock refused with a message that names the item? Must be **yes**. Check: C29.
+35. Does cancelling an order put its stock back? Must be **yes**. Check: C30.
+36. Is putting stock back safe to repeat (cancelling twice does not add stock twice)? Must be **yes**. Check: C31.
+37. Does reopening a cancelled order take its stock again, and is it refused with a clear message when the stock is gone (the order stays cancelled)? Must be **yes**. Checks: C32, C33.
+38. Is taking stock safe to repeat (taking twice does not take twice)? Must be **yes**. Check: C34.
+39. Does cancelling a delivered order put its stock back? Must be **yes**. Check: C35.
+40. Does bulk cancel of new orders put their stock back? Must be **yes**. Check: C36.
+41. Does stock stay equal to the starting stock minus the open orders, with the taken flag matching each order's status? Must be **yes**. Check: C37.
+42. Does the stock take refuse a short order by itself, as a second check behind the per-line check? Must be **yes**. Check: C38.
+43. Does the demo show the same stock rules (take, refuse, put back on cancel, reopen, bulk cancel)? Must be **yes**. Demo check: `stage5-smoke.js`, 24 of 24.
 
 ## H. Known gaps and future work
 
-- **Stock is not reduced by orders.** The stock check looks at the stock now, not at the stock after other open orders. Two buyers can each be told there is enough, and together they can ask for more than the shop has. Fix later: reduce stock when an order is placed or accepted, with an audit line.
+- **Two sessions at once are not tested.** Stock is locked per item, so two orders for the last of an item should not both succeed, but no check runs two orders at the same moment. The existing sale function (`create_sale`) locks items in cart order, so a rare deadlock between a sale and an online order placed at the same moment is possible. Postgres would stop one of them with an error; no wrong stock is written.
 - **Bot check (Turnstile) is not built.** It is planned as a future step on the public order form, to stop automated orders. Until then, the per-number limits (criteria 13 to 15) are the only protection.
 - **Shop-wide cap check** (criterion 15) has no automated check yet.
 - **Cancel from accepted or packed** (criterion 21) has no automated check yet.
@@ -70,4 +87,4 @@ From the repository root, on an empty scratch database only (never the live proj
 
     DATABASE_URL=postgres://user:pass@host:5432/scratch node supabase/tests/run-checks.cjs --scratch
 
-The runner loads `supabase/tests/local-auth-shim.sql`, `supabase/schema.sql` and `supabase/patch-07.sql` (twice), then `supabase/tests/store-checks.sql`, and prints PASS or FAIL for each check and a total.
+The runner loads `supabase/tests/local-auth-shim.sql`, `supabase/schema.sql`, `supabase/patch-07.sql` (twice) and `supabase/patch-08.sql` (twice), then `supabase/tests/store-checks.sql`, and prints PASS or FAIL for each check and a total.
