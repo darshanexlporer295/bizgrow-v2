@@ -14,7 +14,7 @@
   // Plain messages for the helper. English is the fallback.
   var VT = {
     en: {
-      greet: 'Hello, I am {name}. Speak now.', bolo: 'Listening… bolo',
+      greet: 'Yes? Speak.', bolo: 'Listening… bolo',
       allow: 'Allow the microphone when the browser asks, then speak.',
       denied: 'The microphone is blocked for this site. Allow it in the browser settings, then tap the mic again.',
       nomic: 'No microphone was found on this device. Type instead.',
@@ -25,7 +25,7 @@
       mute_on: 'Hello sound: on (tap to mute)', mute_off: 'Hello sound: muted (tap to turn on)'
     },
     hi: {
-      greet: 'नमस्ते, मैं {name} हूँ। बोलिए।', bolo: 'Listening… bolo',
+      greet: 'बोलिए?', bolo: 'Listening… bolo',
       allow: 'ब्राउज़र पूछे तो माइक्रोफ़ोन की अनुमति दें, फिर बोलें।',
       denied: 'इस साइट के लिए माइक्रोफ़ोन बंद है। ब्राउज़र की सेटिंग में अनुमति दें, फिर माइक दबाएं।',
       nomic: 'इस फ़ोन या लैपटॉप पर माइक्रोफ़ोन नहीं मिला। लिखकर बताएं।',
@@ -36,7 +36,7 @@
       mute_on: 'नमस्ते की आवाज़: चालू (बंद करने के लिए दबाएं)', mute_off: 'नमस्ते की आवाज़: बंद (चालू करने के लिए दबाएं)'
     },
     mr: {
-      greet: 'नमस्कार, मी {name} आहे. बोला.', bolo: 'ऐकत आहे… बोला',
+      greet: 'बोला?', bolo: 'ऐकत आहे… बोला',
       allow: 'ब्राउझर विचारल्यावर मायक्रोफोनला परवानगी द्या, मग बोला.',
       denied: 'या साइटसाठी मायक्रोफोन बंद आहे. ब्राउझरच्या सेटिंगमध्ये परवानगी द्या, मग पुन्हा माइक दाबा.',
       nomic: 'या फोनवर मायक्रोफोन सापडला नाही. लिहून सांगा.',
@@ -47,7 +47,7 @@
       mute_on: 'स्वागत आवाज: चालू (बंद करण्यासाठी दाबा)', mute_off: 'स्वागत आवाज: बंद (चालू करण्यासाठी दाबा)'
     },
     gu: {
-      greet: 'નમસ્તે, હું {name} છું. બોલો.', bolo: 'સાંભળી રહ્યો છું… બોલો',
+      greet: 'બોલો?', bolo: 'સાંભળી રહ્યો છું… બોલો',
       allow: 'બ્રાઉઝર પૂછે ત્યારે માઇક્રોફોનની પરવાનગી આપો, પછી બોલો.',
       denied: 'આ સાઇટ માટે માઇક્રોફોન બંધ છે. બ્રાઉઝરની સેટિંગમાં પરવાનગી આપો, પછી માઇક ફરી દબાવો.',
       nomic: 'આ ફોન કે લેપટોપમાં માઇક્રોફોન મળ્યો નથી. લખીને કહો.',
