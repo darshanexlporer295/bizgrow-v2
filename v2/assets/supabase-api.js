@@ -113,7 +113,7 @@
       role: appRole(st.role), v2role: st.role,
       shop: { id: shop.id, name: shop.name || 'My shop', phone: shop.phone || '', address: shop.address || '', gstin: shop.gstin || '', city: shop.city || '',
         trade: shop.trade || '', upi_id: shop.upi_id || '', category: '', lang: shop.lang || 'en', store_enabled: false, onboarded: true,
-        assistant_name: shop.assistant_name || '', staff_discount_limit: 0 },
+        assistant_name: shop.assistant_name || '', staff_discount_limit: shop.staff_discount_limit == null ? 50 : num(shop.staff_discount_limit) },
       onboarded: true, answers: {}, lang: shop.lang || 'en',
       signup_done: !!(row && row.done), signup_answers: answers,
       consent: await loadConsent(u.id)
@@ -429,7 +429,7 @@
       need(owner || st.role === 'manager', 'Only the owner or manager can see this.');
       var sd = await rpc('day_summary', { p_shop: shopId, p_date: (qs && qs.get('date')) || today });
       return reply(200, { date: sd.date, udhar_added: num(sd.udhar_added), discounts_given: num(sd.discounts_given),
-        payments_recovered: num(sd.payments_recovered), bills: num(sd.bills), edits: num(sd.edits), deletes: num(sd.deletes), delete_lines: num(sd.delete_lines) });
+        payments_recovered: num(sd.payments_recovered), bills: num(sd.bills), edits: num(sd.edits), deletes: num(sd.deletes), delete_lines: Array.isArray(sd.delete_lines) ? sd.delete_lines : [] });
     }
 
     // Audit log and undo (owner and manager)
