@@ -338,7 +338,7 @@ async function pHome(v){
   const setup=d.setup;const fresh=setup.items===0;
   v.innerHTML=head(`${greet()}, ${esc(S.me.user.name.split(' ')[0])}`,esc(S.me.shop.name)+' · '+new Date(Date.now()+IST).toUTCString().slice(0,11).replace(',',''),`<a class="btn" href="#/sell">${ic('sell').replace('<svg','<svg width="18" height="18"')} ${t('new_sale')}</a>`)+
   (fresh?`<div class="card mb"><h3>Let's set up your shop — 3 quick steps</h3>
-   <div class="step ${setup.items?'done':''}"><div class="n">1</div><div class="grow"><b>${isCreator()?'Add your services':'Add your items'}</b><div class="muted small">${isCreator()?'List what you offer (reels, podcast clips, design) with your rates. You can change them any time.':'Pick a ready-made list for your type of shop, or add items one by one.'}</div></div><a class="btn sm" href="#/stock">Add items</a></div>
+   <div class="step ${setup.items?'done':''}"><div class="n">1</div><div class="grow"><b>${isCreator()?'Add your services':'Add your items'}</b><div class="muted small">${isCreator()?'List what you offer (reels, podcast clips, design) with your rates. You can change them any time.':'Add your items one by one: cloth, yarn, raw material, with rate and unit.'}</div></div><a class="btn sm" href="#/stock">Add items</a></div>
    <div class="step"><div class="n">2</div><div class="grow"><b>Make your first bill</b><div class="muted small">Tap items, choose Cash or UPI. That's it.</div></div><a class="btn sm sec" href="#/sell">Sell</a></div>
    <div class="step"><div class="n">3</div><div class="grow"><b>Add your UPI ID</b><div class="muted small">So customers can pay you from WhatsApp reminders.</div></div>${isOwner()?'<a class="btn sm sec" href="#/settings">Settings</a>':''}</div></div>`:'')+
   `<div class="grid g4 mb">
@@ -534,7 +534,7 @@ async function pStock(v){
   const cats=[...new Set(S.products.map(p=>p.category).filter(Boolean))];
   const low=S.products.filter(isLow);
   v.innerHTML=head(t('stock'),S.products.length+' items'+(low.length?' · '+low.length+' running low':''),`<button class="btn" data-act="additem">+ ${t('add_item')}</button>`)+
-   (S.products.length===0&&!isCreator()?`<div class="card mb"><h3>Start fast with a ready-made list</h3><p class="muted small mb">We add common items with usual prices. You can change prices and delete anything afterwards.</p><div class="row wrap">${CATS.filter(c=>c[0]!=='creator').map(c=>`<button class="btn sec sm" data-act="starter" data-k="${c[0]}">${c[1]}</button>`).join('')}</div></div>`:'')+
+   (false?`<div class="card mb"><h3>Start fast with a ready-made list</h3><p class="muted small mb">We add common items with usual prices. You can change prices and delete anything afterwards.</p><div class="row wrap">${CATS.filter(c=>c[0]!=='creator').map(c=>`<button class="btn sec sm" data-act="starter" data-k="${c[0]}">${c[1]}</button>`).join('')}</div></div>`:'')+
    `<div class="card"><div class="row mb wrap"><input class="in grow" style="min-width:140px" id="sq" placeholder="${t('search')}…" value="${esc(S.stockQ)}">${low.length?`<button class="chip ${S.stockLow?'on':''}" data-act="lowonly">Running low (${low.length})</button>`:''}</div>
    ${cats.length?`<div class="chips"><button class="chip ${!S.stockCat?'on':''}" data-act="scat" data-c="">All</button>${cats.map(c=>`<button class="chip ${S.stockCat===c?'on':''}" data-act="scat" data-c="${esc(c)}">${esc(c)}</button>`).join('')}</div>`:''}
    <div id="sl"></div></div>${revoCard('stock')}`;
@@ -675,7 +675,7 @@ async function pSettings(v){
   <input type="hidden" name="store_enabled" value="${s.store_enabled?'1':''}"><button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>`;
 }
 ACT.redoob=()=>onboarding();
-FORM.settings=async(f,d)=>{d.store_enabled=!!d.store_enabled;await api('/business','PUT',d);S.lang=d.lang;localStorage.setItem('bg_lang',d.lang);S.me=await api('/me');toast('Saved');render();};
+FORM.settings=async(f,d)=>{d.store_enabled=!!d.store_enabled;const r=await api('/business','PUT',d);S.lang=d.lang;localStorage.setItem('bg_lang',d.lang);S.me=await api('/me');toast((r&&r.warning)||'Saved');render();};
 
 window.BGV2={ACT,FORM,S,api,render,toast,isOwner:()=>isOwner(),esc,inr,t,head,modal,go};
 document.addEventListener('DOMContentLoaded',()=>boot());

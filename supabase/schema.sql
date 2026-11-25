@@ -14,8 +14,18 @@ create table if not exists public.shops (
   city        text,
   lang        text not null default 'en', -- en, hi, mr, gu
   gstin       text,
+  phone       text,                       -- shop phone number
+  upi_id      text,                       -- for example name@bank
+  address     text,                       -- printed on bills
+  assistant_name text,                    -- the name of the voice assistant (blank = Chotu)
   created_at  timestamptz not null default now()
 );
+
+-- Shops made before patch-02 get the four columns above added here (safe to run again).
+alter table public.shops add column if not exists phone text;
+alter table public.shops add column if not exists upi_id text;
+alter table public.shops add column if not exists address text;
+alter table public.shops add column if not exists assistant_name text;
 
 create table if not exists public.staff (
   id            uuid primary key default gen_random_uuid(),
@@ -218,6 +228,47 @@ as $$
   )
 $$;
 
+-- The owner saves the shop phone, UPI ID, address and assistant name. Owner only.
+-- A null value keeps the old value; a blank value clears it. Light checks on length and characters.
+create or replace function public.update_my_shop_profile(
+  p_shop uuid, p_phone text, p_upi_id text, p_address text, p_assistant_name text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  ph text := nullif(trim(p_phone), '');
+  up text := nullif(trim(p_upi_id), '');
+  ad text := nullif(trim(p_address), '');
+  an text := nullif(trim(p_assistant_name), '');
+begin
+  if not public.has_shop_role(p_shop, array['owner']) then
+    raise exception 'Only the owner can change the shop.';
+  end if;
+
+  if p_phone is not null and (length(ph) > 20 or ph !~ '^[0-9+() -]*$') then
+    raise exception 'Please check the phone number.' using errcode = '22023';
+  end if;
+  if p_upi_id is not null and (length(up) > 100 or up !~ '^[A-Za-z0-9._-]{2,64}@[A-Za-z0-9]{2,32}$') then
+    raise exception 'Please check the UPI ID. It should look like name@bank.' using errcode = '22023';
+  end if;
+  if p_address is not null and length(ad) > 200 then
+    raise exception 'The address is too long. Keep it under 200 letters.' using errcode = '22023';
+  end if;
+  if p_assistant_name is not null and length(an) > 20 then
+    raise exception 'The assistant name is too long. Keep it under 20 letters.' using errcode = '22023';
+  end if;
+
+  update public.shops
+  set phone = case when p_phone is null then phone else ph end,
+      upi_id = case when p_upi_id is null then upi_id else up end,
+      address = case when p_address is null then address else ad end,
+      assistant_name = case when p_assistant_name is null then assistant_name else an end
+  where id = p_shop;
+end;
+$$;
+
 -- Who may do what, table by table. Roles: owner, manager, cashier, stock-keeper, accountant.
 --   read_r: who may see the rows
 --   ins_r:  who may add rows
@@ -310,3 +361,6 @@ revoke execute on function public.current_shop_ids() from public, anon;
 revoke execute on function public.has_shop_role(uuid, text[]) from public, anon;
 grant execute on function public.current_shop_ids() to authenticated;
 grant execute on function public.has_shop_role(uuid, text[]) to authenticated;
+
+revoke all on function public.update_my_shop_profile(uuid, text, text, text, text) from public, anon;
+grant execute on function public.update_my_shop_profile(uuid, text, text, text, text) to authenticated;

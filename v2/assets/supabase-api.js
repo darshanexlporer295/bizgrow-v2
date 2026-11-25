@@ -29,6 +29,29 @@
   function fail(status, msg) { return reply(status, { error: msg }); }
   function nowIso() { return new Date().toISOString(); }
   function appRole(v) { return v === 'owner' ? 'owner' : (v === 'manager' || v === 'accountant') ? 'manager' : 'staff'; }
+  function txt(v) { return v == null ? (v === null ? null : '') : String(v); }
+
+  // Save the four shop details that patch-02 adds: phone, UPI ID, address and assistant name.
+  // A value that was not sent (null) keeps the old one. A blank value clears it.
+  // If the database update has not been run yet, this does not crash: it throws a plain message.
+  var PROFILE_MISSING = ' cannot be saved yet, because the shop database needs one more update. Nothing else was lost.';
+  async function saveProfile(shopId, f, what) {
+    var r = await sb.rpc('update_my_shop_profile', {
+      p_shop: shopId,
+      p_phone: f.phone === undefined ? null : txt(f.phone),
+      p_upi_id: f.upi_id === undefined ? null : txt(f.upi_id),
+      p_address: f.address === undefined ? null : txt(f.address),
+      p_assistant_name: f.assistant_name === undefined ? null : txt(f.assistant_name)
+    });
+    if (!r || !r.error) return;
+    var c = r.error.code || '', m = r.error.message || '';
+    if (c === '22023') throw new Error(m || 'Please check the details and try again.');
+    if (c === '42501' || /owner/i.test(m)) throw new Error('Only the owner can do this.');
+    if (c === '42883' || c === '42703' || c === 'PGRST202' || c === 'PGRST204' || /does not exist|could not find|schema cache/i.test(m)) {
+      throw new Error(what + PROFILE_MISSING);
+    }
+    throw new Error('Something went wrong. Please try again.');
+  }
 
   // Turn a database answer into data, or a plain message. Raw database text is never shown.
   function dataOf(r) {
@@ -91,9 +114,9 @@
     return {
       user: { id: u.id, name: st.name || meta.full_name || u.email || '', email: u.email || st.email || '', phone: '' },
       role: appRole(st.role), v2role: st.role,
-      shop: { id: shop.id, name: shop.name || 'My shop', phone: '', address: '', gstin: shop.gstin || '', city: shop.city || '',
-        trade: shop.trade || '', upi_id: '', category: '', lang: shop.lang || 'en', store_enabled: false, onboarded: true,
-        assistant_name: '', staff_discount_limit: 0 },
+      shop: { id: shop.id, name: shop.name || 'My shop', phone: shop.phone || '', address: shop.address || '', gstin: shop.gstin || '', city: shop.city || '',
+        trade: shop.trade || '', upi_id: shop.upi_id || '', category: '', lang: shop.lang || 'en', store_enabled: false, onboarded: true,
+        assistant_name: shop.assistant_name || '', staff_discount_limit: 0 },
       onboarded: true, answers: {}, lang: shop.lang || 'en',
       signup_done: !!(row && row.done), signup_answers: answers,
       consent: await loadConsent(u.id)
@@ -159,7 +182,17 @@
       if (!owner) return fail(400, 'Only the owner can change the shop.');
       var b = body || {};
       dataOf(await sb.rpc('update_my_shop', { p_shop: shopId, p_name: b.name || null, p_trade: b.trade || null, p_city: b.city || null, p_lang: b.lang || null }));
+      // The store button sends the whole shop back, so a missing database update must not block it.
+      try { await saveProfile(shopId, { phone: b.phone, upi_id: b.upi_id, address: b.address }, 'Phone, UPI ID and address'); }
+      catch (e) { if (/cannot be saved yet/.test(e.message)) return reply(200, { ok: true, warning: e.message }); throw e; }
       return reply(200, { ok: true });
+    }
+    if (path === '/v2/settings' && method === 'PUT') {
+      if (!owner) return fail(400, 'Only the owner can change settings.');
+      var sv = body || {};
+      if (sv.assistant_name == null) return reply(200, { ok: true });
+      await saveProfile(shopId, { assistant_name: sv.assistant_name }, 'The assistant name');
+      return reply(200, { ok: true, assistant_name: String(sv.assistant_name).trim() });
     }
     if ((path === '/onboarding' && method === 'PUT') || (path === '/starter' && method === 'POST')) return reply(200, { ok: true });
 
