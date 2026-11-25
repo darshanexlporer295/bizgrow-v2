@@ -1,5 +1,13 @@
 # BizGrow v2 - what changed (status: stage 1 build, demo and real sign-in code, tested in a browser)
 
+## Fixes: public store wording (after the live shop check)
+
+- A customer search with no match now says "No item matches that search. Try another word." Before, it said "No items are in stock right now", which was wrong. An empty list still shows the out-of-stock wording.
+- The cart heading says "(1 item)" for one line, not "(1 items)". English, Hindi, Marathi and Gujarati (`pub_no_match`, `pub_item_one` in `v2-i18n-store.js`). The Hindi, Marathi and Gujarati wording is a first draft.
+- `v2/assets/v2-store.js`, `v2/assets/v2-i18n-store.js`, `v2/dist/bizgrow-v2.html` (rebuilt with `build.js`). No database change.
+- Tests: demo mode at 390 px (focused check: no-match wording, one and two item headings, no page errors). Re-run of `stage4-smoke.js` (22 of 22), `stage6-smoke.js` (27 of 27) and `stage5-smoke.js` (20 checks, all passed). No page errors.
+- Live shop check (Bhakti Textile link, customer side, 390 px): cart, quantity, search, name and phone checks and the WhatsApp text all work. The final order was tested against a stub, so no real order was placed.
+
 ## Stage 6: printable and shareable invoice (no database change, latest)
 
 ### What was built

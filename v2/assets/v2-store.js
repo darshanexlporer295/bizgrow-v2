@@ -316,7 +316,7 @@
     var rows = PS.items.filter(function (it) {
       return !q || String(it.name || '').toLowerCase().indexOf(q) >= 0 || String(it.category || '').toLowerCase().indexOf(q) >= 0;
     });
-    if (!rows.length) { box.innerHTML = '<p class="muted">' + esc(T('pub_none')) + '</p>'; return; }
+    if (!rows.length) { box.innerHTML = '<p class="muted">' + esc(T(q ? 'pub_no_match' : 'pub_none')) + '</p>'; return; }
     box.innerHTML = rows.map(function (it) {
       var id = esc(String(it.id));
       var per = it.unit ? T('pub_per', { price: inrf(it.price), unit: it.unit }) : inrf(it.price);
@@ -348,7 +348,7 @@
       return '<div class="ps-line"><div class="ps-grow">' + esc(l.item.name) + ' × ' + esc(B.qn(l.qty)) + (l.item.unit ? ' ' + esc(l.item.unit) : '') +
         ' = <b>' + inrf(lt) + '</b></div><button type="button" class="ps-btn" data-ps="rm" data-id="' + esc(String(l.item.id)) + '">' + esc(T('pub_remove')) + '</button></div>';
     }).join('');
-    box.innerHTML = '<h2>' + esc(T('pub_cart')) + ' (' + esc(T('pub_items', { n: lines.length })) + ')</h2>' + rows +
+    box.innerHTML = '<h2>' + esc(T('pub_cart')) + ' (' + esc(lines.length === 1 ? T('pub_item_one') : T('pub_items', { n: lines.length })) + ')</h2>' + rows +
       '<div class="ps-total"><span>' + esc(T('pub_total')) + '</span><span>' + inrf(total) + '</span></div>';
   }
 
