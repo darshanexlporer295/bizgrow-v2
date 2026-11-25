@@ -4271,10 +4271,22 @@ document.addEventListener('DOMContentLoaded',()=>boot());
     if (mm) {
       ownerOnly();
       if (method === 'PUT') {
-        await rpc('update_staff', { p_staff: mm[1], p_role: b.role || null, p_active: b.status === undefined ? null : b.status === 'active' });
+        try { await rpc('update_staff', { p_staff: mm[1], p_role: b.role || null, p_active: b.status === undefined ? null : b.status === 'active' }); }
+        catch (e1) {
+          if (!/not found/i.test(String(e1 && e1.message))) throw e1;
+          if (b.role) { await rpc('update_staff_invite', { p_invite: mm[1], p_role: b.role }); }
+          else { throw new Error('This person has not signed in yet. You can change their role or remove them.'); }
+        }
         return OK();
       }
-      if (method === 'DELETE') { await rpc('remove_staff', { p_staff: mm[1] }); return OK(); }
+      if (method === 'DELETE') {
+        try { await rpc('remove_staff', { p_staff: mm[1] }); }
+        catch (e2) {
+          if (!/not found/i.test(String(e2 && e2.message))) throw e2;
+          await rpc('remove_staff_invite', { p_invite: mm[1] });
+        }
+        return OK();
+      }
     }
 
     // Privacy: export and erase (owner only)
