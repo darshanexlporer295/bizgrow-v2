@@ -121,7 +121,7 @@
       return me ? reply(200, me) : fail(401, SIGN_IN);
     }
     if (path === '/logout' && method === 'POST') { await sb.auth.signOut(); return reply(200, { ok: true }); }
-    if (/^\/(login|signup|password|invite)/.test(path)) {
+    if (/^\/(login|password|invite)/.test(path) || path === '/signup') {
       return fail(400, path.indexOf('/invite') === 0 ? 'This invite link is not valid.' : 'Sign in with Google. Email and password are not used here.');
     }
 
