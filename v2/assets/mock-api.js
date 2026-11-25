@@ -284,7 +284,7 @@
       return { found: true, shop: { name: st.shop.name, phone: st.shop.phone, city: st.shop.city || '', lang: st.shop.lang || 'en' },
         items: st.products.filter(function (p) { return !p.deleted_at && p.stock > 0; })
           .sort(function (a, b2) { return a.name.localeCompare(b2.name); })
-          .map(function (p) { return { id: p.id, name: p.name, category: p.category, unit: p.unit, price: p.price }; }) };
+          .map(function (p) { return { id: p.id, name: p.name, category: p.category, unit: p.unit, price: p.price, max_qty: Math.min(p.stock, 999) }; }) };
     }
     if (path === '/public/order' && method === 'POST') {
       if (!st.shop.store_enabled || !st.shop.store_slug || String(b.shop || '') !== st.shop.store_slug) throw E('This store is not open right now');
@@ -295,17 +295,36 @@
       var its = Array.isArray(b.items) ? b.items : [];
       if (!its.length) throw E('Your cart is empty');
       if (its.length > 40) throw E('Too many items in one order');
+      // Limits (same as the server): a phone the shop has seen gets 3 orders in 10 minutes;
+      // an unseen phone gets 2 in an hour. The whole shop gets 300 an hour.
+      var last10 = function (s) { return String(s || '').replace(/[^0-9]/g, '').slice(-10); };
+      var p10 = last10(ph2);
+      var seen2 = st.customers.some(function (c) { return !c.deleted_at && last10(c.phone) === p10; }) ||
+        st.orders.some(function (o) { return last10(o.phone) === p10 && ['accepted', 'packed', 'delivered'].indexOf(o.status) >= 0; });
+      var winMs = seen2 ? 10 * 60000 : 60 * 60000, capN = seen2 ? 3 : 2;
+      var recent2 = st.orders.filter(function (o) { return last10(o.phone) === p10 && Date.now() - new Date(o.created_at).getTime() < winMs; }).length;
+      if (recent2 >= capN) throw E('Too many orders from this number for now. Please wait a while or call the shop.');
+      var hour2 = st.orders.filter(function (o) { return Date.now() - new Date(o.created_at).getTime() < 60 * 60000; }).length;
+      if (hour2 >= 300) throw E('This store is busy. Please try again later.');
+      // Stock check per line: refuse more than is left, and name the item and the amount left.
+      var ordered2 = {};
       var lines2 = its.map(function (it) {
-        var pr2 = st.products.find(function (p) { return p.id === +it.product_id && !p.deleted_at && p.stock > 0; });
-        if (!pr2) throw E('Some items are no longer in stock. Please refresh the store and try again.');
+        var pr2 = st.products.find(function (p) { return p.id === +it.product_id && !p.deleted_at; });
+        if (!pr2) throw E('Some items are no longer available. Please refresh the store and try again.');
         var q2 = +it.qty; if (!(q2 > 0) || q2 > 9999) throw E('Please check the quantities');
-        return { name: pr2.name, unit: pr2.unit, price: pr2.price, qty: q2, line_total: pr2.price * q2 };
+        var already = ordered2[pr2.id] || 0;
+        if (pr2.stock - already <= 0) throw E(pr2.name + ' is out of stock. Please remove it from your order.');
+        if (already + q2 > pr2.stock) throw E('Only ' + (pr2.stock - already) + ' ' + (pr2.unit || 'units') + ' of ' + pr2.name + ' is left. Please lower the quantity.');
+        ordered2[pr2.id] = already + q2;
+        return { name: pr2.name, unit: pr2.unit, price: pr2.price, qty: q2, line_total: Math.round(pr2.price * q2 * 100) / 100 };
       });
+      lines2.sort(function (x, y) { return x.name < y.name ? -1 : (x.name > y.name ? 1 : 0); });
       var oid = nid(st);
       var ord = { id: oid, ref: refOf(oid), name: on2, phone: ph2, note: String(b.note || '').trim().slice(0, 300) || null, status: 'new',
         item_count: lines2.length, total: sumLines(lines2), created_at: nowIso(), lines: lines2 };
       st.orders.unshift(ord); save(st);
-      return { ok: true, ref: ord.ref, item_count: ord.item_count, total: ord.total };
+      // The lines and total come from the saved order, so the WhatsApp message matches it.
+      return { ok: true, ref: ord.ref, item_count: ord.item_count, total: ord.total, lines: ord.lines };
     }
 
     var cu = me(st); if (!cu && path !== '/config') throw E('Please log in', 401);
@@ -356,20 +375,44 @@
       save(st); return { ok: true, store_enabled: st.shop.store_enabled, store_slug: st.shop.store_slug };
     }
     // Online store orders: the shop's team sees them and moves them along.
+    // Newest first, 50 at a time. `before` (a created_at time) loads older ones; hide_cancelled=1 leaves cancelled out.
     if (k === 'orders' && !parts[1] && method === 'GET') {
       need(st, 'orders', 'Your role cannot see orders. Ask the owner.');
       var sf = qs && qs.get('status');
-      return { items: st.orders.filter(function (o) { return !sf || o.status === sf; }).slice(0, 200),
+      var oldBefore = qs && qs.get('before');
+      var hideC = !!qs && qs.get('hide_cancelled') === '1';
+      var listed = st.orders.filter(function (o) {
+        return (!sf || o.status === sf) && (!hideC || o.status !== 'cancelled') && (!oldBefore || o.created_at < oldBefore);
+      }).sort(function (x, y) { return x.created_at < y.created_at ? 1 : (x.created_at > y.created_at ? -1 : 0); });
+      return { items: listed.slice(0, 50), has_more: listed.length > 50,
         new_count: st.orders.filter(function (o) { return o.status === 'new'; }).length };
     }
+    // Moves: new -> accepted -> packed -> delivered, and cancel from new, accepted or packed.
+    // Anything else (reopen, skip a step) is owner only. Each real change is one audit line with old and new.
     if (k === 'orders' && id && sub === 'status' && method === 'PUT') {
       var ou = need(st, 'orders', 'Your role cannot change orders. Ask the owner.');
       var so = st.orders.find(function (o) { return o.id === id; }); if (!so) throw E('Order not found', 404);
       var ns = String(b.status || '');
       if (STATUSES.indexOf(ns) < 0) throw E('Unknown order status');
+      var was = so.status;
+      if (ns === was) return { ok: true, status: ns, from: was, changed: false };
+      var stepOk = (was === 'new' && ns === 'accepted') || (was === 'accepted' && ns === 'packed') ||
+        (was === 'packed' && ns === 'delivered') || (['new', 'accepted', 'packed'].indexOf(was) >= 0 && ns === 'cancelled');
+      if (!stepOk && ou.v2role !== 'owner') throw E('Only the owner can reopen an order or skip a step', 403);
       so.status = ns; so.updated_at = nowIso();
-      audit(st, ou, 'edit', 'order', id, 'Order ' + so.ref + ' marked ' + ns);
-      save(st); return { ok: true, status: ns };
+      audit(st, ou, 'edit', 'order', id, 'Order ' + so.ref + ' changed from ' + was + ' to ' + ns, { status: was }, { status: ns });
+      save(st); return { ok: true, status: ns, from: was, changed: true };
+    }
+    // Owner only: cancel every order still marked new (junk), one audit line each.
+    if (k === 'orders' && parts[1] === 'cancel-new' && method === 'POST') {
+      var cnU = need(st, 'orders', 'Only the owner can cancel orders in bulk');
+      if (cnU.v2role !== 'owner') throw E('Only the owner can cancel orders in bulk', 403);
+      var junk = st.orders.filter(function (o) { return o.status === 'new'; });
+      junk.forEach(function (o) {
+        o.status = 'cancelled'; o.updated_at = nowIso();
+        audit(st, cnU, 'edit', 'order', o.id, 'Order ' + o.ref + ' changed from new to cancelled (bulk cancel)', { status: 'new' }, { status: 'cancelled' });
+      });
+      save(st); return { ok: true, cancelled: junk.length };
     }
     if (path === '/starter' && method === 'POST') { save(st); return { ok: true }; }
     if (path === '/dashboard') return dashboard(st, cu);

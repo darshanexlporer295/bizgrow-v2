@@ -1,0 +1,73 @@
+# Online store - spec and acceptance criteria
+
+Status: stage 4 (hardening). Each criterion is a yes or no question. "Check" names the automated SQL check in `supabase/tests/store-checks.sql` (C01 to C26). "Demo check" names the headless browser run `stage4-smoke.js` (360 px, demo mode). Criteria with no check are marked "review" and must be confirmed by reading the code or by hand.
+
+How the owner turns the store on: from the **Store** page (not Settings). The store is off until the owner turns it on.
+
+## A. Who can see what
+
+1. Can an anonymous visitor (no sign-in) read the `store_orders` table directly? Must be **no**. Check: C01.
+2. Can an anonymous visitor run the staff or owner order functions (`list_store_orders`, `set_store_order_status`, `cancel_new_store_orders`)? Must be **no**. Check: C02.
+3. Can an anonymous visitor read the public store for a shop that is on, and place an order? Must be **yes**. Check: C03.
+4. Does the public store response contain no cost price (`buy_price`) anywhere, and leave out items with no stock? Must be **yes** for both. Check: C04.
+5. Is `max_qty` in the public store the stock left for each item, capped at 999? Must be **yes**. Check: C05.
+6. Can a person with no role in the shop see its orders? Must be **no**. Check: C26.
+
+## B. Stock check when placing an order
+
+7. If an order asks for more than the stock left, is the order refused with a message that names the item and the amount left (for example "Only 5 kg of Cotton Thread is left. Please lower the quantity.")? Must be **yes**. Checks: C06, C07.
+8. Does a refused order leave no order row behind? Must be **yes**. Check: C08.
+9. Does the public store page show "Up to N at a time" under each item, and stop the plus button at N? Must be **yes**. Demo check: "plus stops at the cap", "plus button disabled at cap".
+10. Does an order that is refused for being over the cap show the message in the store (not a blank page)? Must be **yes**. Demo check: "order over the cap is refused with a clear message".
+
+## C. Order total and the WhatsApp message
+
+11. Does the order function return the saved lines and the saved total, and do the line totals add up to the total? Must be **yes**. Check: C09.
+12. Is the WhatsApp message built from those returned lines and total (not from the prices cached on the page)? Must be **yes**. Demo check: "WhatsApp message has order line with quantity", "WhatsApp message has total line". Review: `v2/assets/v2-store.js`, function `buildMessage` uses the returned `lines`.
+
+## D. Spam limits
+
+13. Can a phone number that the shop has not seen place more than 2 orders in 60 minutes? Must be **no** (the third is refused). Check: C10.
+14. Can a known customer's number place more than 3 orders in 10 minutes? Must be **no**. Known means a customer with the same number (spaces and country code ignored), or a number that has an accepted, packed or delivered order. Check: C11.
+15. Can the whole shop take more than 300 orders in one hour? Must be **no**. Review only (no check yet).
+16. Can the owner cancel all new (junk) orders in one step? Must be **yes**, and only the owner can do it. Checks: C20, C21.
+17. Does the bulk cancel leave accepted, packed and delivered orders alone? Must be **yes**. Check: C21.
+18. Does each bulk-cancelled order get an audit line showing "changed from new to cancelled (bulk cancel)"? Must be **yes**. Check: C22.
+
+## E. Order status
+
+19. Can staff (cashier, manager) move an order from new to accepted, and from accepted to packed, and from packed to delivered? Must be **yes**. Checks: C12, C15 (new to accepted and packed to delivered in the same way).
+20. Can staff cancel a new order? Must be **yes**. Check: C19 (the setup cancels a new order as staff).
+21. Can staff cancel an accepted or packed order? Must be **yes**. Review only: the rule is in `set_store_order_status` (patch-07.sql); no SQL check yet.
+22. Can staff reopen a delivered order, reopen a cancelled order, or skip a step (for example accepted to delivered)? Must be **no**; the message is "Only the owner can reopen an order or skip a step". Checks: C13, C14, C16, C19.
+23. Can the owner reopen a delivered order? Must be **yes**. Check: C17.
+24. Does each status change write an audit line that records the old status and the new status? Must be **yes**. Check: C18.
+25. Does setting an order to the status it already has do nothing and show no error? Must be **yes**. Review only (the function returns `changed: false`).
+
+## F. Orders list
+
+26. Does the Orders page show at most 50 orders at a time, newest first? Must be **yes**. Checks: C23, C24. Demo check: "orders newest first", "orders page shows first page (up to 50)".
+27. Does "Load older orders" add the next page, with every order seen once? Must be **yes**. Check: C23. Demo check: "older page adds more orders".
+28. Does the "Hide cancelled" button hide cancelled orders, and does its label change to "Show cancelled"? Must be **yes**. Check: C25. Demo check: "hide toggle label changes", "cancelled orders hidden while filter on".
+29. Does the Orders page work at 360 px with no page errors in demo mode? Must be **yes**. Demo check: "no page errors at end".
+
+## G. Database file
+
+30. Can `supabase/patch-07.sql` be run twice on the same database without an error? Must be **yes**. Checked: `run-checks.cjs` runs it twice, and the run passes.
+31. Does a fresh database built from `supabase/schema.sql` pass all 26 checks? Must be **yes**. Checked on a local Postgres copy (see CHANGES.md). Not yet checked on the live Supabase project.
+
+## H. Known gaps and future work
+
+- **Stock is not reduced by orders.** The stock check looks at the stock now, not at the stock after other open orders. Two buyers can each be told there is enough, and together they can ask for more than the shop has. Fix later: reduce stock when an order is placed or accepted, with an audit line.
+- **Bot check (Turnstile) is not built.** It is planned as a future step on the public order form, to stop automated orders. Until then, the per-number limits (criteria 13 to 15) are the only protection.
+- **Shop-wide cap check** (criterion 15) has no automated check yet.
+- **Cancel from accepted or packed** (criterion 21) has no automated check yet.
+- **Live project.** The SQL checks ran on a local Postgres copy with a stand-in for the Supabase login function. They have not been run on the live Supabase project.
+
+## How to run the checks
+
+From the repository root, on an empty scratch database only (never the live project):
+
+    DATABASE_URL=postgres://user:pass@host:5432/scratch node supabase/tests/run-checks.cjs --scratch
+
+The runner loads `supabase/tests/local-auth-shim.sql`, `supabase/schema.sql` and `supabase/patch-07.sql` (twice), then `supabase/tests/store-checks.sql`, and prints PASS or FAIL for each check and a total.

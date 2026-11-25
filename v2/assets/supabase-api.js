@@ -197,12 +197,22 @@
     }
     if (path === '/orders' && method === 'GET') {
       need(['owner', 'manager', 'cashier'].indexOf(st.role) >= 0, 'Your role cannot see orders. Ask the owner.');
-      return reply(200, await rpc('list_store_orders', { p_shop: shopId, p_status: txt(qs && qs.get('status')) || null }));
+      return reply(200, await rpc('list_store_orders', {
+        p_shop: shopId,
+        p_status: txt(qs && qs.get('status')) || null,
+        p_before: txt(qs && qs.get('before')) || null,
+        p_hide_cancelled: !!qs && qs.get('hide_cancelled') === '1'
+      }));
     }
     var om = path.match(/^\/orders\/([0-9a-fA-F-]{36})\/status$/);
     if (om && method === 'PUT') {
       need(['owner', 'manager', 'cashier'].indexOf(st.role) >= 0, 'Your role cannot change orders. Ask the owner.');
       return reply(200, await rpc('set_store_order_status', { p_order: om[1], p_status: txt(b.status) }));
+    }
+    // Owner only: cancel every order still marked new (junk orders), in one go.
+    if (path === '/orders/cancel-new' && method === 'POST') {
+      ownerOnly();
+      return reply(200, await rpc('cancel_new_store_orders', { p_shop: shopId, p_ids: null }));
     }
 
     // Items (products)

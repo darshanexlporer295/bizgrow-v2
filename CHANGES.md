@@ -1,6 +1,41 @@
 # BizGrow v2 - what changed (status: stage 1 build, demo and real sign-in code, tested in a browser)
 
-## Online store (patch-06, latest)
+## Stage 4: online store hardening (patch-07, latest)
+
+### What was built
+- Stock cap: the public store shows "Up to N at a time" for each item (stock left, capped at 999). An order asking for more than the stock left is refused, and the message names the item and the amount left.
+- Status steps: new, accepted, packed, delivered. Cancel is allowed from new, accepted or packed. Any other change (reopen, skip a step) is owner only. The audit line records the old and the new status.
+- WhatsApp order text is built from the lines and total saved by the order function, not from prices cached on the page.
+- Spam limits: a known number (already a customer, or with an accepted, packed or delivered order) can place 3 orders in 10 minutes. A number the shop has not seen can place 2 orders in 60 minutes. The whole shop is capped at 300 orders an hour.
+- Owner bulk cancel of new (junk) orders: "Cancel all new orders (n)". Each one gets an audit line "(bulk cancel)".
+- Orders screen: 50 orders per page, newest first, "Load older orders", and a "Hide cancelled" toggle.
+- Turnstile bot check: NOT built. Listed as future work in `docs/specs/online-store.md`.
+
+### Changed
+- `supabase/patch-07.sql` (new, safe to run again). The same content is folded into `supabase/schema.sql`.
+- `supabase/tests/store-checks.sql`, `supabase/tests/run-checks.cjs`, `supabase/tests/local-auth-shim.sql` (new): 26 SQL checks. The shim is a local test helper only and is never run on the live project.
+- `docs/specs/online-store.md` (new): numbered yes/no acceptance criteria, mapped to the checks.
+- `v2/assets/mock-api.js`, `v2/assets/supabase-api.js`, `v2/assets/v2-store.js`, `v2/assets/v2-i18n-store.js`: the demo and the real adapter now match the database rules. `v2/dist/bizgrow-v2.html` rebuilt.
+- `README.md`: build command and how to run the checks.
+
+### Database (run once)
+1. Supabase SQL Editor, New query, paste `supabase/patch-07.sql`, Run. It is safe to run again.
+
+### Testing done
+- Local Postgres 19 (embedded copy on this machine, a scratch database, not the live project). `supabase/tests/run-checks.cjs --scratch` loads the schema, runs `patch-07.sql` twice, then the checks: **26 of 26 checks passed** (C01 to C26).
+- Headless browser, demo mode, 360 px (`stage4-smoke.js`): **22 of 22 checks passed**, no page errors. Covers the stock cap and "Up to N at a time", the over-cap refusal, the WhatsApp text (line and total), 52 orders from 26 buyers, paging with "Load older orders", newest first, the status steps and the audit line, the hide toggle, and bulk cancel.
+- Not run on the live Supabase project yet. The live site has not been checked against the new SQL.
+
+### Known gaps
+- Orders do not reduce `stock_qty`. The stock check looks at the stock now, so two orders together can ask for more than the shop has.
+- The Turnstile bot check is not built.
+- The shop-wide 300 orders an hour cap has no automated check yet.
+- Cancel from accepted or packed has no automated check yet (the rule is in the function).
+
+### Correction to an earlier commit message
+- Commit `cd09b6a` says the store is turned on from Settings. That is wrong. It is turned on from the **Store** page. The commit is not rewritten; this note corrects it.
+
+## Online store (patch-06)
 
 ### What was built
 - Owner turns the online store on from the Store page (or the More list). A link is made once and kept: `?shop=<short name>` on the live address. Share it on WhatsApp, preview it, or turn it off.

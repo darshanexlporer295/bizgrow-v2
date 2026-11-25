@@ -8,6 +8,8 @@
   var B = window.BGV2; if (!B) return;
 
   var ORDER_STATUSES = ['new', 'accepted', 'packed', 'delivered', 'cancelled'];
+  // The normal next steps. Anything else (reopen, skip a step) is owner-only; the server enforces it too.
+  var ORDER_NEXT = { new: ['accepted', 'cancelled'], accepted: ['packed', 'cancelled'], packed: ['delivered', 'cancelled'], delivered: [], cancelled: [] };
   var esc = B.esc;
 
   // Small styles for the public page and the order cards. Mobile first, 44px tap targets.
@@ -113,25 +115,42 @@
   };
 
   /* ---------- 2. Team: the Orders page ---------- */
-  var ordStatus = '';
+  var ordStatus = '', ordHide = false, ordItems = [], ordMore = false;
   var lastFetch = 0, lastNew = null;
 
-  B.on('orders', function (v) { renderOrders(v); });
+  B.on('orders', function (v) { renderOrders(v, false); });
 
-  async function renderOrders(v) {
+  function ordQuery(before) {
+    var p = new URLSearchParams();
+    if (ordStatus) p.set('status', ordStatus);
+    if (ordHide) p.set('hide_cancelled', '1');
+    if (before) p.set('before', before);
+    var s = p.toString();
+    return '/orders' + (s ? '?' + s : '');
+  }
+
+  // Newest first, 50 at a time. "older" adds the next page after the last one shown.
+  async function renderOrders(v, older) {
     var title = B.head(B.tx('ord_title'), B.tx('ord_sub'), '');
     if (!B.can('orders')) { v.innerHTML = title + '<p class="muted">' + esc(B.tx('ord_forbidden')) + '</p>'; return; }
+    var last = older && ordItems.length ? ordItems[ordItems.length - 1].created_at : '';
     var r;
-    try { r = await B.api('/orders' + (ordStatus ? '?status=' + ordStatus : '')); }
+    try { r = await B.api(ordQuery(last)); }
     catch (e) { v.innerHTML = title + '<div class="err">' + esc(e.message) + '</div>'; return; }
     lastNew = r.new_count || 0; lastFetch = Date.now(); paintBadges(lastNew);
-    var items = r.items || [];
+    ordItems = older ? ordItems.concat(r.items || []) : (r.items || []);
+    ordMore = !!r.has_more;
     var chips = [''].concat(ORDER_STATUSES).map(function (s) {
       return '<button class="btn ' + (ordStatus === s ? '' : 'sec ') + '" data-v2s="filter" data-status="' + s + '">' +
         esc(B.tx(s ? 'ord_' + s : 'ord_all')) + '</button>';
     }).join('');
-    v.innerHTML = title + '<div class="ord-chips">' + chips + '</div>' +
-      (items.length ? items.map(orderHtml).join('') : '<section class="card"><p class="muted">' + esc(B.tx('ord_none')) + '</p></section>');
+    var tools = '<div class="ord-chips">' +
+      '<button class="btn sec" data-v2s="hide">' + esc(B.tx(ordHide ? 'ord_show_cancelled' : 'ord_hide_cancelled')) + '</button>' +
+      (B.isOwner() && lastNew > 0 ? '<button class="btn red" data-v2s="cancelnew">' + esc(B.tx('ord_cancel_new', { n: lastNew })) + '</button>' : '') +
+      '</div>';
+    var more = ordMore ? '<div class="ord-chips"><button class="btn sec" data-v2s="older">' + esc(B.tx('ord_older')) + '</button></div>' : '';
+    v.innerHTML = title + '<div class="ord-chips">' + chips + '</div>' + tools +
+      (ordItems.length ? ordItems.map(orderHtml).join('') + more : '<section class="card"><p class="muted">' + esc(B.tx('ord_none')) + '</p></section>');
   }
 
   function orderHtml(o) {
@@ -147,7 +166,10 @@
       (o.note ? '<p class="small"><b>' + esc(B.tx('ord_note')) + ':</b> ' + esc(o.note) + '</p>' : '') +
       '<div class="row wrap mt"><label class="small" style="flex:1 1 180px">' + esc(B.tx('ord_status')) +
       '<select class="in" data-v2s="status" data-id="' + esc(o.id) + '">' +
-      ORDER_STATUSES.map(function (s) { return '<option value="' + s + '"' + (s === o.status ? ' selected' : '') + '>' + esc(B.tx('ord_' + s)) + '</option>'; }).join('') +
+      ORDER_STATUSES.map(function (s) {
+        var ok = B.isOwner() || s === o.status || (ORDER_NEXT[o.status] || []).indexOf(s) >= 0;
+        return '<option value="' + s + '"' + (s === o.status ? ' selected' : '') + (ok ? '' : ' disabled') + '>' + esc(B.tx('ord_' + s)) + '</option>';
+      }).join('') +
       '</select></label>' +
       '<a class="btn sec" target="_blank" rel="noopener" href="' + esc(waUrl(phone, B.tx('ord_reply_text', { name: o.name, ref: o.ref }))) + '">' + esc(B.tx('ord_reply')) + '</a>' +
       '<a class="btn sec" href="tel:' + esc(phone) + '">' + esc(B.tx('ord_call')) + '</a></div></section>';
@@ -164,11 +186,24 @@
     refreshBadge(true);
   });
 
-  document.addEventListener('click', function (e) {
-    var el = e.target.closest && e.target.closest('[data-v2s="filter"]'); if (!el) return;
-    ordStatus = el.getAttribute('data-status') || '';
-    var v = document.getElementById('view');
-    if (v) renderOrders(v);
+  document.addEventListener('click', async function (e) {
+    var el = e.target.closest && e.target.closest('[data-v2s]'); if (!el) return;
+    var act = el.getAttribute('data-v2s');
+    if (['filter', 'hide', 'older', 'cancelnew'].indexOf(act) < 0) return;
+    var v = document.getElementById('view'); if (!v) return;
+    if (act === 'filter') { ordStatus = el.getAttribute('data-status') || ''; return renderOrders(v, false); }
+    if (act === 'hide') { ordHide = !ordHide; return renderOrders(v, false); }
+    if (act === 'older') { return renderOrders(v, true); }
+    // Owner only: marks every order still in "new" as cancelled (used for junk orders).
+    if (!B.isOwner() || !lastNew) return;
+    if (!window.confirm(B.tx('ord_cancel_new_confirm', { n: lastNew }))) return;
+    el.disabled = true;
+    try {
+      var r = await B.api('/orders/cancel-new', 'POST', {});
+      B.toast(B.tx('ord_cancel_new_done', { n: r.cancelled || 0 }));
+    } catch (err) { B.toast(err.message); }
+    refreshBadge(true);
+    renderOrders(v, false);
   });
 
   // The new-orders badge on the Orders link (sidebar and More list).
@@ -257,6 +292,13 @@
 
   function cartQty(id) { return PS.cart[String(id)] || 0; }
 
+  // The most one order may take for an item: the stock the server reports (max_qty), never more than 9999.
+  function maxQty(item) {
+    if (item.max_qty === undefined || item.max_qty === null) return 9999;
+    var m = Math.floor(Number(item.max_qty)); if (!isFinite(m) || m < 0) m = 0;
+    return Math.min(m, 9999);
+  }
+
   function renderList() {
     var box = $('#psList'); if (!box) return;
     var q = PS.q.trim().toLowerCase();
@@ -267,11 +309,13 @@
     box.innerHTML = rows.map(function (it) {
       var id = esc(String(it.id));
       var per = it.unit ? T('pub_per', { price: inrf(it.price), unit: it.unit }) : inrf(it.price);
+      var cap = maxQty(it);
+      if (it.max_qty !== undefined && it.max_qty !== null) per += ' · ' + T('pub_max', { n: B.qn(cap) });
       var q2 = cartQty(it.id);
       var ctrl = q2 > 0
         ? '<div class="ps-step"><button type="button" class="ps-btn" data-ps="dec" data-id="' + id + '" aria-label="' + esc(T('pub_less')) + '">−</button>' +
-          '<span>' + esc(B.qn(q2)) + '</span><button type="button" class="ps-btn" data-ps="inc" data-id="' + id + '" aria-label="' + esc(T('pub_more')) + '">+</button></div>'
-        : '<button type="button" class="ps-btn ps-add" data-ps="add" data-id="' + id + '">' + esc(T('pub_add')) + '</button>';
+          '<span>' + esc(B.qn(q2)) + '</span><button type="button" class="ps-btn" data-ps="inc" data-id="' + id + '" aria-label="' + esc(T('pub_more')) + '"' + (q2 >= cap ? ' disabled' : '') + '>+</button></div>'
+        : '<button type="button" class="ps-btn ps-add" data-ps="add" data-id="' + id + '"' + (cap < 1 ? ' disabled' : '') + '>' + esc(T('pub_add')) + '</button>';
       return '<div class="ps-item"><div class="ps-info"><b>' + esc(it.name) + '</b><small>' + esc(per) + '</small></div>' + ctrl + '</div>';
     }).join('');
   }
@@ -299,15 +343,18 @@
 
   function setQty(id, qty) {
     var k = String(id);
-    if (qty <= 0) delete PS.cart[k]; else PS.cart[k] = Math.min(qty, 9999);
+    var item = PS.items.find(function (i) { return String(i.id) === k; });
+    var n = Math.min(qty, item ? maxQty(item) : 9999);
+    if (n <= 0) delete PS.cart[k]; else PS.cart[k] = n;
   }
 
   function showMsg(text) { var m = $('#psMsg'); if (m) m.textContent = text || ''; }
 
+  // Built from the lines and total the order function saved and returned, not from the page's cached prices.
   function buildMessage(ref, name, phone, note, lines, total) {
     var out = [T('pub_wa_head', { ref: ref }), '', T('pub_wa_name') + ': ' + name, T('pub_wa_phone') + ': ' + phone];
     lines.forEach(function (l) {
-      out.push('- ' + l.item.name + ' x ' + B.qn(l.qty) + (l.item.unit ? ' ' + l.item.unit : '') + ' = ' + inrf(Math.round(l.item.price * l.qty * 100) / 100));
+      out.push('- ' + l.name + ' x ' + B.qn(l.qty) + (l.unit ? ' ' + l.unit : '') + ' = ' + inrf(l.line_total));
     });
     out.push(T('pub_wa_total') + ': ' + inrf(total));
     if (note) out.push(T('pub_wa_note') + ': ' + note);
@@ -346,8 +393,9 @@
       reset(); return showMsg(data.error || T('pub_error'));
     }
 
-    var total = data.total != null ? data.total : 0;
-    var url = waUrl(PS.shop.phone, buildMessage(data.ref, name, phone, note, lines, total));
+    var total = data.total != null ? Number(data.total) : 0;
+    var savedLines = Array.isArray(data.lines) ? data.lines : [];
+    var url = waUrl(PS.shop.phone, buildMessage(data.ref, name, phone, note, savedLines, total));
     if (w && !w.closed) { try { w.location.href = url; } catch (e) { /* the button below still works */ } }
     PS.cart = {};
     renderList(); renderCart(); reset();
