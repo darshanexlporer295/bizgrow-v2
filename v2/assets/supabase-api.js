@@ -112,7 +112,7 @@
       user: { id: u.id, name: st.name || meta.full_name || u.email || '', email: u.email || st.email || '', phone: '' },
       role: appRole(st.role), v2role: st.role,
       shop: { id: shop.id, name: shop.name || 'My shop', phone: shop.phone || '', address: shop.address || '', gstin: shop.gstin || '', city: shop.city || '',
-        trade: shop.trade || '', upi_id: shop.upi_id || '', category: '', lang: shop.lang || 'en', store_enabled: false, onboarded: true,
+        trade: shop.trade || '', upi_id: shop.upi_id || '', category: '', lang: shop.lang || 'en', store_enabled: !!shop.store_enabled, store_slug: shop.store_slug || '', onboarded: true,
         assistant_name: shop.assistant_name || '', business_type: shop.business_type || '', staff_discount_limit: shop.staff_discount_limit == null ? 50 : num(shop.staff_discount_limit) },
       onboarded: true, answers: {}, lang: shop.lang || 'en',
       signup_done: !!(row && row.done), signup_answers: answers,
@@ -609,6 +609,16 @@
       return me ? reply(200, me) : fail(401, SIGN_IN);
     }
     if (path === '/logout' && method === 'POST') { await sb.auth.signOut(); return reply(200, { ok: true }); }
+
+    // Public online store (patch-06). Anyone with the store link can read it and send an order. No sign-in.
+    if (path === '/public/store' && method === 'GET') {
+      return reply(200, await rpc('public_store_catalogue', { p_slug: txt(qs && qs.get('shop')) }));
+    }
+    if (path === '/public/order' && method === 'POST') {
+      var ob = body || {};
+      return reply(200, await rpc('place_store_order', { p_slug: txt(ob.shop), p_name: txt(ob.name), p_phone: txt(ob.phone),
+        p_note: txt(ob.note), p_items: Array.isArray(ob.items) ? ob.items : [] }));
+    }
     if (/^\/(login|password|invite)/.test(path) || path === '/signup') {
       return fail(400, path.indexOf('/invite') === 0 ? 'This invite link is not valid.' : 'Sign in with Google. Email and password are not used here.');
     }
@@ -669,6 +679,21 @@
       return reply(200, { ok: true, assistant_name: an });
     }
     if ((path === '/onboarding' && method === 'PUT') || (path === '/starter' && method === 'POST')) return reply(200, { ok: true });
+
+    // Online store (patch-06): owner turns it on or off; owner, manager and cashier see and move orders.
+    if (path === '/store' && method === 'PUT') {
+      ownerOnly();
+      return reply(200, await rpc('set_store_enabled', { p_shop: shopId, p_enabled: b.enabled === true }));
+    }
+    if (path === '/orders' && method === 'GET') {
+      need(['owner', 'manager', 'cashier'].indexOf(st.role) >= 0, 'Your role cannot see orders. Ask the owner.');
+      return reply(200, await rpc('list_store_orders', { p_shop: shopId, p_status: txt(qs && qs.get('status')) || null }));
+    }
+    mm = path.match(/^\/orders\/([0-9a-fA-F-]{36})\/status$/);
+    if (mm && method === 'PUT') {
+      need(['owner', 'manager', 'cashier'].indexOf(st.role) >= 0, 'Your role cannot change orders. Ask the owner.');
+      return reply(200, await rpc('set_store_order_status', { p_order: mm[1], p_status: txt(b.status) }));
+    }
 
     // Shop data (stage 2): items, people, sales, expenses, tasks, reports, audit, staff and privacy.
     var shopRes = await shopRoute(path, method, body, qs, st);

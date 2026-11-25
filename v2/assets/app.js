@@ -79,10 +79,10 @@ async function render(){
   <nav class="nav">${nav.map(([k,i])=>`<a href="#/${k}" class="${S.page===k?'on':''}">${ic(i)}<span>${t(k)}</span></a>`).join('')}</nav>
   ${isCreator()?clipsSide():`<a class="sidecta" target="_blank" rel="noopener" href="${revoLink('growing my business')}"><b>Consult RÊVO</b><span>Website · WhatsApp · Reels</span></a>`}<div class="who"><b>${esc(S.me.user.name)}</b><span class="muted">${S.me.role==='owner'?'Owner':S.me.role==='manager'?'Manager':'Staff'}</span><br><button data-act="logout">${t('signout')}</button></div></aside>
   <main class="main" id="view"><div class="empty">…</div></main>
-  <nav class="tabbar">${TABS.map(([k,i])=>`<a href="#/${k}" class="${(S.page===k||(k==='more'&&['suppliers','tasks','store','team','privacy','settings','reports','expenses'].includes(S.page)))?'on':''}">${ic(i)}<span>${t(k)}</span></a>`).join('')}</nav></div>`;
+  <nav class="tabbar">${TABS.map(([k,i])=>`<a href="#/${k}" class="${(S.page===k||(k==='more'&&['suppliers','tasks','store','orders','team','privacy','settings','reports','expenses'].includes(S.page)))?'on':''}">${ic(i)}<span>${t(k)}</span></a>`).join('')}</nav></div>`;
   const v=$('#view');
   try{
-    const P={home:pHome,sell:pSell,bills:pBills,khata:pKhata,stock:pStock,expenses:pExpenses,reports:pReports,suppliers:pSuppliers,tasks:pTasks,store:pStore,more:pMore,team:pTeam,privacy:pPrivacy,settings:pSettings}[S.page]||pHome;
+    const P={home:pHome,sell:pSell,bills:pBills,khata:pKhata,stock:pStock,expenses:pExpenses,reports:pReports,suppliers:pSuppliers,tasks:pTasks,store:pStore,orders:pOrders,more:pMore,team:pTeam,privacy:pPrivacy,settings:pSettings}[S.page]||pHome;
     await P(v,page.slice(1));
     if(window.BGV2&&BGV2.after)BGV2.after(S.page,v,page.slice(1));
     if(S.page==='home'){if(isOwner()&&!S.me.onboarded&&!sessionStorage.getItem('bg_skipob'))setTimeout(onboarding,300);else if(S.me.onboarded||!isOwner()){clearTimeout(S.popT);S.popT=setTimeout(revoPopup,3500);}}
@@ -643,17 +643,9 @@ ACT.toggletask=async el=>{await api('/tasks/'+el.dataset.id,'PUT',{done:el.check
 ACT.deltask=async el=>{await api('/tasks/'+el.dataset.id,'DELETE');render();};
 
 /* ---------- online store ---------- */
-async function pStore(v){
-  const sh=S.me.shop,base=(location.origin&&location.origin!=='null')?location.origin:'',link=sh.slug?base+'/s/'+sh.slug:'';
-  v.innerHTML=head(t('store'),'A simple catalogue your customers can open on their phone')+
-  `<div class="card">${sh.store_enabled&&link?`<div class="okmsg">Your store is live.</div><div class="f"><label>Your store link</label><input class="in" readonly value="${esc(link)}" onclick="this.select()"></div>
-   <div class="row wrap"><a class="btn" target="_blank" rel="noopener" href="${waLink('',t('wa_store').replace('{shop}',sh.name).replace('{link}',link))}">${t('share_whatsapp')}</a><button class="btn sec" data-act="storepreview">Preview</button>${isOwner()?'<button class="btn red" data-act="storeoff">Turn off</button>':''}</div><p class="muted small mt">Shows item names, prices and whether in stock. Customers tap "Order on WhatsApp" and message you. Your cost prices and customer details are never shown.</p>`
-   :`<p class="mb">Turn on a clean online catalogue for your shop. Share the link in WhatsApp groups so neighbours can see what you have and message you their order.</p>${isOwner()?(sh.phone?'<button class="btn" data-act="storeon">Turn on my store</button>':'<div class="err">Please add your shop phone number in Settings first, so customers can message you.</div><a class="btn" href="#/settings">Open Settings</a>'):'<p class="muted">Ask the owner to turn this on.</p>'}`}</div>
-  <div class="card mt"><h3>Go further with RÊVO Systems</h3><p class="muted small mb">Your free catalogue stays free. These extras are built for you by RÊVO.</p>${revoLock('Your own branded shop website','store')}${revoLock('Online payments at checkout','store')}${revoLock('Order tracking and delivery updates','store')}</div>`;
-}
-ACT.storeon=async()=>{const s=S.me.shop;await api('/business','PUT',{...s,store_enabled:true});S.me=await api('/me');render();};
-ACT.storeoff=async()=>{const s=S.me.shop;await api('/business','PUT',{...s,store_enabled:false});S.me=await api('/me');render();};
-ACT.storepreview=async()=>{const ps=(await api('/products')).items||[];modal(`<h2>${esc(S.me.shop.name)}</h2><p class="muted small mb">This is how your customers will see your catalogue.</p>${ps.length?`<div class="list">${ps.map(p=>`<div class="li"><div class="grow"><div class="t">${esc(p.name)}</div><div class="d">${p.stock>0?'In stock':'Out of stock'}</div></div><b class="num">${inr(p.price)}</b></div>`).join('')}</div>`:'<p class="muted">No items yet.</p>'}`);};
+/* The store page, the public store and Orders are in v2-store.js (loaded after this file). */
+async function pStore(v){ v.innerHTML=head(t('store'),t('st_sub'))+'<div class="card"><p class="muted">'+t('pub_loading')+'</p></div>'; }
+async function pOrders(v){ v.innerHTML=head(t('orders'),t('ord_sub'))+'<div class="card"><p class="muted">'+t('pub_loading')+'</p></div>'; }
 
 /* ---------- more (mobile) ---------- */
 async function pMore(v){
@@ -710,15 +702,15 @@ async function pSettings(v,args){
   <div class="f"><label>Your UPI ID</label><input class="in" name="upi_id" value="${esc(s.upi_id||'')}" placeholder="name@bank"><div class="hint">Shown on udhar bills and reminders so customers can pay you.</div></div>
   <div class="f"><label>Address (on bills)</label><input class="in" name="address" value="${esc(s.address||'')}"></div>
   <div class="frow"><div class="f"><label>GST number (optional)</label><input class="in" name="gstin" value="${esc(s.gstin||'')}"></div><div class="f"><label>${t('language')}</label><select class="in" name="lang">${Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('')}</select></div></div>
-  <input type="hidden" name="store_enabled" value="${s.store_enabled?'1':''}"><button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>
+  <button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>
   <div class="card mt" style="max-width:640px"><h3>${t('s3_biz_title')}</h3><p class="muted small mb">${t('s3_biz_sub')}</p><form data-form="biztype"><div class="f"><select class="in" name="business_type">${bizOpts}</select></div><button class="btn sec" type="submit">${t('save')}</button></form></div>
   <div class="card mt" style="max-width:640px"><h3>${t('s3_plan_title')}</h3><a class="btn sec" href="#/settings/plan">${t('s3_plan_link')}</a></div>`;
 }
 ACT.redoob=()=>onboarding();
 FORM.biztype=async(f,d)=>{const v=d.business_type||'';localStorage.setItem('bg_biztype_'+S.me.shop.id,v);const r=await api('/business-type','PUT',{business_type:v});S.me=await api('/me');toast(r&&r.saved_here?t('s3_biz_local'):t('s3_biz_saved'));render();};
-FORM.settings=async(f,d)=>{d.store_enabled=!!d.store_enabled;const r=await api('/business','PUT',d);S.lang=d.lang;localStorage.setItem('bg_lang',d.lang);S.me=await api('/me');toast((r&&r.warning)||'Saved');render();};
+FORM.settings=async(f,d)=>{delete d.store_enabled;const r=await api('/business','PUT',d);S.lang=d.lang;localStorage.setItem('bg_lang',d.lang);S.me=await api('/me');toast((r&&r.warning)||'Saved');render();};
 
 window.BGV2={ACT,FORM,S,api,render,toast,isOwner:()=>isOwner(),esc,inr,t,head,modal,go};
-document.addEventListener('DOMContentLoaded',()=>boot());
+document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicStore&&BGV2.publicStore())return;boot();});
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 })();

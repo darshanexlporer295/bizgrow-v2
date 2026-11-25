@@ -35,7 +35,7 @@
     var st = {
       seq: 100,
       session: { uid: null },
-      shop: { id: 1, name: 'Sharma General Store (example)', phone: '9800000000', address: 'Example Road, Pune', gstin: '', upi_id: 'sharma@upi', category: 'kirana', lang: 'en', store_enabled: false, onboarded: true, assistant_name: 'Chotu', staff_discount_limit: 50 },
+      shop: { id: 1, name: 'Sharma General Store (example)', phone: '9800000000', address: 'Example Road, Pune', gstin: '', upi_id: 'sharma@upi', category: 'kirana', lang: 'en', store_enabled: false, store_slug: '', onboarded: true, assistant_name: 'Chotu', staff_discount_limit: 50 },
       users: [
         { id: 1, name: 'Demo Owner', email: 'owner@example.com', v2role: 'owner', status: 'active' },
         { id: 2, name: 'Sunita (cashier)', email: 'sunita@example.com', v2role: 'cashier', status: 'active' },
@@ -86,13 +86,21 @@
     // seed stock so the example looks used (stock already reflects only the listed cut)
     st.expenses.push({ id: 1, amount: 450, category: 'Electricity', note: 'Example', date: today, created_at: nowIso(), deleted_at: null });
     st.expenses.push({ id: 2, amount: 300, category: 'Transport', note: 'Example', date: addDays(today, -1), created_at: nowIso(), deleted_at: null });
-    st.seq = 200;
+    st.seq = 202;
+    // Two example orders so the Orders screen and its new-orders badge can be seen in the demo.
+    var exLine = function (p, q) { return { name: p.name, unit: p.unit, price: p.price, qty: q, line_total: p.price * q }; };
+    var o1 = [exLine(st.products[0], 2), exLine(st.products[1], 1)];
+    var o2 = [exLine(st.products[2], 5)];
+    st.orders = [
+      { id: 201, ref: refOf(201), name: 'Example buyer', phone: '9800011111', note: 'Please pack well', status: 'new', item_count: o1.length, total: sumLines(o1), created_at: nowIso(), lines: o1 },
+      { id: 202, ref: refOf(202), name: 'Example retailer', phone: '9800022222', note: '', status: 'accepted', item_count: o2.length, total: sumLines(o2), created_at: nowIso(), lines: o2 }
+    ];
     return st;
   }
   function seedEmpty() {
     var st = seed();
     st.products = []; st.customers = []; st.sales = []; st.expenses = []; st.tasks = []; st.suppliers = []; st.audit = [];
-    st.payments = []; st.erased = true; st.consents = [];
+    st.payments = []; st.erased = true; st.consents = []; st.orders = [];
     st.shop.name = 'My shop (cleared demo)';
     st.users = st.users.slice(0, 1);
     return st;
@@ -105,17 +113,26 @@
     // Saved demo data from earlier builds has no sign-up or consent fields yet.
     if (!st.signup) st.signup = { done: true, answers: {} };
     if (!st.consents) st.consents = [];
+    if (!st.orders) st.orders = [];
     mem = st; return st;
   }
   function save(st) { mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* in-memory fallback */ } }
   function nid(st) { st.seq += 1; return st.seq; }
+  // Same shape as the real order reference: 6 characters, upper case.
+  function refOf(n) { return (((n * 7919) % 16777216).toString(16)).toUpperCase().padStart(6, '0'); }
+  function sumLines(ls) { return Math.round(ls.reduce(function (a, l) { return a + l.line_total; }, 0) * 100) / 100; }
+  var STATUSES = ['new', 'accepted', 'packed', 'delivered', 'cancelled'];
+  function slugOf(name) {
+    var base = String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'shop';
+    return base + '-' + Math.random().toString(16).slice(2, 8);
+  }
 
   function me(st) { return st.users.find(function (u) { return u.id === st.session.uid && !u.deleted_at; }); }
   function appRole(u) { return u.v2role === 'owner' ? 'owner' : (u.v2role === 'manager' ? 'manager' : (u.v2role === 'accountant' ? 'manager' : 'staff')); }
   var PERM = {
-    owner: ['sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'team', 'settings', 'view_money', 'audit', 'audit.undo', 'summary', 'export', 'erase', 'stock_override'],
-    manager: ['sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'view_money', 'audit', 'audit.undo', 'summary'],
-    cashier: ['sale', 'customer', 'payment', 'discount'],
+    owner: ['orders', 'sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'team', 'settings', 'view_money', 'audit', 'audit.undo', 'summary', 'export', 'erase', 'stock_override'],
+    manager: ['orders', 'sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'view_money', 'audit', 'audit.undo', 'summary'],
+    cashier: ['orders', 'sale', 'customer', 'payment', 'discount'],
     'stock-keeper': ['product', 'supplier'],
     accountant: ['view_money', 'audit', 'summary']
   };
@@ -260,6 +277,37 @@
       return { user: { id: u.id, name: u.name, email: u.email, phone: '' }, role: appRole(u), v2role: u.v2role, shop: st.shop, onboarded: true, answers: {}, lang: st.shop.lang,
         signup_done: st.signup.done, signup_answers: st.signup.answers, consent: st.consents[st.consents.length - 1] || null };
     }
+    // ---- online store (patch-06): the public page and orders. Anyone with the link, no sign-in. ----
+    if (path === '/public/store' && method === 'GET') {
+      var sl = String((qs && qs.get('shop')) || '');
+      if (!st.shop.store_enabled || !st.shop.store_slug || sl !== st.shop.store_slug) return { found: false };
+      return { found: true, shop: { name: st.shop.name, phone: st.shop.phone, city: st.shop.city || '', lang: st.shop.lang || 'en' },
+        items: st.products.filter(function (p) { return !p.deleted_at && p.stock > 0; })
+          .sort(function (a, b2) { return a.name.localeCompare(b2.name); })
+          .map(function (p) { return { id: p.id, name: p.name, category: p.category, unit: p.unit, price: p.price }; }) };
+    }
+    if (path === '/public/order' && method === 'POST') {
+      if (!st.shop.store_enabled || !st.shop.store_slug || String(b.shop || '') !== st.shop.store_slug) throw E('This store is not open right now');
+      var on2 = String(b.name || '').trim().slice(0, 60);
+      if (on2.length < 2) throw E('Please enter your name');
+      var ph2 = String(b.phone || '').replace(/[^0-9]/g, '');
+      if (ph2.length < 10 || ph2.length > 13) throw E('Please enter a valid phone number');
+      var its = Array.isArray(b.items) ? b.items : [];
+      if (!its.length) throw E('Your cart is empty');
+      if (its.length > 40) throw E('Too many items in one order');
+      var lines2 = its.map(function (it) {
+        var pr2 = st.products.find(function (p) { return p.id === +it.product_id && !p.deleted_at && p.stock > 0; });
+        if (!pr2) throw E('Some items are no longer in stock. Please refresh the store and try again.');
+        var q2 = +it.qty; if (!(q2 > 0) || q2 > 9999) throw E('Please check the quantities');
+        return { name: pr2.name, unit: pr2.unit, price: pr2.price, qty: q2, line_total: pr2.price * q2 };
+      });
+      var oid = nid(st);
+      var ord = { id: oid, ref: refOf(oid), name: on2, phone: ph2, note: String(b.note || '').trim().slice(0, 300) || null, status: 'new',
+        item_count: lines2.length, total: sumLines(lines2), created_at: nowIso(), lines: lines2 };
+      st.orders.unshift(ord); save(st);
+      return { ok: true, ref: ord.ref, item_count: ord.item_count, total: ord.total };
+    }
+
     var cu = me(st); if (!cu && path !== '/config') throw E('Please log in', 401);
 
     // Sign-up questions (the wizard). Same shape the future server will use. Demo: kept in this browser only.
@@ -297,12 +345,31 @@
     if (path === '/business' && method === 'PUT') {
       need(st, 'settings', 'Only the owner can change shop details');
       if (b.name != null) st.shop.name = text(b.name, 'Shop name', 60);
-      ['phone', 'address', 'gstin', 'upi_id', 'store_enabled'].forEach(function (f) { if (b[f] !== undefined) st.shop[f] = b[f]; });
-      // Turning the store on gives the shop a link name (the real server does the same).
-      if (st.shop.store_enabled && !st.shop.slug) {
-        st.shop.slug = String(st.shop.name || 'my-shop').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'my-shop';
-      }
+      ['phone', 'address', 'gstin', 'upi_id'].forEach(function (f) { if (b[f] !== undefined) st.shop[f] = b[f]; });
       save(st); return { ok: true };
+    }
+    // Online store on or off. The link name is made once and kept (the real server does the same).
+    if (path === '/store' && method === 'PUT') {
+      need(st, 'settings', 'Only the owner can turn the online store on or off');
+      st.shop.store_enabled = b.enabled === true;
+      if (!st.shop.store_slug) st.shop.store_slug = slugOf(st.shop.name);
+      save(st); return { ok: true, store_enabled: st.shop.store_enabled, store_slug: st.shop.store_slug };
+    }
+    // Online store orders: the shop's team sees them and moves them along.
+    if (k === 'orders' && !parts[1] && method === 'GET') {
+      need(st, 'orders', 'Your role cannot see orders. Ask the owner.');
+      var sf = qs && qs.get('status');
+      return { items: st.orders.filter(function (o) { return !sf || o.status === sf; }).slice(0, 200),
+        new_count: st.orders.filter(function (o) { return o.status === 'new'; }).length };
+    }
+    if (k === 'orders' && id && sub === 'status' && method === 'PUT') {
+      var ou = need(st, 'orders', 'Your role cannot change orders. Ask the owner.');
+      var so = st.orders.find(function (o) { return o.id === id; }); if (!so) throw E('Order not found', 404);
+      var ns = String(b.status || '');
+      if (STATUSES.indexOf(ns) < 0) throw E('Unknown order status');
+      so.status = ns; so.updated_at = nowIso();
+      audit(st, ou, 'edit', 'order', id, 'Order ' + so.ref + ' marked ' + ns);
+      save(st); return { ok: true, status: ns };
     }
     if (path === '/starter' && method === 'POST') { save(st); return { ok: true }; }
     if (path === '/dashboard') return dashboard(st, cu);

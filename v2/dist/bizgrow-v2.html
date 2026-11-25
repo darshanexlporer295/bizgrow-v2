@@ -1030,6 +1030,318 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
 })();
 
 </script><script>
+/* BizGrow v2: text for the online store (owner page, public store page, Orders). English, Hindi, Marathi, Gujarati. */
+(function () {
+  'use strict';
+  window.I18N = window.I18N || {};
+  var X = {
+    en: {
+      orders: "Orders",
+      st_title: "Online store",
+      st_sub: "A price list your buyers and retailers can open on their phone.",
+      st_off: "Turn on your store to get a link. Share it with your existing buyers and retailers. They pick what they need and send you the order on WhatsApp.",
+      st_live: "Your store is live.",
+      st_link: "Your store link",
+      st_share: "Share on WhatsApp",
+      wa_store: "Hi, here is our price list and order link for {shop}: {link}",
+      st_preview: "Preview",
+      st_turn_on: "Turn on my store",
+      st_turn_off: "Turn off",
+      st_need_phone: "Please add your shop phone number in Settings first, so buyers can message you.",
+      st_open_settings: "Open Settings",
+      st_ask_owner: "Ask the owner to turn this on.",
+      st_privacy: "Shows item names, selling prices and whether each item is in stock. Your cost prices and customer details are never shown.",
+      st_on_done: "Your store is on.",
+      st_off_done: "Your store is off.",
+      st_preview_sub: "This is how your buyers will see your store.",
+      st_no_items: "No items yet. Add items in Stock first.",
+      st_in_stock: "In stock",
+      st_out_stock: "Out of stock",
+      ord_title: "Orders",
+      ord_sub: "Orders sent from your store link.",
+      ord_none: "No orders yet. Orders from your store link show here.",
+      ord_all: "All",
+      ord_new: "New",
+      ord_accepted: "Accepted",
+      ord_packed: "Packed",
+      ord_delivered: "Delivered",
+      ord_cancelled: "Cancelled",
+      ord_status: "Status",
+      ord_reply: "Reply on WhatsApp",
+      ord_call: "Call",
+      ord_note: "Note",
+      ord_total: "Total",
+      ord_items: "{n} items",
+      ord_saved: "Order updated.",
+      ord_forbidden: "Your role cannot see orders. Ask the owner.",
+      ord_new_count: "{n} new",
+      ord_reply_text: "Hello {name}, this is about your order {ref}.",
+      ord_ref: "Order {ref}",
+      pub_loading: "Loading...",
+      pub_closed: "This store is not open right now. Please ask the shop for its latest list.",
+      pub_intro: "Pick what you need, then send your order. The shop will reply on WhatsApp.",
+      pub_search: "Search items",
+      pub_none: "No items are in stock right now. Please message the shop.",
+      pub_per: "{price} per {unit}",
+      pub_add: "Add",
+      pub_qty: "Quantity",
+      pub_less: "Less",
+      pub_more: "More",
+      pub_remove: "Remove",
+      pub_cart: "Your order",
+      pub_cart_empty: "Your order is empty. Tap Add on the items you need.",
+      pub_items: "{n} items",
+      pub_total: "Total",
+      pub_name: "Your name",
+      pub_phone: "Your phone number",
+      pub_note: "Note (optional)",
+      pub_send: "Send order on WhatsApp",
+      pub_sending: "Sending...",
+      pub_sent: "Order sent. Your reference is {ref}. WhatsApp is opening so you can send it to the shop.",
+      pub_wa_head: "New order {ref}",
+      pub_wa_name: "Name",
+      pub_wa_phone: "Phone",
+      pub_wa_note: "Note",
+      pub_wa_total: "Total",
+      pub_need_name: "Please enter your name.",
+      pub_need_phone: "Please enter a valid phone number.",
+      pub_need_items: "Add at least one item.",
+      pub_error: "Something went wrong. Please try again.",
+      pub_shop_phone: "Phone",
+      pub_call_shop: "Call the shop"
+    },
+    hi: {
+      orders: "ऑर्डर",
+      st_title: "ऑनलाइन दुकान",
+      st_sub: "एक मूल्य सूची जिसे आपके ग्राहक और खुदरा विक्रेता फोन पर खोल सकें।",
+      st_off: "लिंक पाने के लिए अपनी दुकान चालू करें। इसे अपने मौजूदा ग्राहकों और खुदरा विक्रेताओं के साथ साझा करें। वे जो चाहिए चुनकर WhatsApp पर आपको ऑर्डर भेजेंगे।",
+      st_live: "आपकी दुकान चालू है।",
+      st_link: "आपकी दुकान का लिंक",
+      st_share: "WhatsApp पर साझा करें",
+      wa_store: "नमस्ते, {shop} की कीमत सूची और ऑर्डर लिंक यहाँ है: {link}",
+      st_preview: "पूर्वावलोकन",
+      st_turn_on: "मेरी दुकान चालू करें",
+      st_turn_off: "बंद करें",
+      st_need_phone: "कृपया पहले सेटिंग में अपनी दुकान का फोन नंबर डालें, ताकि ग्राहक आपको संदेश भेज सकें।",
+      st_open_settings: "सेटिंग खोलें",
+      st_ask_owner: "इसे चालू करने के लिए मालिक से कहें।",
+      st_privacy: "आइटम के नाम, बिक्री मूल्य और स्टॉक में होने की जानकारी दिखती है। आपकी लागत कीमत और ग्राहक की जानकारी कभी नहीं दिखती।",
+      st_on_done: "आपकी दुकान चालू है।",
+      st_off_done: "आपकी दुकान बंद है।",
+      st_preview_sub: "आपके ग्राहकों को आपकी दुकान ऐसी दिखेगी।",
+      st_no_items: "अभी कोई आइटम नहीं है। पहले स्टॉक में आइटम जोड़ें।",
+      st_in_stock: "स्टॉक में है",
+      st_out_stock: "स्टॉक खत्म",
+      ord_title: "ऑर्डर",
+      ord_sub: "आपके दुकान लिंक से भेजे गए ऑर्डर।",
+      ord_none: "अभी कोई ऑर्डर नहीं। आपके दुकान लिंक से आए ऑर्डर यहाँ दिखेंगे।",
+      ord_all: "सभी",
+      ord_new: "नया",
+      ord_accepted: "स्वीकार",
+      ord_packed: "पैक हो गया",
+      ord_delivered: "पहुँचा दिया",
+      ord_cancelled: "रद्द",
+      ord_status: "स्थिति",
+      ord_reply: "WhatsApp पर जवाब दें",
+      ord_call: "कॉल करें",
+      ord_note: "नोट",
+      ord_total: "कुल",
+      ord_items: "{n} आइटम",
+      ord_saved: "ऑर्डर अपडेट हुआ।",
+      ord_forbidden: "आपकी भूमिका में ऑर्डर नहीं दिखेंगे। मालिक से पूछें।",
+      ord_new_count: "{n} नए",
+      ord_reply_text: "नमस्ते {name}, यह आपके ऑर्डर {ref} के बारे में है।",
+      ord_ref: "ऑर्डर {ref}",
+      pub_loading: "लोड हो रहा है...",
+      pub_closed: "यह दुकान अभी खुली नहीं है। दुकान से उनकी ताज़ा सूची माँगें।",
+      pub_intro: "जो चाहिए चुनें, फिर ऑर्डर भेजें। दुकान WhatsApp पर जवाब देगी।",
+      pub_search: "आइटम खोजें",
+      pub_none: "अभी कोई आइटम स्टॉक में नहीं है। कृपया दुकान को संदेश करें।",
+      pub_per: "{price} प्रति {unit}",
+      pub_add: "जोड़ें",
+      pub_qty: "मात्रा",
+      pub_less: "कम",
+      pub_more: "ज़्यादा",
+      pub_remove: "हटाएं",
+      pub_cart: "आपका ऑर्डर",
+      pub_cart_empty: "आपका ऑर्डर खाली है। जो चाहिए उस पर जोड़ें दबाएं।",
+      pub_items: "{n} आइटम",
+      pub_total: "कुल",
+      pub_name: "आपका नाम",
+      pub_phone: "आपका फोन नंबर",
+      pub_note: "नोट (ज़रूरी नहीं)",
+      pub_send: "WhatsApp पर ऑर्डर भेजें",
+      pub_sending: "भेजा जा रहा है...",
+      pub_sent: "ऑर्डर भेजा गया। आपका संदर्भ {ref} है। WhatsApp खुल रहा है ताकि आप दुकान को भेज सकें।",
+      pub_wa_head: "नया ऑर्डर {ref}",
+      pub_wa_name: "नाम",
+      pub_wa_phone: "फोन",
+      pub_wa_note: "नोट",
+      pub_wa_total: "कुल",
+      pub_need_name: "कृपया अपना नाम लिखें।",
+      pub_need_phone: "कृपया सही फोन नंबर लिखें।",
+      pub_need_items: "कम से कम एक आइटम जोड़ें।",
+      pub_error: "कुछ गड़बड़ हो गई। कृपया फिर कोशिश करें।",
+      pub_shop_phone: "फोन",
+      pub_call_shop: "दुकान को कॉल करें"
+    },
+    mr: {
+      orders: "ऑर्डर",
+      st_title: "ऑनलाइन दुकान",
+      st_sub: "तुमचे ग्राहक आणि किरकोळ विक्रेते फोनवर उघडू शकतील अशी किंमत यादी.",
+      st_off: "लिंक मिळवण्यासाठी तुमची दुकान सुरू करा. ती तुमच्या सध्याच्या ग्राहकांबरोबर आणि किरकोळ विक्रेत्यांबरोबर शेअर करा. ते हवे ते निवडतील आणि WhatsApp वर तुम्हाला ऑर्डर पाठवतील.",
+      st_live: "तुमची दुकान सुरू आहे.",
+      st_link: "तुमची दुकान लिंक",
+      st_share: "WhatsApp वर शेअर करा",
+      wa_store: "नमस्कार, {shop} ची किंमत यादी आणि ऑर्डर लिंक इथे आहे: {link}",
+      st_preview: "पूर्वावलोकन",
+      st_turn_on: "माझी दुकान सुरू करा",
+      st_turn_off: "बंद करा",
+      st_need_phone: "कृपया आधी सेटिंग्जमध्ये दुकानाचा फोन नंबर टाका, म्हणजे ग्राहक तुम्हाला संदेश पाठवू शकतील.",
+      st_open_settings: "सेटिंग्ज उघडा",
+      st_ask_owner: "हे सुरू करण्यासाठी मालकाला सांगा.",
+      st_privacy: "वस्तूंची नावे, विक्री किंमत आणि स्टॉकमध्ये आहे की नाही हे दिसते. तुमची खरेदी किंमत आणि ग्राहकांची माहिती कधीच दिसत नाही.",
+      st_on_done: "तुमची दुकान सुरू झाली आहे.",
+      st_off_done: "तुमची दुकान बंद झाली आहे.",
+      st_preview_sub: "तुमच्या ग्राहकांना तुमची दुकान अशी दिसेल.",
+      st_no_items: "अजून वस्तू नाहीत. आधी स्टॉकमध्ये वस्तू टाका.",
+      st_in_stock: "स्टॉकमध्ये आहे",
+      st_out_stock: "स्टॉक संपला",
+      ord_title: "ऑर्डर",
+      ord_sub: "तुमच्या दुकान लिंकवरून आलेल्या ऑर्डर.",
+      ord_none: "अजून ऑर्डर नाहीत. तुमच्या दुकान लिंकवरून आलेल्या ऑर्डर इथे दिसतील.",
+      ord_all: "सर्व",
+      ord_new: "नवीन",
+      ord_accepted: "स्वीकारली",
+      ord_packed: "पॅक केली",
+      ord_delivered: "पोहोचवली",
+      ord_cancelled: "रद्द",
+      ord_status: "स्थिती",
+      ord_reply: "WhatsApp वर उत्तर द्या",
+      ord_call: "कॉल करा",
+      ord_note: "नोंद",
+      ord_total: "एकूण",
+      ord_items: "{n} वस्तू",
+      ord_saved: "ऑर्डर अपडेट झाली.",
+      ord_forbidden: "तुमच्या भूमिकेला ऑर्डर पाहता येत नाहीत. मालकाला विचारा.",
+      ord_new_count: "{n} नवीन",
+      ord_reply_text: "नमस्कार {name}, हे तुमच्या ऑर्डर {ref} बद्दल आहे.",
+      ord_ref: "ऑर्डर {ref}",
+      pub_loading: "लोड होत आहे...",
+      pub_closed: "ही दुकान सध्या उघडी नाही. दुकानाकडून त्यांची ताजी यादी मागा.",
+      pub_intro: "हवे ते निवडा, मग ऑर्डर पाठवा. दुकान WhatsApp वर उत्तर देईल.",
+      pub_search: "वस्तू शोधा",
+      pub_none: "सध्या कोणतीही वस्तू स्टॉकमध्ये नाही. कृपया दुकानाला संदेश करा.",
+      pub_per: "{price} प्रति {unit}",
+      pub_add: "जोडा",
+      pub_qty: "प्रमाण",
+      pub_less: "कमी",
+      pub_more: "जास्त",
+      pub_remove: "काढा",
+      pub_cart: "तुमची ऑर्डर",
+      pub_cart_empty: "तुमची ऑर्डर रिकामी आहे. हवी असलेल्या वस्तूवर जोडा दाबा.",
+      pub_items: "{n} वस्तू",
+      pub_total: "एकूण",
+      pub_name: "तुमचे नाव",
+      pub_phone: "तुमचा फोन नंबर",
+      pub_note: "नोंद (ऐच्छिक)",
+      pub_send: "WhatsApp वर ऑर्डर पाठवा",
+      pub_sending: "पाठवत आहे...",
+      pub_sent: "ऑर्डर पाठवली. तुमचा संदर्भ {ref} आहे. दुकानाला पाठवण्यासाठी WhatsApp उघडत आहे.",
+      pub_wa_head: "नवीन ऑर्डर {ref}",
+      pub_wa_name: "नाव",
+      pub_wa_phone: "फोन",
+      pub_wa_note: "नोंद",
+      pub_wa_total: "एकूण",
+      pub_need_name: "कृपया तुमचे नाव लिहा.",
+      pub_need_phone: "कृपया बरोबर फोन नंबर लिहा.",
+      pub_need_items: "किमान एक वस्तू जोडा.",
+      pub_error: "काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा.",
+      pub_shop_phone: "फोन",
+      pub_call_shop: "दुकानाला कॉल करा"
+    },
+    gu: {
+      orders: "ઓર્ડર",
+      st_title: "ઓનલાઇન દુકાન",
+      st_sub: "એક ભાવ યાદી જે તમારા ગ્રાહકો અને છૂટક વેપારીઓ ફોન પર ખોલી શકે.",
+      st_off: "લિંક મેળવવા માટે તમારી દુકાન ચાલુ કરો. તેને તમારા હાલના ગ્રાહકો અને છૂટક વેપારીઓ સાથે શેર કરો. તેઓ જે જોઈએ તે પસંદ કરીને WhatsApp પર તમને ઓર્ડર મોકલશે.",
+      st_live: "તમારી દુકાન ચાલુ છે.",
+      st_link: "તમારી દુકાનની લિંક",
+      st_share: "WhatsApp પર શેર કરો",
+      wa_store: "નમસ્તે, {shop} ની ભાવ યાદી અને ઓર્ડર લિંક અહીં છે: {link}",
+      st_preview: "પૂર્વાવલોકન",
+      st_turn_on: "મારી દુકાન ચાલુ કરો",
+      st_turn_off: "બંધ કરો",
+      st_need_phone: "કૃપા કરીને પહેલા સેટિંગ્સમાં દુકાનનો ફોન નંબર ઉમેરો, જેથી ગ્રાહકો તમને સંદેશ મોકલી શકે.",
+      st_open_settings: "સેટિંગ્સ ખોલો",
+      st_ask_owner: "આ ચાલુ કરવા માટે માલિકને કહો.",
+      st_privacy: "વસ્તુઓના નામ, વેચાણ ભાવ અને સ્ટોકમાં છે કે નહીં તે બતાવાય છે. તમારા ખરીદ ભાવ અને ગ્રાહકની વિગતો ક્યારેય બતાવાતી નથી.",
+      st_on_done: "તમારી દુકાન ચાલુ છે.",
+      st_off_done: "તમારી દુકાન બંધ છે.",
+      st_preview_sub: "તમારા ગ્રાહકોને તમારી દુકાન આ રીતે દેખાશે.",
+      st_no_items: "હજુ કોઈ વસ્તુ નથી. પહેલા સ્ટોકમાં વસ્તુઓ ઉમેરો.",
+      st_in_stock: "સ્ટોકમાં છે",
+      st_out_stock: "સ્ટોક પૂરો",
+      ord_title: "ઓર્ડર",
+      ord_sub: "તમારી દુકાનની લિંક પરથી મોકલેલા ઓર્ડર.",
+      ord_none: "હજુ કોઈ ઓર્ડર નથી. તમારી દુકાનની લિંક પરથી આવેલા ઓર્ડર અહીં દેખાશે.",
+      ord_all: "બધા",
+      ord_new: "નવો",
+      ord_accepted: "સ્વીકાર્યો",
+      ord_packed: "પેક થયો",
+      ord_delivered: "પહોંચાડ્યો",
+      ord_cancelled: "રદ",
+      ord_status: "સ્થિતિ",
+      ord_reply: "WhatsApp પર જવાબ આપો",
+      ord_call: "કૉલ કરો",
+      ord_note: "નોંધ",
+      ord_total: "કુલ",
+      ord_items: "{n} વસ્તુ",
+      ord_saved: "ઓર્ડર અપડેટ થયો.",
+      ord_forbidden: "તમારી ભૂમિકા ઓર્ડર જોઈ શકતી નથી. માલિકને પૂછો.",
+      ord_new_count: "{n} નવા",
+      ord_reply_text: "નમસ્તે {name}, આ તમારા ઓર્ડર {ref} વિશે છે.",
+      ord_ref: "ઓર્ડર {ref}",
+      pub_loading: "લોડ થઈ રહ્યું છે...",
+      pub_closed: "આ દુકાન અત્યારે ખુલ્લી નથી. દુકાન પાસેથી તેમની તાજી યાદી માગો.",
+      pub_intro: "જે જોઈએ તે પસંદ કરો, પછી ઓર્ડર મોકલો. દુકાન WhatsApp પર જવાબ આપશે.",
+      pub_search: "વસ્તુ શોધો",
+      pub_none: "અત્યારે કોઈ વસ્તુ સ્ટોકમાં નથી. કૃપા કરીને દુકાનને સંદેશ મોકલો.",
+      pub_per: "{price} પ્રતિ {unit}",
+      pub_add: "ઉમેરો",
+      pub_qty: "જથ્થો",
+      pub_less: "ઓછું",
+      pub_more: "વધુ",
+      pub_remove: "કાઢો",
+      pub_cart: "તમારો ઓર્ડર",
+      pub_cart_empty: "તમારો ઓર્ડર ખાલી છે. જોઈતી વસ્તુ પર ઉમેરો દબાવો.",
+      pub_items: "{n} વસ્તુ",
+      pub_total: "કુલ",
+      pub_name: "તમારું નામ",
+      pub_phone: "તમારો ફોન નંબર",
+      pub_note: "નોંધ (વૈકલ્પિક)",
+      pub_send: "WhatsApp પર ઓર્ડર મોકલો",
+      pub_sending: "મોકલાઈ રહ્યું છે...",
+      pub_sent: "ઓર્ડર મોકલાયો. તમારો સંદર્ભ {ref} છે. દુકાનને મોકલવા માટે WhatsApp ખૂલી રહ્યું છે.",
+      pub_wa_head: "નવો ઓર્ડર {ref}",
+      pub_wa_name: "નામ",
+      pub_wa_phone: "ફોન",
+      pub_wa_note: "નોંધ",
+      pub_wa_total: "કુલ",
+      pub_need_name: "કૃપા કરીને તમારું નામ લખો.",
+      pub_need_phone: "કૃપા કરીને સાચો ફોન નંબર લખો.",
+      pub_need_items: "ઓછામાં ઓછી એક વસ્તુ ઉમેરો.",
+      pub_error: "કંઈક ખોટું થયું. કૃપા કરીને ફરી પ્રયાસ કરો.",
+      pub_shop_phone: "ફોન",
+      pub_call_shop: "દુકાનને કૉલ કરો"
+    }
+  };
+  Object.keys(X).forEach(function (l) {
+    window.I18N[l] = Object.assign(window.I18N[l] || {}, X[l]);
+  });
+})();
+
+</script><script>
 /* BizGrow v2: connection settings. Only the public (publishable) key lives here, and that is safe in the browser.
    Never put a secret or service key in this file. Leave both values empty to run the demo only.
    Add ?demo=1 to the web address to open the demo even when these values are set. */
@@ -1088,7 +1400,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     var st = {
       seq: 100,
       session: { uid: null },
-      shop: { id: 1, name: 'Sharma General Store (example)', phone: '9800000000', address: 'Example Road, Pune', gstin: '', upi_id: 'sharma@upi', category: 'kirana', lang: 'en', store_enabled: false, onboarded: true, assistant_name: 'Chotu', staff_discount_limit: 50 },
+      shop: { id: 1, name: 'Sharma General Store (example)', phone: '9800000000', address: 'Example Road, Pune', gstin: '', upi_id: 'sharma@upi', category: 'kirana', lang: 'en', store_enabled: false, store_slug: '', onboarded: true, assistant_name: 'Chotu', staff_discount_limit: 50 },
       users: [
         { id: 1, name: 'Demo Owner', email: 'owner@example.com', v2role: 'owner', status: 'active' },
         { id: 2, name: 'Sunita (cashier)', email: 'sunita@example.com', v2role: 'cashier', status: 'active' },
@@ -1139,13 +1451,21 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     // seed stock so the example looks used (stock already reflects only the listed cut)
     st.expenses.push({ id: 1, amount: 450, category: 'Electricity', note: 'Example', date: today, created_at: nowIso(), deleted_at: null });
     st.expenses.push({ id: 2, amount: 300, category: 'Transport', note: 'Example', date: addDays(today, -1), created_at: nowIso(), deleted_at: null });
-    st.seq = 200;
+    st.seq = 202;
+    // Two example orders so the Orders screen and its new-orders badge can be seen in the demo.
+    var exLine = function (p, q) { return { name: p.name, unit: p.unit, price: p.price, qty: q, line_total: p.price * q }; };
+    var o1 = [exLine(st.products[0], 2), exLine(st.products[1], 1)];
+    var o2 = [exLine(st.products[2], 5)];
+    st.orders = [
+      { id: 201, ref: refOf(201), name: 'Example buyer', phone: '9800011111', note: 'Please pack well', status: 'new', item_count: o1.length, total: sumLines(o1), created_at: nowIso(), lines: o1 },
+      { id: 202, ref: refOf(202), name: 'Example retailer', phone: '9800022222', note: '', status: 'accepted', item_count: o2.length, total: sumLines(o2), created_at: nowIso(), lines: o2 }
+    ];
     return st;
   }
   function seedEmpty() {
     var st = seed();
     st.products = []; st.customers = []; st.sales = []; st.expenses = []; st.tasks = []; st.suppliers = []; st.audit = [];
-    st.payments = []; st.erased = true; st.consents = [];
+    st.payments = []; st.erased = true; st.consents = []; st.orders = [];
     st.shop.name = 'My shop (cleared demo)';
     st.users = st.users.slice(0, 1);
     return st;
@@ -1158,17 +1478,26 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     // Saved demo data from earlier builds has no sign-up or consent fields yet.
     if (!st.signup) st.signup = { done: true, answers: {} };
     if (!st.consents) st.consents = [];
+    if (!st.orders) st.orders = [];
     mem = st; return st;
   }
   function save(st) { mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* in-memory fallback */ } }
   function nid(st) { st.seq += 1; return st.seq; }
+  // Same shape as the real order reference: 6 characters, upper case.
+  function refOf(n) { return (((n * 7919) % 16777216).toString(16)).toUpperCase().padStart(6, '0'); }
+  function sumLines(ls) { return Math.round(ls.reduce(function (a, l) { return a + l.line_total; }, 0) * 100) / 100; }
+  var STATUSES = ['new', 'accepted', 'packed', 'delivered', 'cancelled'];
+  function slugOf(name) {
+    var base = String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'shop';
+    return base + '-' + Math.random().toString(16).slice(2, 8);
+  }
 
   function me(st) { return st.users.find(function (u) { return u.id === st.session.uid && !u.deleted_at; }); }
   function appRole(u) { return u.v2role === 'owner' ? 'owner' : (u.v2role === 'manager' ? 'manager' : (u.v2role === 'accountant' ? 'manager' : 'staff')); }
   var PERM = {
-    owner: ['sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'team', 'settings', 'view_money', 'audit', 'audit.undo', 'summary', 'export', 'erase', 'stock_override'],
-    manager: ['sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'view_money', 'audit', 'audit.undo', 'summary'],
-    cashier: ['sale', 'customer', 'payment', 'discount'],
+    owner: ['orders', 'sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'team', 'settings', 'view_money', 'audit', 'audit.undo', 'summary', 'export', 'erase', 'stock_override'],
+    manager: ['orders', 'sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'view_money', 'audit', 'audit.undo', 'summary'],
+    cashier: ['orders', 'sale', 'customer', 'payment', 'discount'],
     'stock-keeper': ['product', 'supplier'],
     accountant: ['view_money', 'audit', 'summary']
   };
@@ -1313,6 +1642,37 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       return { user: { id: u.id, name: u.name, email: u.email, phone: '' }, role: appRole(u), v2role: u.v2role, shop: st.shop, onboarded: true, answers: {}, lang: st.shop.lang,
         signup_done: st.signup.done, signup_answers: st.signup.answers, consent: st.consents[st.consents.length - 1] || null };
     }
+    // ---- online store (patch-06): the public page and orders. Anyone with the link, no sign-in. ----
+    if (path === '/public/store' && method === 'GET') {
+      var sl = String((qs && qs.get('shop')) || '');
+      if (!st.shop.store_enabled || !st.shop.store_slug || sl !== st.shop.store_slug) return { found: false };
+      return { found: true, shop: { name: st.shop.name, phone: st.shop.phone, city: st.shop.city || '', lang: st.shop.lang || 'en' },
+        items: st.products.filter(function (p) { return !p.deleted_at && p.stock > 0; })
+          .sort(function (a, b2) { return a.name.localeCompare(b2.name); })
+          .map(function (p) { return { id: p.id, name: p.name, category: p.category, unit: p.unit, price: p.price }; }) };
+    }
+    if (path === '/public/order' && method === 'POST') {
+      if (!st.shop.store_enabled || !st.shop.store_slug || String(b.shop || '') !== st.shop.store_slug) throw E('This store is not open right now');
+      var on2 = String(b.name || '').trim().slice(0, 60);
+      if (on2.length < 2) throw E('Please enter your name');
+      var ph2 = String(b.phone || '').replace(/[^0-9]/g, '');
+      if (ph2.length < 10 || ph2.length > 13) throw E('Please enter a valid phone number');
+      var its = Array.isArray(b.items) ? b.items : [];
+      if (!its.length) throw E('Your cart is empty');
+      if (its.length > 40) throw E('Too many items in one order');
+      var lines2 = its.map(function (it) {
+        var pr2 = st.products.find(function (p) { return p.id === +it.product_id && !p.deleted_at && p.stock > 0; });
+        if (!pr2) throw E('Some items are no longer in stock. Please refresh the store and try again.');
+        var q2 = +it.qty; if (!(q2 > 0) || q2 > 9999) throw E('Please check the quantities');
+        return { name: pr2.name, unit: pr2.unit, price: pr2.price, qty: q2, line_total: pr2.price * q2 };
+      });
+      var oid = nid(st);
+      var ord = { id: oid, ref: refOf(oid), name: on2, phone: ph2, note: String(b.note || '').trim().slice(0, 300) || null, status: 'new',
+        item_count: lines2.length, total: sumLines(lines2), created_at: nowIso(), lines: lines2 };
+      st.orders.unshift(ord); save(st);
+      return { ok: true, ref: ord.ref, item_count: ord.item_count, total: ord.total };
+    }
+
     var cu = me(st); if (!cu && path !== '/config') throw E('Please log in', 401);
 
     // Sign-up questions (the wizard). Same shape the future server will use. Demo: kept in this browser only.
@@ -1350,12 +1710,31 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     if (path === '/business' && method === 'PUT') {
       need(st, 'settings', 'Only the owner can change shop details');
       if (b.name != null) st.shop.name = text(b.name, 'Shop name', 60);
-      ['phone', 'address', 'gstin', 'upi_id', 'store_enabled'].forEach(function (f) { if (b[f] !== undefined) st.shop[f] = b[f]; });
-      // Turning the store on gives the shop a link name (the real server does the same).
-      if (st.shop.store_enabled && !st.shop.slug) {
-        st.shop.slug = String(st.shop.name || 'my-shop').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'my-shop';
-      }
+      ['phone', 'address', 'gstin', 'upi_id'].forEach(function (f) { if (b[f] !== undefined) st.shop[f] = b[f]; });
       save(st); return { ok: true };
+    }
+    // Online store on or off. The link name is made once and kept (the real server does the same).
+    if (path === '/store' && method === 'PUT') {
+      need(st, 'settings', 'Only the owner can turn the online store on or off');
+      st.shop.store_enabled = b.enabled === true;
+      if (!st.shop.store_slug) st.shop.store_slug = slugOf(st.shop.name);
+      save(st); return { ok: true, store_enabled: st.shop.store_enabled, store_slug: st.shop.store_slug };
+    }
+    // Online store orders: the shop's team sees them and moves them along.
+    if (k === 'orders' && !parts[1] && method === 'GET') {
+      need(st, 'orders', 'Your role cannot see orders. Ask the owner.');
+      var sf = qs && qs.get('status');
+      return { items: st.orders.filter(function (o) { return !sf || o.status === sf; }).slice(0, 200),
+        new_count: st.orders.filter(function (o) { return o.status === 'new'; }).length };
+    }
+    if (k === 'orders' && id && sub === 'status' && method === 'PUT') {
+      var ou = need(st, 'orders', 'Your role cannot change orders. Ask the owner.');
+      var so = st.orders.find(function (o) { return o.id === id; }); if (!so) throw E('Order not found', 404);
+      var ns = String(b.status || '');
+      if (STATUSES.indexOf(ns) < 0) throw E('Unknown order status');
+      so.status = ns; so.updated_at = nowIso();
+      audit(st, ou, 'edit', 'order', id, 'Order ' + so.ref + ' marked ' + ns);
+      save(st); return { ok: true, status: ns };
     }
     if (path === '/starter' && method === 'POST') { save(st); return { ok: true }; }
     if (path === '/dashboard') return dashboard(st, cu);
@@ -1828,10 +2207,10 @@ async function render(){
   <nav class="nav">${nav.map(([k,i])=>`<a href="#/${k}" class="${S.page===k?'on':''}">${ic(i)}<span>${t(k)}</span></a>`).join('')}</nav>
   ${isCreator()?clipsSide():`<a class="sidecta" target="_blank" rel="noopener" href="${revoLink('growing my business')}"><b>Consult RÊVO</b><span>Website · WhatsApp · Reels</span></a>`}<div class="who"><b>${esc(S.me.user.name)}</b><span class="muted">${S.me.role==='owner'?'Owner':S.me.role==='manager'?'Manager':'Staff'}</span><br><button data-act="logout">${t('signout')}</button></div></aside>
   <main class="main" id="view"><div class="empty">…</div></main>
-  <nav class="tabbar">${TABS.map(([k,i])=>`<a href="#/${k}" class="${(S.page===k||(k==='more'&&['suppliers','tasks','store','team','privacy','settings','reports','expenses'].includes(S.page)))?'on':''}">${ic(i)}<span>${t(k)}</span></a>`).join('')}</nav></div>`;
+  <nav class="tabbar">${TABS.map(([k,i])=>`<a href="#/${k}" class="${(S.page===k||(k==='more'&&['suppliers','tasks','store','orders','team','privacy','settings','reports','expenses'].includes(S.page)))?'on':''}">${ic(i)}<span>${t(k)}</span></a>`).join('')}</nav></div>`;
   const v=$('#view');
   try{
-    const P={home:pHome,sell:pSell,bills:pBills,khata:pKhata,stock:pStock,expenses:pExpenses,reports:pReports,suppliers:pSuppliers,tasks:pTasks,store:pStore,more:pMore,team:pTeam,privacy:pPrivacy,settings:pSettings}[S.page]||pHome;
+    const P={home:pHome,sell:pSell,bills:pBills,khata:pKhata,stock:pStock,expenses:pExpenses,reports:pReports,suppliers:pSuppliers,tasks:pTasks,store:pStore,orders:pOrders,more:pMore,team:pTeam,privacy:pPrivacy,settings:pSettings}[S.page]||pHome;
     await P(v,page.slice(1));
     if(window.BGV2&&BGV2.after)BGV2.after(S.page,v,page.slice(1));
     if(S.page==='home'){if(isOwner()&&!S.me.onboarded&&!sessionStorage.getItem('bg_skipob'))setTimeout(onboarding,300);else if(S.me.onboarded||!isOwner()){clearTimeout(S.popT);S.popT=setTimeout(revoPopup,3500);}}
@@ -2392,17 +2771,9 @@ ACT.toggletask=async el=>{await api('/tasks/'+el.dataset.id,'PUT',{done:el.check
 ACT.deltask=async el=>{await api('/tasks/'+el.dataset.id,'DELETE');render();};
 
 /* ---------- online store ---------- */
-async function pStore(v){
-  const sh=S.me.shop,base=(location.origin&&location.origin!=='null')?location.origin:'',link=sh.slug?base+'/s/'+sh.slug:'';
-  v.innerHTML=head(t('store'),'A simple catalogue your customers can open on their phone')+
-  `<div class="card">${sh.store_enabled&&link?`<div class="okmsg">Your store is live.</div><div class="f"><label>Your store link</label><input class="in" readonly value="${esc(link)}" onclick="this.select()"></div>
-   <div class="row wrap"><a class="btn" target="_blank" rel="noopener" href="${waLink('',t('wa_store').replace('{shop}',sh.name).replace('{link}',link))}">${t('share_whatsapp')}</a><button class="btn sec" data-act="storepreview">Preview</button>${isOwner()?'<button class="btn red" data-act="storeoff">Turn off</button>':''}</div><p class="muted small mt">Shows item names, prices and whether in stock. Customers tap "Order on WhatsApp" and message you. Your cost prices and customer details are never shown.</p>`
-   :`<p class="mb">Turn on a clean online catalogue for your shop. Share the link in WhatsApp groups so neighbours can see what you have and message you their order.</p>${isOwner()?(sh.phone?'<button class="btn" data-act="storeon">Turn on my store</button>':'<div class="err">Please add your shop phone number in Settings first, so customers can message you.</div><a class="btn" href="#/settings">Open Settings</a>'):'<p class="muted">Ask the owner to turn this on.</p>'}`}</div>
-  <div class="card mt"><h3>Go further with RÊVO Systems</h3><p class="muted small mb">Your free catalogue stays free. These extras are built for you by RÊVO.</p>${revoLock('Your own branded shop website','store')}${revoLock('Online payments at checkout','store')}${revoLock('Order tracking and delivery updates','store')}</div>`;
-}
-ACT.storeon=async()=>{const s=S.me.shop;await api('/business','PUT',{...s,store_enabled:true});S.me=await api('/me');render();};
-ACT.storeoff=async()=>{const s=S.me.shop;await api('/business','PUT',{...s,store_enabled:false});S.me=await api('/me');render();};
-ACT.storepreview=async()=>{const ps=(await api('/products')).items||[];modal(`<h2>${esc(S.me.shop.name)}</h2><p class="muted small mb">This is how your customers will see your catalogue.</p>${ps.length?`<div class="list">${ps.map(p=>`<div class="li"><div class="grow"><div class="t">${esc(p.name)}</div><div class="d">${p.stock>0?'In stock':'Out of stock'}</div></div><b class="num">${inr(p.price)}</b></div>`).join('')}</div>`:'<p class="muted">No items yet.</p>'}`);};
+/* The store page, the public store and Orders are in v2-store.js (loaded after this file). */
+async function pStore(v){ v.innerHTML=head(t('store'),t('st_sub'))+'<div class="card"><p class="muted">'+t('pub_loading')+'</p></div>'; }
+async function pOrders(v){ v.innerHTML=head(t('orders'),t('ord_sub'))+'<div class="card"><p class="muted">'+t('pub_loading')+'</p></div>'; }
 
 /* ---------- more (mobile) ---------- */
 async function pMore(v){
@@ -2459,16 +2830,16 @@ async function pSettings(v,args){
   <div class="f"><label>Your UPI ID</label><input class="in" name="upi_id" value="${esc(s.upi_id||'')}" placeholder="name@bank"><div class="hint">Shown on udhar bills and reminders so customers can pay you.</div></div>
   <div class="f"><label>Address (on bills)</label><input class="in" name="address" value="${esc(s.address||'')}"></div>
   <div class="frow"><div class="f"><label>GST number (optional)</label><input class="in" name="gstin" value="${esc(s.gstin||'')}"></div><div class="f"><label>${t('language')}</label><select class="in" name="lang">${Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('')}</select></div></div>
-  <input type="hidden" name="store_enabled" value="${s.store_enabled?'1':''}"><button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>
+  <button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>
   <div class="card mt" style="max-width:640px"><h3>${t('s3_biz_title')}</h3><p class="muted small mb">${t('s3_biz_sub')}</p><form data-form="biztype"><div class="f"><select class="in" name="business_type">${bizOpts}</select></div><button class="btn sec" type="submit">${t('save')}</button></form></div>
   <div class="card mt" style="max-width:640px"><h3>${t('s3_plan_title')}</h3><a class="btn sec" href="#/settings/plan">${t('s3_plan_link')}</a></div>`;
 }
 ACT.redoob=()=>onboarding();
 FORM.biztype=async(f,d)=>{const v=d.business_type||'';localStorage.setItem('bg_biztype_'+S.me.shop.id,v);const r=await api('/business-type','PUT',{business_type:v});S.me=await api('/me');toast(r&&r.saved_here?t('s3_biz_local'):t('s3_biz_saved'));render();};
-FORM.settings=async(f,d)=>{d.store_enabled=!!d.store_enabled;const r=await api('/business','PUT',d);S.lang=d.lang;localStorage.setItem('bg_lang',d.lang);S.me=await api('/me');toast((r&&r.warning)||'Saved');render();};
+FORM.settings=async(f,d)=>{delete d.store_enabled;const r=await api('/business','PUT',d);S.lang=d.lang;localStorage.setItem('bg_lang',d.lang);S.me=await api('/me');toast((r&&r.warning)||'Saved');render();};
 
 window.BGV2={ACT,FORM,S,api,render,toast,isOwner:()=>isOwner(),esc,inr,t,head,modal,go};
-document.addEventListener('DOMContentLoaded',()=>boot());
+document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicStore&&BGV2.publicStore())return;boot();});
 
 })();
 
@@ -2507,9 +2878,9 @@ document.addEventListener('DOMContentLoaded',()=>boot());
   // What each role may do in the screens. Mirrors the rules the demo backend enforces.
   // Same keys as the demo backend, so the screens and the server agree.
   var PERM = {
-    owner: ['sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'team', 'settings', 'view_money', 'audit', 'audit.undo', 'summary', 'export', 'erase', 'stock_override'],
-    manager: ['sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'view_money', 'audit', 'audit.undo', 'summary'],
-    cashier: ['sale', 'customer', 'payment', 'discount'],
+    owner: ['sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'team', 'settings', 'view_money', 'audit', 'audit.undo', 'summary', 'export', 'erase', 'stock_override', 'orders'],
+    manager: ['sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'view_money', 'audit', 'audit.undo', 'summary', 'orders'],
+    cashier: ['sale', 'customer', 'payment', 'discount', 'orders'],
     'stock-keeper': ['product', 'supplier'],
     accountant: ['view_money', 'audit', 'summary']
   };
@@ -2535,10 +2906,11 @@ document.addEventListener('DOMContentLoaded',()=>boot());
   // Menu items for the new pages. Added to the sidebar and the More list, not a new menu.
   var NAV = [
     { key: 'audit', label: 'v2_nav_audit', roles: ['owner', 'manager', 'accountant'] },
-    { key: 'summary', label: 'v2_nav_summary', roles: ['owner', 'manager', 'accountant'] }
+    { key: 'summary', label: 'v2_nav_summary', roles: ['owner', 'manager', 'accountant'] },
+    { key: 'orders', label: 'orders', roles: ['owner', 'manager', 'cashier'] }
   ];
   B.navItems = function () {
-    return NAV.filter(function (n) { return B.can(n.key === 'audit' ? 'audit' : 'summary'); });
+    return NAV.filter(function (n) { return B.can(n.key); });
   };
   function addNavLinks() {
     var side = document.querySelector('.nav');
@@ -3795,6 +4167,379 @@ document.addEventListener('DOMContentLoaded',()=>boot());
 })();
 
 </script><script>
+/* BizGrow v2: online store. Three parts:
+   1. Owner: the Store page (turn on/off, link, share, preview).
+   2. Team: the Orders page (new-orders badge, status, reply on WhatsApp).
+   3. Public: the store a buyer opens from the link (?shop=...). No sign-in.
+   Loaded after app.js. Uses window.BGV2 that app.js exposes. */
+(function () {
+  'use strict';
+  var B = window.BGV2; if (!B) return;
+
+  var ORDER_STATUSES = ['new', 'accepted', 'packed', 'delivered', 'cancelled'];
+  var esc = B.esc;
+
+  // Small styles for the public page and the order cards. Mobile first, 44px tap targets.
+  var CSS = '' +
+    '.ps{max-width:640px;margin:0 auto;padding:14px 14px 48px;color:#0F172A}' +
+    '.ps h1{font-size:22px;margin:0 0 4px;overflow-wrap:anywhere}' +
+    '.ps-meta{font-size:14px;color:#64748B}.ps-meta a{color:#0A192F}' +
+    '.ps-intro{color:#475569;font-size:15px;margin:10px 0 0}' +
+    '.ps-search{width:100%;min-height:44px;padding:10px 12px;border:1px solid #CBD5E1;border-radius:10px;font-size:16px;box-sizing:border-box;margin:12px 0;font-family:inherit}' +
+    '.ps-list{display:flex;flex-direction:column;gap:8px}' +
+    '.ps-item{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:10px 12px}' +
+    '.ps-info{flex:1;min-width:0}.ps-info b{display:block;font-size:16px;overflow-wrap:anywhere}.ps-info small{color:#64748B;font-size:13px}' +
+    '.ps-btn{min-height:44px;min-width:44px;border-radius:10px;border:1px solid #CBD5E1;background:#fff;color:#0A192F;font-size:16px;font-weight:600;cursor:pointer;padding:0 12px;font-family:inherit}' +
+    '.ps-add{background:#0A192F;color:#fff;border-color:#0A192F}' +
+    '.ps-step{display:flex;align-items:center;gap:6px}.ps-step span{min-width:28px;text-align:center;font-weight:700}' +
+    '.ps-card{background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:14px;margin-top:14px}' +
+    '.ps-card h2{font-size:17px;margin:0 0 8px}' +
+    '.ps-line{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F1F5F9;font-size:15px}' +
+    '.ps-line .ps-grow{flex:1;min-width:0;overflow-wrap:anywhere}' +
+    '.ps-total{display:flex;justify-content:space-between;font-weight:700;font-size:16px;padding-top:10px}' +
+    '.ps-field{display:block;margin-bottom:10px;font-size:14px;color:#334155}' +
+    '.ps-field input,.ps-field textarea{display:block;width:100%;min-height:44px;margin-top:4px;padding:10px 12px;border:1px solid #CBD5E1;border-radius:10px;font-size:16px;box-sizing:border-box;font-family:inherit}' +
+    '.ps-send{width:100%;min-height:48px;border:0;border-radius:12px;background:#0A192F;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}' +
+    '.ps-send:disabled{opacity:.6;cursor:default}' +
+    '.ps-msg{color:#B91C1C;font-size:14px;margin:10px 0 0}' +
+    '.ps-done{background:#ECFDF5;border:1px solid #A7F3D0;border-radius:12px;padding:14px;margin-top:14px;font-size:15px}' +
+    '.ps-wa{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:8px;padding:0 16px;border-radius:10px;background:#25D366;color:#fff;font-weight:700;text-decoration:none}' +
+    '.ord-lines{padding-left:18px;line-height:1.7;margin:8px 0}' +
+    '.ord-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}' +
+    '.ord-chips .btn{min-height:44px}' +
+    '.ord select.in{min-height:44px}';
+  (function addCss() {
+    var s = document.createElement('style'); s.id = 'v2-store-css'; s.textContent = CSS;
+    document.head.appendChild(s);
+  })();
+
+  function inrf(n) { return '₹' + (Math.round((+n || 0) * 100) / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
+  function digits(s) { return String(s || '').replace(/\D/g, ''); }
+  function waUrl(phone, text) {
+    var p = digits(phone); if (p.length === 10) p = '91' + p;
+    return 'https://wa.me/' + (p ? p : '') + '?text=' + encodeURIComponent(text);
+  }
+  function storeLink(slug) { return location.origin + location.pathname + '?shop=' + encodeURIComponent(slug); }
+  function when(at) {
+    var d = new Date(at); if (isNaN(d)) return '';
+    return d.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+  }
+  function fetchPublicStore(slug) {
+    return fetch('/api/public/store?shop=' + encodeURIComponent(slug)).then(function (r) {
+      if (!r.ok) throw new Error('bad');
+      return r.json();
+    });
+  }
+
+  /* ---------- 1. Owner: the Store page ---------- */
+  B.on('store', function (v) { renderStore(v); });
+
+  function renderStore(v) {
+    var sh = B.S.me.shop, on = !!(sh.store_enabled && sh.store_slug);
+    var link = on ? storeLink(sh.store_slug) : '';
+    var body = '';
+    if (on) {
+      body += '<div class="okmsg">' + esc(B.tx('st_live')) + '</div>' +
+        '<div class="f"><label>' + esc(B.tx('st_link')) + '</label><input class="in" readonly value="' + esc(link) + '" onclick="this.select()"></div>' +
+        '<div class="row wrap">' +
+        '<a class="btn" target="_blank" rel="noopener" href="' + esc(waUrl('', B.tx('wa_store', { shop: sh.name, link: link }))) + '">' + esc(B.tx('st_share')) + '</a>' +
+        '<button class="btn sec" data-act="storepreview">' + esc(B.tx('st_preview')) + '</button>' +
+        (B.isOwner() ? '<button class="btn red" data-act="storeoff">' + esc(B.tx('st_turn_off')) + '</button>' : '') +
+        '</div>';
+    } else {
+      body += '<p class="mb">' + esc(B.tx('st_off')) + '</p>';
+      if (B.isOwner()) {
+        body += sh.phone
+          ? '<button class="btn" data-act="storeon">' + esc(B.tx('st_turn_on')) + '</button>'
+          : '<div class="err">' + esc(B.tx('st_need_phone')) + '</div><a class="btn" href="#/settings">' + esc(B.tx('st_open_settings')) + '</a>';
+      } else {
+        body += '<p class="muted">' + esc(B.tx('st_ask_owner')) + '</p>';
+      }
+    }
+    body += '<p class="muted small mt">' + esc(B.tx('st_privacy')) + '</p>';
+    v.innerHTML = B.head(B.tx('st_title'), B.tx('st_sub'), '') + '<section class="card" style="max-width:640px">' + body + '</section>';
+  }
+
+  async function setStore(on) {
+    await B.api('/store', 'PUT', { enabled: on });
+    B.S.me = await B.api('/me');
+    B.toast(B.tx(on ? 'st_on_done' : 'st_off_done'));
+    B.render();
+  }
+  B.ACT.storeon = function () { return setStore(true); };
+  B.ACT.storeoff = function () { return setStore(false); };
+  B.ACT.storepreview = async function () {
+    var sh = B.S.me.shop;
+    var r = null;
+    try { r = await fetchPublicStore(sh.store_slug); } catch (e) { r = null; }
+    var items = (r && r.items) || [];
+    var list = items.length
+      ? '<div class="list">' + items.map(function (p) {
+          return '<div class="li"><div class="grow"><div class="t">' + esc(p.name) + '</div><div class="d">' + esc(B.tx('st_in_stock')) + '</div></div><b class="num">' + inrf(p.price) + (p.unit ? ' / ' + esc(p.unit) : '') + '</b></div>';
+        }).join('') + '</div>'
+      : '<p class="muted">' + esc(B.tx('st_no_items')) + '</p>';
+    B.modal('<h2>' + esc(sh.name) + '</h2><p class="muted small mb">' + esc(B.tx('st_preview_sub')) + '</p>' + list);
+  };
+
+  /* ---------- 2. Team: the Orders page ---------- */
+  var ordStatus = '';
+  var lastFetch = 0, lastNew = null;
+
+  B.on('orders', function (v) { renderOrders(v); });
+
+  async function renderOrders(v) {
+    var title = B.head(B.tx('ord_title'), B.tx('ord_sub'), '');
+    if (!B.can('orders')) { v.innerHTML = title + '<p class="muted">' + esc(B.tx('ord_forbidden')) + '</p>'; return; }
+    var r;
+    try { r = await B.api('/orders' + (ordStatus ? '?status=' + ordStatus : '')); }
+    catch (e) { v.innerHTML = title + '<div class="err">' + esc(e.message) + '</div>'; return; }
+    lastNew = r.new_count || 0; lastFetch = Date.now(); paintBadges(lastNew);
+    var items = r.items || [];
+    var chips = [''].concat(ORDER_STATUSES).map(function (s) {
+      return '<button class="btn ' + (ordStatus === s ? '' : 'sec ') + '" data-v2s="filter" data-status="' + s + '">' +
+        esc(B.tx(s ? 'ord_' + s : 'ord_all')) + '</button>';
+    }).join('');
+    v.innerHTML = title + '<div class="ord-chips">' + chips + '</div>' +
+      (items.length ? items.map(orderHtml).join('') : '<section class="card"><p class="muted">' + esc(B.tx('ord_none')) + '</p></section>');
+  }
+
+  function orderHtml(o) {
+    var phone = digits(o.phone);
+    var lines = (o.lines || []).map(function (l) {
+      return '<li>' + esc(l.name) + ' × ' + esc(B.qn(l.qty)) + (l.unit ? ' ' + esc(l.unit) : '') + ' = ' + inrf(l.line_total) + '</li>';
+    }).join('');
+    return '<section class="card ord" style="max-width:640px">' +
+      '<div class="row sp"><div><b>' + esc(o.name) + '</b><div class="small muted">' + esc(B.tx('ord_ref', { ref: o.ref })) + ' · ' + esc(when(o.created_at)) + '</div></div>' +
+      '<span class="badge ' + (o.status === 'new' ? 'amber' : 'gray') + '">' + esc(B.tx('ord_' + o.status)) + '</span></div>' +
+      '<div class="small mt">' + esc(o.phone) + ' · ' + esc(B.tx('ord_items', { n: o.item_count })) + ' · <b>' + esc(B.tx('ord_total')) + ' ' + inrf(o.total) + '</b></div>' +
+      (lines ? '<ul class="small ord-lines">' + lines + '</ul>' : '') +
+      (o.note ? '<p class="small"><b>' + esc(B.tx('ord_note')) + ':</b> ' + esc(o.note) + '</p>' : '') +
+      '<div class="row wrap mt"><label class="small" style="flex:1 1 180px">' + esc(B.tx('ord_status')) +
+      '<select class="in" data-v2s="status" data-id="' + esc(o.id) + '">' +
+      ORDER_STATUSES.map(function (s) { return '<option value="' + s + '"' + (s === o.status ? ' selected' : '') + '>' + esc(B.tx('ord_' + s)) + '</option>'; }).join('') +
+      '</select></label>' +
+      '<a class="btn sec" target="_blank" rel="noopener" href="' + esc(waUrl(phone, B.tx('ord_reply_text', { name: o.name, ref: o.ref }))) + '">' + esc(B.tx('ord_reply')) + '</a>' +
+      '<a class="btn sec" href="tel:' + esc(phone) + '">' + esc(B.tx('ord_call')) + '</a></div></section>';
+  }
+
+  document.addEventListener('change', async function (e) {
+    var el = e.target.closest && e.target.closest('[data-v2s="status"]'); if (!el) return;
+    try {
+      await B.api('/orders/' + encodeURIComponent(el.getAttribute('data-id')) + '/status', 'PUT', { status: el.value });
+      B.toast(B.tx('ord_saved'));
+    } catch (err) { B.toast(err.message); }
+    var v = document.getElementById('view');
+    if (v && B.S.page === 'orders') renderOrders(v);
+    refreshBadge(true);
+  });
+
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest && e.target.closest('[data-v2s="filter"]'); if (!el) return;
+    ordStatus = el.getAttribute('data-status') || '';
+    var v = document.getElementById('view');
+    if (v) renderOrders(v);
+  });
+
+  // The new-orders badge on the Orders link (sidebar and More list).
+  function paintBadges(n) {
+    document.querySelectorAll('[data-v2-nav="orders"], [data-v2-more="orders"]').forEach(function (a) {
+      var old = a.querySelector('[data-v2-badge]'); if (old) old.parentNode.removeChild(old);
+      if (n > 0) {
+        var b = document.createElement('span');
+        b.className = 'badge amber'; b.setAttribute('data-v2-badge', ''); b.style.marginLeft = 'auto';
+        b.textContent = String(n);
+        a.appendChild(b);
+      }
+    });
+  }
+  function refreshBadge(force) {
+    if (!B.S.me || !B.can('orders')) return;
+    if (!force && lastNew !== null && Date.now() - lastFetch < 30000) { paintBadges(lastNew); return; }
+    lastFetch = Date.now();
+    B.api('/orders?status=new').then(function (r) { lastNew = r.new_count || 0; paintBadges(lastNew); }).catch(function () {});
+  }
+  // Runs after the page is drawn, so the sidebar link exists by then.
+  B.on('*', function () { setTimeout(function () { refreshBadge(false); }, 0); });
+  setInterval(function () { if (B.S.me) refreshBadge(true); }, 120000);
+
+  /* ---------- 3. Public: the store a buyer opens from the link ---------- */
+  var PS = { slug: '', shop: null, items: [], cart: {}, lang: 'en', q: '' };
+
+  function T(k, vars) {
+    var d = (window.I18N && window.I18N[PS.lang]) || {};
+    var s = d[k] || (window.I18N && window.I18N.en && window.I18N.en[k]) || k;
+    if (vars) Object.keys(vars).forEach(function (n) { s = s.split('{' + n + '}').join(vars[n]); });
+    return s;
+  }
+  function $(sel) { return document.querySelector(sel); }
+
+  // Called by app.js on load. Returns true when it took over the page (a store link).
+  B.publicStore = function () {
+    var slug = (new URLSearchParams(location.search).get('shop') || '').trim();
+    if (!slug) return false;
+    PS.slug = slug;
+    var app = document.getElementById('app');
+    app.innerHTML = '<div class="ps"><p class="muted">' + esc(T('pub_loading')) + '</p></div>';
+    loadPublic(app);
+    return true;
+  };
+
+  async function loadPublic(app) {
+    var r = null;
+    try { r = await fetchPublicStore(PS.slug); } catch (e) {
+      app.innerHTML = '<div class="ps"><div class="ps-card">' + esc(T('pub_error')) + '</div></div>';
+      return;
+    }
+    if (!r || !r.found) {
+      app.innerHTML = '<div class="ps"><div class="ps-card">' + esc(T('pub_closed')) + '</div></div>';
+      return;
+    }
+    PS.shop = r.shop || {};
+    PS.items = r.items || [];
+    PS.lang = (window.I18N && window.I18N[PS.shop.lang]) ? PS.shop.lang : 'en';
+    document.documentElement.lang = PS.lang;
+    document.title = PS.shop.name || 'BizGrow';
+    paintPublic(app);
+  }
+
+  function paintPublic(app) {
+    var sh = PS.shop;
+    var phone = sh.phone ? '<a href="tel:' + esc(digits(sh.phone)) + '">' + esc(sh.phone) + '</a>' : '';
+    app.innerHTML = '<div class="ps">' +
+      '<header><h1>' + esc(sh.name || '') + '</h1><div class="ps-meta">' + esc(sh.city || '') + (sh.city && phone ? ' · ' : '') + phone + '</div></header>' +
+      '<p class="ps-intro">' + esc(T('pub_intro')) + '</p>' +
+      '<input id="psSearch" class="ps-search" type="search" placeholder="' + esc(T('pub_search')) + '" aria-label="' + esc(T('pub_search')) + '">' +
+      '<div id="psList" class="ps-list"></div>' +
+      '<section class="ps-card" id="psCart"></section>' +
+      '<section class="ps-card" id="psForm">' +
+      '<label class="ps-field">' + esc(T('pub_name')) + '<input id="psName" autocomplete="name" maxlength="60"></label>' +
+      '<label class="ps-field">' + esc(T('pub_phone')) + '<input id="psPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="20"></label>' +
+      '<label class="ps-field">' + esc(T('pub_note')) + '<textarea id="psNote" rows="2" maxlength="300"></textarea></label>' +
+      '<button id="psSend" class="ps-send" data-ps="send" type="button">' + esc(T('pub_send')) + '</button>' +
+      '<div id="psMsg" class="ps-msg" role="alert"></div>' +
+      '</section>' +
+      '<div id="psDone"></div>' +
+      '</div>';
+    $('#psSearch').addEventListener('input', function (e) { PS.q = e.target.value; renderList(); });
+    renderList(); renderCart();
+  }
+
+  function cartQty(id) { return PS.cart[String(id)] || 0; }
+
+  function renderList() {
+    var box = $('#psList'); if (!box) return;
+    var q = PS.q.trim().toLowerCase();
+    var rows = PS.items.filter(function (it) {
+      return !q || String(it.name || '').toLowerCase().indexOf(q) >= 0 || String(it.category || '').toLowerCase().indexOf(q) >= 0;
+    });
+    if (!rows.length) { box.innerHTML = '<p class="muted">' + esc(T('pub_none')) + '</p>'; return; }
+    box.innerHTML = rows.map(function (it) {
+      var id = esc(String(it.id));
+      var per = it.unit ? T('pub_per', { price: inrf(it.price), unit: it.unit }) : inrf(it.price);
+      var q2 = cartQty(it.id);
+      var ctrl = q2 > 0
+        ? '<div class="ps-step"><button type="button" class="ps-btn" data-ps="dec" data-id="' + id + '" aria-label="' + esc(T('pub_less')) + '">−</button>' +
+          '<span>' + esc(B.qn(q2)) + '</span><button type="button" class="ps-btn" data-ps="inc" data-id="' + id + '" aria-label="' + esc(T('pub_more')) + '">+</button></div>'
+        : '<button type="button" class="ps-btn ps-add" data-ps="add" data-id="' + id + '">' + esc(T('pub_add')) + '</button>';
+      return '<div class="ps-item"><div class="ps-info"><b>' + esc(it.name) + '</b><small>' + esc(per) + '</small></div>' + ctrl + '</div>';
+    }).join('');
+  }
+
+  function cartLines() {
+    return Object.keys(PS.cart).map(function (k) {
+      var item = PS.items.find(function (i) { return String(i.id) === k; });
+      return item ? { item: item, qty: PS.cart[k] } : null;
+    }).filter(Boolean);
+  }
+
+  function renderCart() {
+    var box = $('#psCart'); if (!box) return;
+    var lines = cartLines();
+    if (!lines.length) { box.innerHTML = '<h2>' + esc(T('pub_cart')) + '</h2><p class="muted">' + esc(T('pub_cart_empty')) + '</p>'; return; }
+    var total = 0;
+    var rows = lines.map(function (l) {
+      var lt = Math.round(l.item.price * l.qty * 100) / 100; total += lt;
+      return '<div class="ps-line"><div class="ps-grow">' + esc(l.item.name) + ' × ' + esc(B.qn(l.qty)) + (l.item.unit ? ' ' + esc(l.item.unit) : '') +
+        ' = <b>' + inrf(lt) + '</b></div><button type="button" class="ps-btn" data-ps="rm" data-id="' + esc(String(l.item.id)) + '">' + esc(T('pub_remove')) + '</button></div>';
+    }).join('');
+    box.innerHTML = '<h2>' + esc(T('pub_cart')) + ' (' + esc(T('pub_items', { n: lines.length })) + ')</h2>' + rows +
+      '<div class="ps-total"><span>' + esc(T('pub_total')) + '</span><span>' + inrf(total) + '</span></div>';
+  }
+
+  function setQty(id, qty) {
+    var k = String(id);
+    if (qty <= 0) delete PS.cart[k]; else PS.cart[k] = Math.min(qty, 9999);
+  }
+
+  function showMsg(text) { var m = $('#psMsg'); if (m) m.textContent = text || ''; }
+
+  function buildMessage(ref, name, phone, note, lines, total) {
+    var out = [T('pub_wa_head', { ref: ref }), '', T('pub_wa_name') + ': ' + name, T('pub_wa_phone') + ': ' + phone];
+    lines.forEach(function (l) {
+      out.push('- ' + l.item.name + ' x ' + B.qn(l.qty) + (l.item.unit ? ' ' + l.item.unit : '') + ' = ' + inrf(Math.round(l.item.price * l.qty * 100) / 100));
+    });
+    out.push(T('pub_wa_total') + ': ' + inrf(total));
+    if (note) out.push(T('pub_wa_note') + ': ' + note);
+    return out.join('\n');
+  }
+
+  async function sendOrder() {
+    showMsg('');
+    var name = ($('#psName').value || '').trim();
+    var phone = digits($('#psPhone').value);
+    var note = ($('#psNote').value || '').trim();
+    var lines = cartLines();
+    if (!lines.length) return showMsg(T('pub_need_items'));
+    if (name.length < 2) return showMsg(T('pub_need_name'));
+    if (phone.length < 10 || phone.length > 13) return showMsg(T('pub_need_phone'));
+
+    // Open the WhatsApp window now, inside the tap, so phones do not block it.
+    var w = null; try { w = window.open('', '_blank'); } catch (e) { w = null; }
+    var btn = $('#psSend'); btn.disabled = true; btn.textContent = T('pub_sending');
+    var reset = function () { btn.disabled = false; btn.textContent = T('pub_send'); };
+
+    var res, data = {};
+    try {
+      res = await fetch('/api/public/order', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ shop: PS.slug, name: name, phone: phone, note: note,
+          items: lines.map(function (l) { return { product_id: l.item.id, qty: l.qty }; }) })
+      });
+      data = await res.json().catch(function () { return {}; });
+    } catch (e) {
+      if (w && !w.closed) w.close();
+      reset(); return showMsg(T('pub_error'));
+    }
+    if (!res.ok || !data.ok) {
+      if (w && !w.closed) w.close();
+      reset(); return showMsg(data.error || T('pub_error'));
+    }
+
+    var total = data.total != null ? data.total : 0;
+    var url = waUrl(PS.shop.phone, buildMessage(data.ref, name, phone, note, lines, total));
+    if (w && !w.closed) { try { w.location.href = url; } catch (e) { /* the button below still works */ } }
+    PS.cart = {};
+    renderList(); renderCart(); reset();
+    $('#psDone').innerHTML = '<div class="ps-done"><b>' + esc(T('pub_sent', { ref: data.ref })) + '</b><br>' +
+      '<a class="ps-wa" target="_blank" rel="noopener" href="' + esc(url) + '">' + esc(T('pub_send')) + '</a></div>';
+    $('#psDone').scrollIntoView ? $('#psDone').scrollIntoView({ block: 'center' }) : null;
+  }
+
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest && e.target.closest('[data-ps]'); if (!el) return;
+    var act = el.getAttribute('data-ps');
+    var id = el.getAttribute('data-id');
+    if (act === 'send') { sendOrder(); return; }
+    var cur = cartQty(id);
+    if (act === 'add' || act === 'inc') setQty(id, cur + 1);
+    else if (act === 'dec') setQty(id, cur - 1);
+    else if (act === 'rm') setQty(id, 0);
+    else return;
+    renderList(); renderCart();
+  });
+})();
+
+</script><script>
 /* BizGrow v2: real sign-in and shop data through Supabase (stage 1).
    Runs when config.js has a project address and key, and the page is not opened with ?demo=1.
    Otherwise this file does nothing and the demo stand-in (mock-api.js) runs as before.
@@ -3909,7 +4654,7 @@ document.addEventListener('DOMContentLoaded',()=>boot());
       user: { id: u.id, name: st.name || meta.full_name || u.email || '', email: u.email || st.email || '', phone: '' },
       role: appRole(st.role), v2role: st.role,
       shop: { id: shop.id, name: shop.name || 'My shop', phone: shop.phone || '', address: shop.address || '', gstin: shop.gstin || '', city: shop.city || '',
-        trade: shop.trade || '', upi_id: shop.upi_id || '', category: '', lang: shop.lang || 'en', store_enabled: false, onboarded: true,
+        trade: shop.trade || '', upi_id: shop.upi_id || '', category: '', lang: shop.lang || 'en', store_enabled: !!shop.store_enabled, store_slug: shop.store_slug || '', onboarded: true,
         assistant_name: shop.assistant_name || '', business_type: shop.business_type || '', staff_discount_limit: shop.staff_discount_limit == null ? 50 : num(shop.staff_discount_limit) },
       onboarded: true, answers: {}, lang: shop.lang || 'en',
       signup_done: !!(row && row.done), signup_answers: answers,
@@ -4406,6 +5151,16 @@ document.addEventListener('DOMContentLoaded',()=>boot());
       return me ? reply(200, me) : fail(401, SIGN_IN);
     }
     if (path === '/logout' && method === 'POST') { await sb.auth.signOut(); return reply(200, { ok: true }); }
+
+    // Public online store (patch-06). Anyone with the store link can read it and send an order. No sign-in.
+    if (path === '/public/store' && method === 'GET') {
+      return reply(200, await rpc('public_store_catalogue', { p_slug: txt(qs && qs.get('shop')) }));
+    }
+    if (path === '/public/order' && method === 'POST') {
+      var ob = body || {};
+      return reply(200, await rpc('place_store_order', { p_slug: txt(ob.shop), p_name: txt(ob.name), p_phone: txt(ob.phone),
+        p_note: txt(ob.note), p_items: Array.isArray(ob.items) ? ob.items : [] }));
+    }
     if (/^\/(login|password|invite)/.test(path) || path === '/signup') {
       return fail(400, path.indexOf('/invite') === 0 ? 'This invite link is not valid.' : 'Sign in with Google. Email and password are not used here.');
     }
@@ -4466,6 +5221,21 @@ document.addEventListener('DOMContentLoaded',()=>boot());
       return reply(200, { ok: true, assistant_name: an });
     }
     if ((path === '/onboarding' && method === 'PUT') || (path === '/starter' && method === 'POST')) return reply(200, { ok: true });
+
+    // Online store (patch-06): owner turns it on or off; owner, manager and cashier see and move orders.
+    if (path === '/store' && method === 'PUT') {
+      ownerOnly();
+      return reply(200, await rpc('set_store_enabled', { p_shop: shopId, p_enabled: b.enabled === true }));
+    }
+    if (path === '/orders' && method === 'GET') {
+      need(['owner', 'manager', 'cashier'].indexOf(st.role) >= 0, 'Your role cannot see orders. Ask the owner.');
+      return reply(200, await rpc('list_store_orders', { p_shop: shopId, p_status: txt(qs && qs.get('status')) || null }));
+    }
+    mm = path.match(/^\/orders\/([0-9a-fA-F-]{36})\/status$/);
+    if (mm && method === 'PUT') {
+      need(['owner', 'manager', 'cashier'].indexOf(st.role) >= 0, 'Your role cannot change orders. Ask the owner.');
+      return reply(200, await rpc('set_store_order_status', { p_order: mm[1], p_status: txt(b.status) }));
+    }
 
     // Shop data (stage 2): items, people, sales, expenses, tasks, reports, audit, staff and privacy.
     var shopRes = await shopRoute(path, method, body, qs, st);

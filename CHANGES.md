@@ -1,5 +1,30 @@
 # BizGrow v2 - what changed (status: stage 1 build, demo and real sign-in code, tested in a browser)
 
+## Online store (patch-06, latest)
+
+### What was built
+- Owner turns the online store on from the Store page (or the More list). A link is made once and kept: `?shop=<short name>` on the live address. Share it on WhatsApp, preview it, or turn it off.
+- Public store page (no sign-in): shop name, phone, city, in-stock items with selling price and unit, search, cart with plus and minus, name, phone and optional note. "Send order on WhatsApp" opens the shop's number with the order text. No payments.
+- Orders screen (owner, manager, cashier): All and per-status filters, each order with items, total and note; status select (new, accepted, packed, delivered, cancelled); reply on WhatsApp; call. New-orders count shows on the Orders link.
+- Cost prices and customer details are never sent to the public page.
+- Convert an order to a bill: not included in this round.
+- Text in English, Hindi, Marathi and Gujarati (`v2/assets/v2-i18n-store.js`).
+
+### Changed
+- `supabase/patch-06.sql` (new, safe to run again); the same content is folded into `supabase/schema.sql`.
+- `assets/v2-store.js` (new): Store page, Orders page, public store page.
+- `assets/supabase-api.js`, `assets/mock-api.js`: routes `/public/store`, `/public/order`, `/store`, `/orders`, `/orders/:id/status`. The store switch no longer lives in the business save.
+- `assets/app.js`: old store card and upsell removed; the Store and Orders pages hand off to the new file.
+- `assets/v2-core.js`: Orders added to the menu, with the team roles.
+- `index.html`: loads the two new files. `dist/bizgrow-v2.html` rebuilt.
+
+### Database (run once)
+1. Supabase SQL Editor, New query, paste `supabase/patch-06.sql`, Run.
+
+### Testing done
+- Headless browser, demo mode, 360 px and 1280 px: owner turns the store on; the public link opens without sign-in; cart and order placed; the order appears in Orders with the badge; status change saved. No page errors. Stage 1 to 3 pages at 360 px render with no errors.
+- Not tested on the real database (the SQL was checked for syntax only).
+
 ## Stage 1: real sign-in with Supabase (latest)
 
 ### What was built

@@ -32,9 +32,9 @@
   // What each role may do in the screens. Mirrors the rules the demo backend enforces.
   // Same keys as the demo backend, so the screens and the server agree.
   var PERM = {
-    owner: ['sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'team', 'settings', 'view_money', 'audit', 'audit.undo', 'summary', 'export', 'erase', 'stock_override'],
-    manager: ['sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'view_money', 'audit', 'audit.undo', 'summary'],
-    cashier: ['sale', 'customer', 'payment', 'discount'],
+    owner: ['sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'team', 'settings', 'view_money', 'audit', 'audit.undo', 'summary', 'export', 'erase', 'stock_override', 'orders'],
+    manager: ['sale', 'sale.edit', 'sale.delete', 'discount', 'backdate', 'product', 'customer', 'payment', 'expense', 'task', 'supplier', 'view_money', 'audit', 'audit.undo', 'summary', 'orders'],
+    cashier: ['sale', 'customer', 'payment', 'discount', 'orders'],
     'stock-keeper': ['product', 'supplier'],
     accountant: ['view_money', 'audit', 'summary']
   };
@@ -60,10 +60,11 @@
   // Menu items for the new pages. Added to the sidebar and the More list, not a new menu.
   var NAV = [
     { key: 'audit', label: 'v2_nav_audit', roles: ['owner', 'manager', 'accountant'] },
-    { key: 'summary', label: 'v2_nav_summary', roles: ['owner', 'manager', 'accountant'] }
+    { key: 'summary', label: 'v2_nav_summary', roles: ['owner', 'manager', 'accountant'] },
+    { key: 'orders', label: 'orders', roles: ['owner', 'manager', 'cashier'] }
   ];
   B.navItems = function () {
-    return NAV.filter(function (n) { return B.can(n.key === 'audit' ? 'audit' : 'summary'); });
+    return NAV.filter(function (n) { return B.can(n.key); });
   };
   function addNavLinks() {
     var side = document.querySelector('.nav');
