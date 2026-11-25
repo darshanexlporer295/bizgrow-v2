@@ -689,10 +689,10 @@
       need(['owner', 'manager', 'cashier'].indexOf(st.role) >= 0, 'Your role cannot see orders. Ask the owner.');
       return reply(200, await rpc('list_store_orders', { p_shop: shopId, p_status: txt(qs && qs.get('status')) || null }));
     }
-    mm = path.match(/^\/orders\/([0-9a-fA-F-]{36})\/status$/);
-    if (mm && method === 'PUT') {
+    var om = path.match(/^\/orders\/([0-9a-fA-F-]{36})\/status$/);
+    if (om && method === 'PUT') {
       need(['owner', 'manager', 'cashier'].indexOf(st.role) >= 0, 'Your role cannot change orders. Ask the owner.');
-      return reply(200, await rpc('set_store_order_status', { p_order: mm[1], p_status: txt(b.status) }));
+      return reply(200, await rpc('set_store_order_status', { p_order: om[1], p_status: txt(b.status) }));
     }
 
     // Shop data (stage 2): items, people, sales, expenses, tasks, reports, audit, staff and privacy.
