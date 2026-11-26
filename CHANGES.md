@@ -53,6 +53,13 @@ Findings (not closed in stage 9 unless marked fixed):
 ### Deploy and live check
 - Workers Builds deploys on push to main. Nothing in the live database is changed until the owner runs patch-10.
 
+### Live check (after the deploy of commit fdc7561)
+- `/api/public/bot-check` answers `{"enabled":false,"siteKey":""}` (the Turnstile secret and the server key are not set yet, so the check is off and orders use the public key, as before).
+- The live `/dist/bizgrow-v2` page is byte-for-byte the committed build.
+- An order for an unknown store returns the plain reply "This store is not open right now" (HTTP 400) and writes nothing.
+- The live database is untouched: patch-10 has not been run on it. The owner runs it only after the steps in `docs/SETUP-STEPS.md`, Part 6.
+- The same replies come back from the old and the new Worker code, so these checks do not show which Worker version is live. The Worker tests (`stage9-worker-smoke.mjs`) cover the new key choice.
+
 ### Known limits
 - Tested on the local Postgres copy with a stand-in login function, not on the live Supabase project. The member's own run of patch-10 is the first run on the live project.
 - The service key is only in Cloudflare and in Supabase. It must never be pasted into chat, a file or the repo.
