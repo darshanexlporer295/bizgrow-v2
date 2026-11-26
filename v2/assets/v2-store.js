@@ -35,6 +35,7 @@
     '.ps-send{width:100%;min-height:48px;border:0;border-radius:12px;background:#0A192F;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}' +
     '.ps-send:disabled{opacity:.6;cursor:default}' +
     '.ps-msg{color:#B91C1C;font-size:14px;margin:10px 0 0}' +
+    '.ps-bot{margin:10px 0 0;min-height:66px;max-width:100%;overflow:hidden}.ps-bot iframe{max-width:100%}' +
     '.ps-done{background:#ECFDF5;border:1px solid #A7F3D0;border-radius:12px;padding:14px;margin-top:14px;font-size:15px}' +
     '.ps-wa{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:8px;padding:0 16px;border-radius:10px;background:#25D366;color:#fff;font-weight:700;text-decoration:none}' +
     '.ord-lines{padding-left:18px;line-height:1.7;margin:8px 0}' +
@@ -260,7 +261,7 @@
   });
 
   /* ---------- 3. Public: the store a buyer opens from the link ---------- */
-  var PS = { slug: '', shop: null, items: [], cart: {}, lang: 'en', q: '' };
+  var PS = { slug: '', shop: null, items: [], cart: {}, lang: 'en', q: '', bot: null, botToken: '', botId: null };
 
   function T(k, vars) {
     var d = (window.I18N && window.I18N[PS.lang]) || {};
@@ -296,11 +297,59 @@
     PS.lang = (window.I18N && window.I18N[PS.shop.lang]) ? PS.shop.lang : 'en';
     document.documentElement.lang = PS.lang;
     document.title = PS.shop.name || 'BizGrow';
+    await loadBotCheck();
     paintPublic(app);
+    mountBot();
+  }
+
+  // Stage 8: Cloudflare Turnstile (the bot check on the checkout). The Worker says whether the check is on,
+  // and gives the public site key. Until the owner adds the secret key on the Worker, the check is off,
+  // and the store works as it did before (fail open).
+  var TS_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  var tsLoading = null;
+  async function loadBotCheck() {
+    PS.bot = null;
+    try {
+      var r = await fetch('/api/public/bot-check');
+      var d = await r.json().catch(function () { return {}; });
+      if (r.ok && d.enabled && d.siteKey) PS.bot = { siteKey: String(d.siteKey) };
+    } catch (e) { PS.bot = null; }
+  }
+  function loadTurnstile() {
+    if (window.turnstile && window.turnstile.render) return Promise.resolve(true);
+    if (tsLoading) return tsLoading;
+    tsLoading = new Promise(function (resolve) {
+      var s = document.createElement('script');
+      s.src = TS_SRC; s.async = true;
+      s.onload = function () { resolve(!!(window.turnstile && window.turnstile.render)); };
+      s.onerror = function () { tsLoading = null; resolve(false); };
+      document.head.appendChild(s);
+    });
+    return tsLoading;
+  }
+  // Draws the widget in the checkout box. The token it hands back is single-use, so it is reset after each try.
+  function mountBot() {
+    var box = document.getElementById('psBot');
+    if (!box || !PS.bot) return;
+    loadTurnstile().then(function (ok) {
+      if (!ok) { showMsg(T('pub_bot_fail')); return; }
+      if (PS.botId !== null) return;
+      PS.botId = window.turnstile.render(box, {
+        sitekey: PS.bot.siteKey, size: 'flexible', theme: 'light',
+        callback: function (tok) { PS.botToken = String(tok || ''); showMsg(''); },
+        'expired-callback': function () { PS.botToken = ''; },
+        'error-callback': function () { PS.botToken = ''; showMsg(T('pub_bot_fail')); }
+      });
+    });
+  }
+  function resetBot() {
+    PS.botToken = '';
+    try { if (PS.botId !== null && window.turnstile) window.turnstile.reset(PS.botId); } catch (e) { /* widget gone: nothing to reset */ }
   }
 
   function paintPublic(app) {
     var sh = PS.shop;
+    PS.botId = null;
     var phone = sh.phone ? '<a href="tel:' + esc(digits(sh.phone)) + '">' + esc(sh.phone) + '</a>' : '';
     app.innerHTML = '<div class="ps">' +
       '<header><h1>' + esc(sh.name || '') + '</h1><div class="ps-meta">' + esc(sh.city || '') + (sh.city && phone ? ' · ' : '') + phone + '</div></header>' +
@@ -312,6 +361,7 @@
       '<label class="ps-field">' + esc(T('pub_name')) + '<input id="psName" autocomplete="name" maxlength="60"></label>' +
       '<label class="ps-field">' + esc(T('pub_phone')) + '<input id="psPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="20"></label>' +
       '<label class="ps-field">' + esc(T('pub_note')) + '<textarea id="psNote" rows="2" maxlength="300"></textarea></label>' +
+      (PS.bot ? '<div id="psBot" class="ps-bot"></div>' : '') +
       '<button id="psSend" class="ps-send" data-ps="send" type="button">' + esc(T('pub_send')) + '</button>' +
       '<div id="psMsg" class="ps-msg" role="alert"></div>' +
       '</section>' +
@@ -410,6 +460,7 @@
     if (!lines.length) return showMsg(T('pub_need_items'));
     if (name.length < 2) return showMsg(T('pub_need_name'));
     if (phone.length < 10 || phone.length > 13) return showMsg(T('pub_need_phone'));
+    if (PS.bot && !PS.botToken) return showMsg(PS.botId !== null ? T('pub_bot_need') : T('pub_bot_fail'));
 
     // Open the WhatsApp window now, inside the tap, so phones do not block it.
     var w = null; try { w = window.open('', '_blank'); } catch (e) { w = null; }
@@ -420,17 +471,18 @@
     try {
       res = await fetch('/api/public/order', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ shop: PS.slug, name: name, phone: phone, note: note,
+        body: JSON.stringify({ shop: PS.slug, name: name, phone: phone, note: note, turnstile_token: PS.botToken,
           items: lines.map(function (l) { return { product_id: l.item.id, qty: l.qty }; }) })
       });
       data = await res.json().catch(function () { return {}; });
     } catch (e) {
       if (w && !w.closed) w.close();
-      reset(); return showMsg(T('pub_error'));
+      resetBot(); reset(); return showMsg(T('pub_error'));
     }
+    resetBot();
     if (!res.ok || !data.ok) {
       if (w && !w.closed) w.close();
-      reset(); return showMsg(data.error || T('pub_error'));
+      reset(); return showMsg(data.code === 'bot_check' ? T('pub_bot_fail') : (data.error || T('pub_error')));
     }
 
     var total = data.total != null ? Number(data.total) : 0;

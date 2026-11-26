@@ -103,7 +103,9 @@
       pub_need_items: "Add at least one item.",
       pub_error: "Something went wrong. Please try again.",
       pub_shop_phone: "Phone",
-      pub_call_shop: "Call the shop"
+      pub_call_shop: "Call the shop",
+      pub_bot_need: "Please finish the security check above, then send the order again.",
+      pub_bot_fail: "The security check did not work. Please try again."
     },
     hi: {
       orders: "ऑर्डर",
@@ -205,7 +207,9 @@
       pub_need_items: "कम से कम एक आइटम जोड़ें।",
       pub_error: "कुछ गड़बड़ हो गई। कृपया फिर कोशिश करें।",
       pub_shop_phone: "फोन",
-      pub_call_shop: "दुकान को कॉल करें"
+      pub_call_shop: "दुकान को कॉल करें",
+      pub_bot_need: "कृपया ऊपर सुरक्षा जाँच पूरी करें, फिर ऑर्डर दोबारा भेजें।",
+      pub_bot_fail: "सुरक्षा जाँच नहीं हो पाई। कृपया फिर कोशिश करें।"
     },
     mr: {
       orders: "ऑर्डर",
@@ -307,7 +311,9 @@
       pub_need_items: "किमान एक वस्तू जोडा.",
       pub_error: "काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा.",
       pub_shop_phone: "फोन",
-      pub_call_shop: "दुकानाला कॉल करा"
+      pub_call_shop: "दुकानाला कॉल करा",
+      pub_bot_need: "कृपया वरील सुरक्षा तपासणी पूर्ण करा, मग ऑर्डर पुन्हा पाठवा.",
+      pub_bot_fail: "सुरक्षा तपासणी झाली नाही. कृपया पुन्हा प्रयत्न करा."
     },
     gu: {
       orders: "ઓર્ડર",
@@ -409,7 +415,9 @@
       pub_need_items: "ઓછામાં ઓછી એક વસ્તુ ઉમેરો.",
       pub_error: "કંઈક ખોટું થયું. કૃપા કરીને ફરી પ્રયાસ કરો.",
       pub_shop_phone: "ફોન",
-      pub_call_shop: "દુકાનને કૉલ કરો"
+      pub_call_shop: "દુકાનને કૉલ કરો",
+      pub_bot_need: "કૃપા કરીને ઉપરની સુરક્ષા ચકાસણી પૂરી કરો, પછી ઓર્ડર ફરી મોકલો.",
+      pub_bot_fail: "સુરક્ષા ચકાસણી થઈ નહીં. કૃપા કરીને ફરી પ્રયાસ કરો."
     }
   };
   Object.keys(X).forEach(function (l) {

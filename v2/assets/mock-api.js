@@ -307,6 +307,8 @@
           .sort(function (a, b2) { return a.name.localeCompare(b2.name); })
           .map(function (p) { return { id: p.id, name: p.name, category: p.category, unit: p.unit, price: p.price, max_qty: Math.min(p.stock, 999) }; }) };
     }
+    // Stage 8 bot check: the demo has no Worker, so the check is off here (same answer as the Worker with no secret).
+    if (path === '/public/bot-check' && method === 'GET') return { enabled: false, siteKey: '' };
     if (path === '/public/order' && method === 'POST') {
       if (!st.shop.store_enabled || !st.shop.store_slug || String(b.shop || '') !== st.shop.store_slug) throw E('This store is not open right now');
       var on2 = String(b.name || '').trim().slice(0, 60);

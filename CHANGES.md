@@ -1,6 +1,44 @@
 # BizGrow v2 - what changed (status: stage 1 build, demo and real sign-in code, tested in a browser)
 
-## Stage 7: order tracking for customers and a new-orders banner (patch-09, latest)
+## Stage 8: bot check (Cloudflare Turnstile) on the public order form (Worker added)
+
+### What was built
+- The public store checkout shows a Cloudflare Turnstile check box just above the Send order button. Sending needs a passed check.
+- The order request now goes through a small Cloudflare Worker (`worker/index.mjs`) that sits in front of the site. It checks the token with Cloudflare on the server, and only then places the order with the same database function as before.
+- Fail open until the secret is set: while the Worker secret `TURNSTILE_SECRET_KEY` is empty, the Worker skips the check, the page shows no box, and orders work as before. `GET /api/public/bot-check` returns `enabled: false` in that case. This is deliberate, so a missing secret never blocks sales. Turn the check on by setting the secret (see `docs/SETUP-STEPS.md`, Part 5).
+- A missing, refused or expired check: the order is not placed. A refused check gets the friendly reply "Please complete the security check and try again." (HTTP 403, code `bot_check`). If the check service cannot be reached the reply is HTTP 503 with the same code.
+- The page shows a friendly message and resets the check, so the shopper can retry. Expired and error callbacks clear the token. A used token is not reused.
+- The WhatsApp order text is unchanged.
+- Labels in English, Hindi, Marathi and Gujarati (new `pub_bot_need` and `pub_bot_fail` keys in `v2-i18n-store.js`). The Hindi, Marathi and Gujarati wording is a first draft.
+
+### Database
+- No SQL change. No database file or secret was touched.
+
+### Changed
+- `worker/index.mjs` (new): routes `GET /api/public/bot-check` and `POST /api/public/order`. Other `/api/` paths return 404. Everything else is served from `v2/`.
+- `wrangler.jsonc` (new, repo root): Worker name `bizgrow-v2`, main file, assets folder `./v2`, and public settings only (Turnstile site key, Supabase address, publishable key). No secret is in the repo.
+- `v2/assets/supabase-api.js`: `/public/order` and `/public/bot-check` are answered by the Worker, not by the browser calling the database directly.
+- `v2/assets/v2-store.js`: check box above Send order, token sent with the order, check reset after each reply, 360 px layout for the box.
+- `v2/assets/mock-api.js`: the demo answers the bot-check route with the check off (demo has no Worker).
+- `v2/assets/v2-i18n-store.js`: two new keys in four languages.
+- `v2/dist/bizgrow-v2.html` rebuilt with `build.js`.
+- `docs/specs/online-store.md` (section M, criteria 62 to 66; known gap for the bot check removed; new limits noted), `docs/SETUP-STEPS.md` (Part 5: add the Turnstile secret).
+
+### Deploy
+- Workers Builds still runs `npx wrangler deploy --assets=./v2 --compatibility-date=2026-11-01 --name bizgrow-v2` on push to main. The new `wrangler.jsonc` adds the Worker entry point and public settings to that deploy. A dry run of the same deploy succeeded.
+- The Worker secret is set in the Cloudflare dashboard, not in files. It is expected to survive later deploys; re-check the checkout box after the first deploy that follows setting it.
+
+### Tests
+- `stage8-worker-smoke.mjs` (kept outside the repo with the other smoke tests): the Worker run against Cloudflare's test secrets, with the Turnstile check and the database stubbed. **27 of 27 passed.**
+- `stage8-smoke.js` (outside the repo): headless browser, demo mode, 360 px, with a stand-in check widget and Cloudflare's test values. Covers the box position, no sideways scrolling, no token (no order sent), a good token (order placed, WhatsApp text correct, widget reset), a used token not reused, a refused check and retry, expired and error callbacks, and the check off (order goes through). **21 of 21 passed.** Screenshot at 360 px checked: the box fits above Send order.
+- Earlier suites re-run against the new build: `stage4-smoke.js` (22 of 22), `stage5-smoke.js` (20 of 20), `stage6-smoke.js` (27 of 27), `stage7-smoke.js` (23 of 23). `stage3-smoke.js`, `stage3-test.js` and `store-smoke.js` exit with code 0 and print no failures.
+
+### Known limits
+- The tests use Cloudflare's test keys. The real check has to be seen on the live page once the secret is set.
+- While the secret is empty there is no bot check (fail open, by design).
+- The public key in the page config and the order function `place_store_order` stay callable by anyone who reads that config. The check makes automated orders harder but does not close that route. Closing it means removing public permission to run the order function, a later database step that has not been done and must be agreed first.
+
+## Stage 7: order tracking for customers and a new-orders banner (patch-09)
 
 ### What was built
 - **Track your order** box on the public store. A customer enters the order reference and the phone number they used, and sees only the status: Received (new), Accepted by the shop, Packed, Delivered or Cancelled. No name, phone, items or total is shown.

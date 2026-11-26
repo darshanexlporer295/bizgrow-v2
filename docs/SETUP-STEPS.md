@@ -41,8 +41,22 @@ Follow these in order. Do each step once. Nothing here needs you to write code.
 16. After the server is connected, sign up with a test account. A new row should appear in the **Signups** tab within a minute.
 17. Check that a second test shop cannot see the first shop's bills or customers.
 
+## Part 5: The bot check on the store checkout (Cloudflare)
+
+The store's order button has a small security check (Cloudflare Turnstile). It is off until you add the secret below. Until then orders still work, without the check.
+
+18. Sign in to the Cloudflare dashboard in the browser. On the left, click **Workers & Pages**, then click **bizgrow-v2** (the store's Worker).
+19. Click **Settings**, then **Variables and Secrets**.
+20. Click **Add**. Choose type **Secret**.
+    - Name: `TURNSTILE_SECRET_KEY` (exactly this).
+    - Value: the **Secret key** of the Turnstile widget for `bizgrow.buildsit.workers.dev`. Find it under **Turnstile** in the Cloudflare dashboard, then open the widget and copy its **Secret key**.
+21. Click **Deploy** (or **Save and deploy**) so the change takes effect.
+22. Check that it is on: open a test order page of the store. A small grey security check box should appear just above the **Send order** button. You can also open `https://bizgrow.buildsit.workers.dev/api/public/bot-check` in the browser. It should show `"enabled":true`.
+23. Keep the Secret key private. Do not paste it into a chat, an email or a file. After the next site update, repeat step 22 once. If the box has gone, add the secret again in step 20.
+
 ## If something goes wrong
 
 - Step 4 shows an error: copy the error's first line and send it to the developer. Do not send the whole page if it contains a key.
 - The sheet stays empty: check that `SHARED_SECRET` in step 9 matches `SHEET_SHARED_SECRET` in step 13 exactly.
+- The check box does not show after step 21: check the name is exactly `TURNSTILE_SECRET_KEY` and that the value is the Secret key, not the Site key. Send the developer the name only, never the value.
 - Ask for a lawyer to review the privacy wording before real customers sign up. The app does not give legal advice.

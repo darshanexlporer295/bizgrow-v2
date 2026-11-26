@@ -1,0 +1,18 @@
+{
+  // Cloudflare Worker for the BizGrow web app (static files from ./v2 plus the public store routes in ./worker).
+  // Secrets are NOT stored here. The Turnstile secret key is added in the Cloudflare dashboard as the
+  // Worker secret TURNSTILE_SECRET_KEY (see docs/SETUP-STEPS.md). The site key and the publishable
+  // Supabase key below are public by design.
+  "name": "bizgrow-v2",
+  "main": "worker/index.mjs",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./v2",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAGTu8oOyY29HFWif",
+    "SUPABASE_URL": "https://rzsvhediodaybheooela.supabase.co",
+    "SUPABASE_ANON_KEY": "sb_publishable_Ia4cKHnmGTto3h9PbFViXQ_6MDpcB-E"
+  }
+}

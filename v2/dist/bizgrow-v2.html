@@ -1135,7 +1135,9 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       pub_need_items: "Add at least one item.",
       pub_error: "Something went wrong. Please try again.",
       pub_shop_phone: "Phone",
-      pub_call_shop: "Call the shop"
+      pub_call_shop: "Call the shop",
+      pub_bot_need: "Please finish the security check above, then send the order again.",
+      pub_bot_fail: "The security check did not work. Please try again."
     },
     hi: {
       orders: "ऑर्डर",
@@ -1237,7 +1239,9 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       pub_need_items: "कम से कम एक आइटम जोड़ें।",
       pub_error: "कुछ गड़बड़ हो गई। कृपया फिर कोशिश करें।",
       pub_shop_phone: "फोन",
-      pub_call_shop: "दुकान को कॉल करें"
+      pub_call_shop: "दुकान को कॉल करें",
+      pub_bot_need: "कृपया ऊपर सुरक्षा जाँच पूरी करें, फिर ऑर्डर दोबारा भेजें।",
+      pub_bot_fail: "सुरक्षा जाँच नहीं हो पाई। कृपया फिर कोशिश करें।"
     },
     mr: {
       orders: "ऑर्डर",
@@ -1339,7 +1343,9 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       pub_need_items: "किमान एक वस्तू जोडा.",
       pub_error: "काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा.",
       pub_shop_phone: "फोन",
-      pub_call_shop: "दुकानाला कॉल करा"
+      pub_call_shop: "दुकानाला कॉल करा",
+      pub_bot_need: "कृपया वरील सुरक्षा तपासणी पूर्ण करा, मग ऑर्डर पुन्हा पाठवा.",
+      pub_bot_fail: "सुरक्षा तपासणी झाली नाही. कृपया पुन्हा प्रयत्न करा."
     },
     gu: {
       orders: "ઓર્ડર",
@@ -1441,7 +1447,9 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       pub_need_items: "ઓછામાં ઓછી એક વસ્તુ ઉમેરો.",
       pub_error: "કંઈક ખોટું થયું. કૃપા કરીને ફરી પ્રયાસ કરો.",
       pub_shop_phone: "ફોન",
-      pub_call_shop: "દુકાનને કૉલ કરો"
+      pub_call_shop: "દુકાનને કૉલ કરો",
+      pub_bot_need: "કૃપા કરીને ઉપરની સુરક્ષા ચકાસણી પૂરી કરો, પછી ઓર્ડર ફરી મોકલો.",
+      pub_bot_fail: "સુરક્ષા ચકાસણી થઈ નહીં. કૃપા કરીને ફરી પ્રયાસ કરો."
     }
   };
   Object.keys(X).forEach(function (l) {
@@ -1780,6 +1788,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
           .sort(function (a, b2) { return a.name.localeCompare(b2.name); })
           .map(function (p) { return { id: p.id, name: p.name, category: p.category, unit: p.unit, price: p.price, max_qty: Math.min(p.stock, 999) }; }) };
     }
+    // Stage 8 bot check: the demo has no Worker, so the check is off here (same answer as the Worker with no secret).
+    if (path === '/public/bot-check' && method === 'GET') return { enabled: false, siteKey: '' };
     if (path === '/public/order' && method === 'POST') {
       if (!st.shop.store_enabled || !st.shop.store_slug || String(b.shop || '') !== st.shop.store_slug) throw E('This store is not open right now');
       var on2 = String(b.name || '').trim().slice(0, 60);
@@ -4633,6 +4643,7 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     '.ps-send{width:100%;min-height:48px;border:0;border-radius:12px;background:#0A192F;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}' +
     '.ps-send:disabled{opacity:.6;cursor:default}' +
     '.ps-msg{color:#B91C1C;font-size:14px;margin:10px 0 0}' +
+    '.ps-bot{margin:10px 0 0;min-height:66px;max-width:100%;overflow:hidden}.ps-bot iframe{max-width:100%}' +
     '.ps-done{background:#ECFDF5;border:1px solid #A7F3D0;border-radius:12px;padding:14px;margin-top:14px;font-size:15px}' +
     '.ps-wa{display:inline-flex;align-items:center;justify-content:center;min-height:44px;margin-top:8px;padding:0 16px;border-radius:10px;background:#25D366;color:#fff;font-weight:700;text-decoration:none}' +
     '.ord-lines{padding-left:18px;line-height:1.7;margin:8px 0}' +
@@ -4858,7 +4869,7 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
   });
 
   /* ---------- 3. Public: the store a buyer opens from the link ---------- */
-  var PS = { slug: '', shop: null, items: [], cart: {}, lang: 'en', q: '' };
+  var PS = { slug: '', shop: null, items: [], cart: {}, lang: 'en', q: '', bot: null, botToken: '', botId: null };
 
   function T(k, vars) {
     var d = (window.I18N && window.I18N[PS.lang]) || {};
@@ -4894,11 +4905,59 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     PS.lang = (window.I18N && window.I18N[PS.shop.lang]) ? PS.shop.lang : 'en';
     document.documentElement.lang = PS.lang;
     document.title = PS.shop.name || 'BizGrow';
+    await loadBotCheck();
     paintPublic(app);
+    mountBot();
+  }
+
+  // Stage 8: Cloudflare Turnstile (the bot check on the checkout). The Worker says whether the check is on,
+  // and gives the public site key. Until the owner adds the secret key on the Worker, the check is off,
+  // and the store works as it did before (fail open).
+  var TS_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  var tsLoading = null;
+  async function loadBotCheck() {
+    PS.bot = null;
+    try {
+      var r = await fetch('/api/public/bot-check');
+      var d = await r.json().catch(function () { return {}; });
+      if (r.ok && d.enabled && d.siteKey) PS.bot = { siteKey: String(d.siteKey) };
+    } catch (e) { PS.bot = null; }
+  }
+  function loadTurnstile() {
+    if (window.turnstile && window.turnstile.render) return Promise.resolve(true);
+    if (tsLoading) return tsLoading;
+    tsLoading = new Promise(function (resolve) {
+      var s = document.createElement('script');
+      s.src = TS_SRC; s.async = true;
+      s.onload = function () { resolve(!!(window.turnstile && window.turnstile.render)); };
+      s.onerror = function () { tsLoading = null; resolve(false); };
+      document.head.appendChild(s);
+    });
+    return tsLoading;
+  }
+  // Draws the widget in the checkout box. The token it hands back is single-use, so it is reset after each try.
+  function mountBot() {
+    var box = document.getElementById('psBot');
+    if (!box || !PS.bot) return;
+    loadTurnstile().then(function (ok) {
+      if (!ok) { showMsg(T('pub_bot_fail')); return; }
+      if (PS.botId !== null) return;
+      PS.botId = window.turnstile.render(box, {
+        sitekey: PS.bot.siteKey, size: 'flexible', theme: 'light',
+        callback: function (tok) { PS.botToken = String(tok || ''); showMsg(''); },
+        'expired-callback': function () { PS.botToken = ''; },
+        'error-callback': function () { PS.botToken = ''; showMsg(T('pub_bot_fail')); }
+      });
+    });
+  }
+  function resetBot() {
+    PS.botToken = '';
+    try { if (PS.botId !== null && window.turnstile) window.turnstile.reset(PS.botId); } catch (e) { /* widget gone: nothing to reset */ }
   }
 
   function paintPublic(app) {
     var sh = PS.shop;
+    PS.botId = null;
     var phone = sh.phone ? '<a href="tel:' + esc(digits(sh.phone)) + '">' + esc(sh.phone) + '</a>' : '';
     app.innerHTML = '<div class="ps">' +
       '<header><h1>' + esc(sh.name || '') + '</h1><div class="ps-meta">' + esc(sh.city || '') + (sh.city && phone ? ' · ' : '') + phone + '</div></header>' +
@@ -4910,6 +4969,7 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
       '<label class="ps-field">' + esc(T('pub_name')) + '<input id="psName" autocomplete="name" maxlength="60"></label>' +
       '<label class="ps-field">' + esc(T('pub_phone')) + '<input id="psPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="20"></label>' +
       '<label class="ps-field">' + esc(T('pub_note')) + '<textarea id="psNote" rows="2" maxlength="300"></textarea></label>' +
+      (PS.bot ? '<div id="psBot" class="ps-bot"></div>' : '') +
       '<button id="psSend" class="ps-send" data-ps="send" type="button">' + esc(T('pub_send')) + '</button>' +
       '<div id="psMsg" class="ps-msg" role="alert"></div>' +
       '</section>' +
@@ -5008,6 +5068,7 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     if (!lines.length) return showMsg(T('pub_need_items'));
     if (name.length < 2) return showMsg(T('pub_need_name'));
     if (phone.length < 10 || phone.length > 13) return showMsg(T('pub_need_phone'));
+    if (PS.bot && !PS.botToken) return showMsg(PS.botId !== null ? T('pub_bot_need') : T('pub_bot_fail'));
 
     // Open the WhatsApp window now, inside the tap, so phones do not block it.
     var w = null; try { w = window.open('', '_blank'); } catch (e) { w = null; }
@@ -5018,17 +5079,18 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     try {
       res = await fetch('/api/public/order', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ shop: PS.slug, name: name, phone: phone, note: note,
+        body: JSON.stringify({ shop: PS.slug, name: name, phone: phone, note: note, turnstile_token: PS.botToken,
           items: lines.map(function (l) { return { product_id: l.item.id, qty: l.qty }; }) })
       });
       data = await res.json().catch(function () { return {}; });
     } catch (e) {
       if (w && !w.closed) w.close();
-      reset(); return showMsg(T('pub_error'));
+      resetBot(); reset(); return showMsg(T('pub_error'));
     }
+    resetBot();
     if (!res.ok || !data.ok) {
       if (w && !w.closed) w.close();
-      reset(); return showMsg(data.error || T('pub_error'));
+      reset(); return showMsg(data.code === 'bot_check' ? T('pub_bot_fail') : (data.error || T('pub_error')));
     }
 
     var total = data.total != null ? Number(data.total) : 0;
@@ -5096,6 +5158,7 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
    Runs when config.js has a project address and key, and the page is not opened with ?demo=1.
    Otherwise this file does nothing and the demo stand-in (mock-api.js) runs as before.
    Only the public (publishable) key is used. Never add a secret key to this file.
+   Order placement and the bot check are answered by the Cloudflare Worker, not here.
    Loaded after v2-signup.js. Reads of things not built yet return empty lists; writes not built yet
    return a plain "coming in the next stage" message. */
 (function () {
@@ -5730,11 +5793,8 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     if (path === '/public/store' && method === 'GET') {
       return reply(200, await rpc('public_store_catalogue', { p_slug: txt(qs && qs.get('shop')) }));
     }
-    if (path === '/public/order' && method === 'POST') {
-      var ob = body || {};
-      return reply(200, await rpc('place_store_order', { p_slug: txt(ob.shop), p_name: txt(ob.name), p_phone: txt(ob.phone),
-        p_note: txt(ob.note), p_items: Array.isArray(ob.items) ? ob.items : [] }));
-    }
+    // /public/order and /public/bot-check are not answered here: the Cloudflare Worker (worker/index.mjs)
+    // checks the bot-check token and then places the order (stage 8). See the wrapper at the end of this file.
     if (path === '/public/track' && method === 'POST') {
       var tb = body || {};
       return reply(200, await rpc('track_store_order', { p_slug: txt(tb.shop), p_ref: txt(tb.ref), p_phone: txt(tb.phone) }));
@@ -5813,9 +5873,13 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
 
   // Keep the page's own fetch calls to the same "/api" addresses; answer them here.
   var baseFetch = window.fetch.bind(window);
+  // Stage 8: order placement and the bot check go to the Worker, which holds the check rules.
+  var WORKER_ROUTES = ['/api/public/order', '/api/public/bot-check'];
   window.fetch = function (input, init) {
     var url = typeof input === 'string' ? input : ((input && input.url) || '');
     if (url.indexOf('/api/') !== 0) return baseFetch(input, init);
+    var pathOnly = url.split('?')[0];
+    if (WORKER_ROUTES.indexOf(pathOnly) >= 0) return baseFetch(input, init);
     var u = new URL(url, location.origin);
     var path = u.pathname.slice(4);
     var method = ((init && init.method) || 'GET').toUpperCase();

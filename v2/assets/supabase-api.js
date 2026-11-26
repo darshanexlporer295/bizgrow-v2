@@ -2,6 +2,7 @@
    Runs when config.js has a project address and key, and the page is not opened with ?demo=1.
    Otherwise this file does nothing and the demo stand-in (mock-api.js) runs as before.
    Only the public (publishable) key is used. Never add a secret key to this file.
+   Order placement and the bot check are answered by the Cloudflare Worker, not here.
    Loaded after v2-signup.js. Reads of things not built yet return empty lists; writes not built yet
    return a plain "coming in the next stage" message. */
 (function () {
@@ -636,11 +637,8 @@
     if (path === '/public/store' && method === 'GET') {
       return reply(200, await rpc('public_store_catalogue', { p_slug: txt(qs && qs.get('shop')) }));
     }
-    if (path === '/public/order' && method === 'POST') {
-      var ob = body || {};
-      return reply(200, await rpc('place_store_order', { p_slug: txt(ob.shop), p_name: txt(ob.name), p_phone: txt(ob.phone),
-        p_note: txt(ob.note), p_items: Array.isArray(ob.items) ? ob.items : [] }));
-    }
+    // /public/order and /public/bot-check are not answered here: the Cloudflare Worker (worker/index.mjs)
+    // checks the bot-check token and then places the order (stage 8). See the wrapper at the end of this file.
     if (path === '/public/track' && method === 'POST') {
       var tb = body || {};
       return reply(200, await rpc('track_store_order', { p_slug: txt(tb.shop), p_ref: txt(tb.ref), p_phone: txt(tb.phone) }));
@@ -719,9 +717,13 @@
 
   // Keep the page's own fetch calls to the same "/api" addresses; answer them here.
   var baseFetch = window.fetch.bind(window);
+  // Stage 8: order placement and the bot check go to the Worker, which holds the check rules.
+  var WORKER_ROUTES = ['/api/public/order', '/api/public/bot-check'];
   window.fetch = function (input, init) {
     var url = typeof input === 'string' ? input : ((input && input.url) || '');
     if (url.indexOf('/api/') !== 0) return baseFetch(input, init);
+    var pathOnly = url.split('?')[0];
+    if (WORKER_ROUTES.indexOf(pathOnly) >= 0) return baseFetch(input, init);
     var u = new URL(url, location.origin);
     var path = u.pathname.slice(4);
     var method = ((init && init.method) || 'GET').toUpperCase();

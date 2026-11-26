@@ -1,6 +1,6 @@
 # Online store - spec and acceptance criteria
 
-Status: stage 7 (order tracking and new-orders banner). Each criterion is a yes or no question. "Check" names the automated SQL check in `supabase/tests/store-checks.sql` (C01 to C46). "Demo check" names the headless browser run for the stage (`stage4-smoke.js`, `stage5-smoke.js`, `stage6-smoke.js`, `stage7-smoke.js`; 360 px, demo mode). Criteria with no check are marked "review" and must be confirmed by reading the code or by hand.
+Status: stage 8 (bot check on the public order form, Cloudflare Turnstile, with a Worker in front of the site). Each criterion is a yes or no question. "Check" names the automated SQL check in `supabase/tests/store-checks.sql` (C01 to C46). "Demo check" names the headless browser run for the stage (`stage4-smoke.js`, `stage5-smoke.js`, `stage6-smoke.js`, `stage7-smoke.js`, `stage8-smoke.js`; 360 px, demo mode). Stage 8 also has a Worker check (`stage8-worker-smoke.mjs`, Cloudflare test keys, outside the repo). Criteria with no check are marked "review" and must be confirmed by reading the code or by hand.
 
 How the owner turns the store on: from the **Store** page (not Settings). The store is off until the owner turns it on.
 
@@ -104,10 +104,21 @@ The owner sees how many orders are new (status new). The number is the same coun
 60. Does the Orders page show the same banner when a filter other than New is selected, and does its button show only the new orders? Must be **yes**. Demo check: "Orders shows the new-orders banner", "the banner button filters to new orders and the banner goes".
 61. Does the banner use the same count as the sidebar badge? Must be **yes**. Review only: both read `new_count` from `list_store_orders` (patch-06, patch-07 and schema.sql).
 
+## M. Bot check on the public order form (stage 8, Cloudflare Turnstile, Worker, no database change)
+
+The public order goes through a small Cloudflare Worker (`worker/index.mjs`) that checks the Turnstile token on the server before it calls `place_store_order`. The secret key is a Worker secret named `TURNSTILE_SECRET_KEY`. It is never in the repo, the page or the chat.
+
+62. Does the checkout show the security check box just above the Send order button, and does the page fit at 360 px with no sideways scrolling? Must be **yes**. Demo check: "the checkout shows the security check box", "the check box sits just above the send button", "no sideways scrolling at 360 px". The widget itself is a stand-in in the demo.
+63. Does the Worker refuse an order with no token, or a token Cloudflare does not accept, with HTTP 403 and code `bot_check`, before any order is written? Must be **yes**. Worker check: `stage8-worker-smoke.mjs` (Cloudflare test secrets, Supabase stubbed). Review: the Worker calls `siteverify` before the database call.
+64. When the check is refused or missing, does the shopper see a friendly message and can they retry with a fresh check? Must be **yes**. Demo check: "no token: friendly message, no order sent", "refused check: friendly message, not the server text", "retry with a fresh check places the order".
+65. Is the check off (fail open) when `TURNSTILE_SECRET_KEY` is empty, with no box shown and orders still placed? Must be **yes**. Demo check: "check off: no box is shown", "check off: order still goes through". Worker check: `enabled` is false from `/api/public/bot-check`.
+66. Does the WhatsApp order text stay the same as before the check was added? Must be **yes**. Demo check: "WhatsApp text has the name, the item line and the total".
+
 ## H. Known gaps and future work
 
 - **Two sessions at once are not tested.** Stock is locked per item, so two orders for the last of an item should not both succeed, but no check runs two orders at the same moment. The existing sale function (`create_sale`) locks items in cart order, so a rare deadlock between a sale and an online order placed at the same moment is possible. Postgres would stop one of them with an error; no wrong stock is written.
-- **Bot check (Turnstile) is not built.** It is planned as a future step on the public order form, to stop automated orders. Until then, the per-number limits (criteria 13 to 15) are the only protection.
+- **Bot check is off until the owner sets the secret.** The check is built (section M), but it fails open: with `TURNSTILE_SECRET_KEY` empty, orders go through without a check. Until the secret is set, the per-number limits (criteria 13 to 15) are the only protection.
+- **Public order function.** The publishable key and `place_store_order` can still be called directly by anyone who reads the public config. The bot check raises the cost of automated orders but does not close that route. Closing it means removing public permission to run `place_store_order`, a later database step that must be agreed with the owner first.
 - **Shop-wide cap check** (criterion 15) has no automated check yet.
 - **Cancel from accepted or packed** (criterion 21) has no automated check yet.
 - **Tracking and phone numbers.** Anyone who knows a customer's phone number can use up its 10 tries and block that number's tracking for 15 minutes. The order reference is only 6 characters, so the phone number plus the rate limit is the real protection.
