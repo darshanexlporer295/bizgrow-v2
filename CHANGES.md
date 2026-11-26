@@ -33,6 +33,11 @@
 - `stage8-smoke.js` (outside the repo): headless browser, demo mode, 360 px, with a stand-in check widget and Cloudflare's test values. Covers the box position, no sideways scrolling, no token (no order sent), a good token (order placed, WhatsApp text correct, widget reset), a used token not reused, a refused check and retry, expired and error callbacks, and the check off (order goes through). **21 of 21 passed.** Screenshot at 360 px checked: the box fits above Send order.
 - Earlier suites re-run against the new build: `stage4-smoke.js` (22 of 22), `stage5-smoke.js` (20 of 20), `stage6-smoke.js` (27 of 27), `stage7-smoke.js` (23 of 23). `stage3-smoke.js`, `stage3-test.js` and `store-smoke.js` exit with code 0 and print no failures.
 
+### Live check (after the deploy of commit 470a50e)
+- `/api/public/bot-check` answers `{"enabled":false,"siteKey":""}` (the secret is not set yet, so the check is off).
+- The live `dist/bizgrow-v2.html` is byte-for-byte the committed build.
+- An order for an unknown store returns the plain reply "This store is not open right now" (HTTP 400) and writes nothing.
+
 ### Known limits
 - The tests use Cloudflare's test keys. The real check has to be seen on the live page once the secret is set.
 - While the secret is empty there is no bot check (fail open, by design).
