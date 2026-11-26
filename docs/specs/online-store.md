@@ -114,11 +114,28 @@ The public order goes through a small Cloudflare Worker (`worker/index.mjs`) tha
 65. Is the check off (fail open) when `TURNSTILE_SECRET_KEY` is empty, with no box shown and orders still placed? Must be **yes**. Demo check: "check off: no box is shown", "check off: order still goes through". Worker check: `enabled` is false from `/api/public/bot-check`.
 66. Does the WhatsApp order text stay the same as before the check was added? Must be **yes**. Demo check: "WhatsApp text has the name, the item line and the total".
 
+## N. Online orders only through the Worker (stage 9, `supabase/patch-10-lockdown.sql`, opt-in)
+
+Orders are placed by the Worker with the server key, not by the public key from the browser. `patch-10-lockdown.sql` is optional and is run by the owner only after the bot check box shows on the shop link and a test order goes through. `patch-10-rollback.sql` undoes it. Neither file runs in the base checks.
+
+67. After patch-10, can the public (anonymous) role and signed-in users no longer call `place_store_order`, while the server role can? Must be **yes**. Check: `lockdown-checks.sql` L01 (anonymous call refused with a permission error), L06 (signed-in and public roles have no execute), L07 (server role has it).
+68. After patch-10, does a server-role order still go through, and do tracking, the shop page and the owner's signed-in functions and tables still work? Must be **yes**. Check: L02 (server role places an order), L03 (anonymous tracking still works), L04 (anonymous shop page reads), L08 (owner functions and signed-in table access unchanged).
+69. After patch-10, does the public role have no direct table access in the public schema? Must be **yes**. Check: L05. This also removes the default table access that tasks and staff_invites had in Supabase.
+70. Is patch-10 safe to run twice, and does patch-10-rollback.sql restore public execute on `place_store_order` and leave the server role alone, also when run twice? Must be **yes**. Check: lockdown run applies patch-10 twice and the rollback twice; R01 to R03 pass.
+71. Does the Worker use the server key (Worker secret `SUPABASE_SERVICE_KEY`) when it is set, fall back to the public key when it is not, and never show either key in a reply or in the bot-check route? Must be **yes**. Worker check: `stage9-worker-smoke.mjs`, 12 of 12.
+72. Do the order, tracking and store pages still work in demo mode and at phone width, with no change to the page? Must be **yes**. Demo check: `stage4-smoke.js` to `stage8-smoke.js`, no FAIL lines.
+73. Is patch-10 left out of the base run, so the base checks still pass 46 of 46 without it? Must be **yes**. Check: `run-checks.cjs --scratch` (46 of 46, C03 still expects the public role to place orders) and `run-checks.cjs --scratch --lockdown` for the lockdown and rollback sets.
+
+Anonymous surface review (stage 9): the findings and what was left open are in `CHANGES.md`, Stage 9. Two items are product choices for the owner: the per-shop cap of 300 orders an hour, and the tracking cap that counts refused tries.
+
 ## H. Known gaps and future work
 
 - **Two sessions at once are not tested.** Stock is locked per item, so two orders for the last of an item should not both succeed, but no check runs two orders at the same moment. The existing sale function (`create_sale`) locks items in cart order, so a rare deadlock between a sale and an online order placed at the same moment is possible. Postgres would stop one of them with an error; no wrong stock is written.
 - **Bot check is off until the owner sets the secret.** The check is built (section M), but it fails open: with `TURNSTILE_SECRET_KEY` empty, orders go through without a check. Until the secret is set, the per-number limits (criteria 13 to 15) are the only protection.
-- **Public order function.** The publishable key and `place_store_order` can still be called directly by anyone who reads the public config. The bot check raises the cost of automated orders but does not close that route. Closing it means removing public permission to run `place_store_order`, a later database step that must be agreed with the owner first.
+- **Public order function (closed by patch-10, opt-in).** Until the owner runs `supabase/patch-10-lockdown.sql` (section N), the publishable key can still call `place_store_order` directly. The owner runs it only after the bot check box shows and a test order works. Undo with `supabase/patch-10-rollback.sql`.
+- **Shop order cap can be used up.** The 300-orders-an-hour cap per shop counts every anonymous order, so one visitor can stop a shop taking online orders for up to an hour (CHANGES.md, Stage 9, finding 3). Product choice needed.
+- **Tracking cap can block a shop.** Every tracking try, refused or not, counts toward the 300-an-hour cap per shop, so one visitor can block tracking for a whole shop for up to an hour (finding 4). Product choice needed.
+- **Future tables.** Patch-10 covers today's tables only. A later patch should change the public schema's default privileges (finding 6).
 - **Shop-wide cap check** (criterion 15) has no automated check yet.
 - **Cancel from accepted or packed** (criterion 21) has no automated check yet.
 - **Tracking and phone numbers.** Anyone who knows a customer's phone number can use up its 10 tries and block that number's tracking for 15 minutes. The order reference is only 6 characters, so the phone number plus the rate limit is the real protection.
@@ -131,3 +148,9 @@ From the repository root, on an empty scratch database only (never the live proj
     DATABASE_URL=postgres://user:pass@host:5432/scratch node supabase/tests/run-checks.cjs --scratch
 
 The runner loads `supabase/tests/local-auth-shim.sql`, `supabase/schema.sql`, `supabase/patch-07.sql` (twice), `supabase/patch-08.sql` (twice) and `supabase/patch-09.sql` (twice), then `supabase/tests/store-checks.sql`, and prints PASS or FAIL for each check and a total.
+
+To test the stage 9 lockdown and its rollback as well, add `--lockdown` (same scratch database rules):
+
+    DATABASE_URL=postgres://user:pass@host:5432/scratch node supabase/tests/run-checks.cjs --scratch --lockdown
+
+This runs the same steps, then `supabase/patch-10-lockdown.sql` (twice), `supabase/tests/lockdown-checks.sql`, `supabase/patch-10-rollback.sql` (twice) and `supabase/tests/rollback-checks.sql`. It prints the lockdown checks (L01 to L08) and the rollback checks (R01 to R03). The base run alone does not include patch-10.

@@ -5,7 +5,10 @@
 // The secret key lives only in Cloudflare (Worker secret TURNSTILE_SECRET_KEY). It is never sent to the
 // browser, never written to a file, and never echoed in a reply. With no secret, the bot check is off and
 // orders still go through (fail open), and the bot-check route says enabled:false.
-// Only the public (publishable) Supabase key is used here.
+// Stage 9: the order is placed with the server key (Worker secret SUPABASE_SERVICE_KEY) when it is set.
+// Until that secret is added, the public key (SUPABASE_ANON_KEY) is used, so nothing breaks. After
+// supabase/patch-10-lockdown.sql, the public key can no longer place orders, so the server key must be set first.
+// The server key is never sent to the browser, never logged, and never echoed in a reply.
 
 const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const NO_STORE = { 'content-type': 'application/json', 'cache-control': 'no-store' };
@@ -35,6 +38,13 @@ async function verifyTurnstile(env, token, ip) {
   return out.success === true;
 }
 
+// The key the Worker uses to call the database: the server key when set, else the public key.
+function serverKey(env) {
+  const svc = typeof env.SUPABASE_SERVICE_KEY === 'string' ? env.SUPABASE_SERVICE_KEY.trim() : '';
+  if (svc) return svc;
+  return String(env.SUPABASE_ANON_KEY || '').trim();
+}
+
 function botCheckInfo(env) {
   const on = secretOn(env);
   return { enabled: on, siteKey: on ? String(env.TURNSTILE_SITE_KEY || '') : '' };
@@ -57,7 +67,7 @@ async function placeOrder(request, env) {
   }
 
   const base = String(env.SUPABASE_URL || '').replace(/\/+$/, '');
-  const key = String(env.SUPABASE_ANON_KEY || '');
+  const key = serverKey(env);
   let res;
   try {
     res = await fetch(base + '/rest/v1/rpc/place_store_order', {

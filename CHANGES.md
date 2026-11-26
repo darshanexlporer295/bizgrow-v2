@@ -1,5 +1,62 @@
 # BizGrow v2 - what changed (status: stage 1 build, demo and real sign-in code, tested in a browser)
 
+## Stage 9: online orders only through the Worker (opt-in patch-10, lockdown, anonymous-access review)
+
+### What was built
+- `supabase/patch-10-lockdown.sql` (new, OPTIONAL, not run by anything automatically). Takes `place_store_order` away from the public web key and from signed-in users, and gives it to the server role (`service_role`) only. Also removes the public (anonymous) role's direct table access on every table in the public schema. Safe to run twice.
+- `supabase/patch-10-rollback.sql` (new). Gives `place_store_order` back to the public and signed-in roles, exactly as patch-08 set it. Does not give the public role table access back (it was never used and Row Level Security blocked every row anyway). Safe to run twice.
+- `worker/index.mjs`: the Worker places orders with the server key (Worker secret `SUPABASE_SERVICE_KEY`) when it is set, and with the public key when it is not, so nothing breaks before the secret is added. The key is trimmed, is never sent to the browser, never logged, and never echoed in a reply.
+- Unchanged on purpose: `public_store_catalogue` (shop page), `track_store_order` (order tracking), the owner app (signed-in functions and tables), demo mode, and the WhatsApp order text.
+
+### Order of steps for the shop owner (also in `docs/SETUP-STEPS.md`, Part 6)
+1. Add the Worker secret `SUPABASE_SERVICE_KEY` (Cloudflare, type Secret, Deploy). Do this first.
+2. Check that the security check box shows on the shop link and that a test order goes through.
+3. Only then run `patch-10-lockdown.sql` in the Supabase SQL Editor.
+4. To undo, run `patch-10-rollback.sql` in the same place.
+
+### Database
+- Nothing in the live project was touched. All tests ran on scratch databases in the local test Postgres (19.0), with the stand-in login functions from `supabase/tests/local-auth-shim.sql`.
+- Base checks (no patch-10): `supabase/tests/run-checks.cjs --scratch` passes **46 of 46**. C03 still asserts that the public role can place an order, which is correct before patch-10.
+- Lockdown run (`run-checks.cjs --scratch --lockdown`): the base set, then patch-10 twice, `lockdown-checks.sql` **8 of 8** (anonymous direct call refused with a permission error; server role places an order; anonymous tracking and shop reads still work; no anonymous table access; signed-in users cannot call the order function; server role can; owner functions and signed-in table access unchanged), then rollback twice and `rollback-checks.sql` **3 of 3** (anonymous and signed-in roles can call it again; a real anonymous order places after rollback; server role still has it).
+- Default-privilege simulation (a scratch database where Supabase-style default grants give the public role access to every new table and function): patch-10 removes the public role's execute on `place_store_order` and all its table access (0 tables left), and keeps `public_store_catalogue` and `track_store_order` public.
+
+### Worker
+- `stage9-worker-smoke.mjs` (kept outside the repo, with the other smoke tests): **12 of 12 passed**. Covers the server key used for both headers, the public key fallback when the secret is missing or blank, trimming, the key not in the order body or any reply, plain refusal messages kept, a permission error turned into the generic reply, and the bot-check reply with no key.
+- `stage8-worker-smoke.mjs`: **27 of 27 passed** (unchanged).
+
+### Browser smoke suites (demo mode, phone width)
+- `stage4-smoke.js` 22 passed, `stage5-smoke.js` 20, `stage6-smoke.js` 27, `stage7-smoke.js` 23, `stage8-smoke.js` 21 passed, all with 0 FAIL lines. `stage3-smoke.js` exits with code 0 and prints no check lines (as before).
+
+### Public (anonymous) surface review
+What the public key can reach, checked on a clean scratch database and on one with Supabase-style default grants:
+- Before patch-10: the public role can run exactly three functions, all `security definer`: `public_store_catalogue`, `place_store_order`, `track_store_order`. Table access: none on the clean database, but the default-grant simulation gives the public role table access to `tasks` and `staff_invites` (RLS blocks every row for it).
+- After patch-10: the public role can run `public_store_catalogue` and `track_store_order` only, with no table access.
+
+Findings (not closed in stage 9 unless marked fixed):
+1. **Fixed by patch-10 (opt-in).** `place_store_order` could be called directly with the public key from any page. Now only the server role can call it.
+2. **Fixed by patch-10 (opt-in), small.** Public role had table grants on `tasks` and `staff_invites` through default grants. RLS blocked all rows, so no data leaked, but the door is now closed.
+3. **Open, product decision.** Per-shop cap of 300 orders an hour counts every anonymous order. One anonymous visitor with new phone numbers can fill the cap and stop the shop taking online orders for up to an hour. The Turnstile check (once its secret is set) makes scripted attempts harder; a lower cap per phone or a cap that ignores refused tries needs the owner's choice.
+4. **Open, product decision.** `track_store_order` logs every try, including refused ones, and the 300-per-shop-per-hour try cap counts all tries. One anonymous visitor can block tracking for a whole shop for up to an hour. Log rows are trimmed per shop only after two hours.
+5. **Open, by design for now.** The Worker has no rate limit of its own and fails open when `TURNSTILE_SECRET_KEY` is empty (orders go through with no check). Per-number limits (criteria 13 to 15) are the only protection until the secret is set.
+6. **Open, future patch.** New tables created later by the database owner can get the public role's default table access again in Supabase. Patch-10 only covers the tables that exist today. A later patch should change the default privileges for the public schema.
+7. **Reviewed, no change.** `tasks` "shop add" insert policy is limited to owner and manager with `WITH CHECK`, so it is correct (the policy has no USING part, which is normal for inserts).
+8. **Informational, by design.** `public_store_catalogue` shows the shop's name, phone and city to anyone with the link, as the shop page always did. No cost prices or other stock fields are shown.
+9. **Informational.** Anyone who knows a customer's phone number can use up its tracking tries for 15 minutes (see spec section H).
+
+### Changed
+- `supabase/patch-10-lockdown.sql` (new), `supabase/patch-10-rollback.sql` (new).
+- `supabase/tests/lockdown-checks.sql` (new), `supabase/tests/rollback-checks.sql` (new), `supabase/tests/local-auth-shim.sql` (adds the server role for tests only), `supabase/tests/run-checks.cjs` (new `--lockdown` mode; the base run is unchanged).
+- `worker/index.mjs`: server key selection and header comment.
+- `docs/specs/online-store.md`: new section N (criteria 67 to 73), section H updated, how to run the checks updated.
+- `docs/SETUP-STEPS.md`: new Part 6 (server key, test, run patch-10 only after the check is seen working, undo).
+
+### Deploy and live check
+- Workers Builds deploys on push to main. Nothing in the live database is changed until the owner runs patch-10.
+
+### Known limits
+- Tested on the local Postgres copy with a stand-in login function, not on the live Supabase project. The member's own run of patch-10 is the first run on the live project.
+- The service key is only in Cloudflare and in Supabase. It must never be pasted into chat, a file or the repo.
+
 ## Stage 8: bot check (Cloudflare Turnstile) on the public order form (Worker added)
 
 ### What was built

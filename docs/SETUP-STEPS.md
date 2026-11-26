@@ -54,6 +54,25 @@ The store's order button has a small security check (Cloudflare Turnstile). It i
 22. Check that it is on: open a test order page of the store. A small grey security check box should appear just above the **Send order** button. You can also open `https://bizgrow.buildsit.workers.dev/api/public/bot-check` in the browser. It should show `"enabled":true`.
 23. Keep the Secret key private. Do not paste it into a chat, an email or a file. After the next site update, repeat step 22 once. If the box has gone, add the secret again in step 20.
 
+## Part 6: Only the store's own server can place orders (optional, Cloudflare and Supabase)
+
+Do this only after Part 5 works: the check box shows on the store link, and a test order goes through. If step 29 is run before steps 25 to 27 are done, customers cannot place orders until they are.
+
+24. In the Supabase dashboard, open your project, then **Project Settings**, then the **API** section. Find the key named **service_role** and click **Reveal** or **Copy**. This key is secret: it can do anything in the database. Never paste it in a chat, an email, a file or a photo.
+25. Go back to the Cloudflare dashboard, **Workers & Pages**, **bizgrow-v2**, **Settings**, **Variables and Secrets**.
+26. Click **Add**. Choose type **Secret**.
+    - Name: `SUPABASE_SERVICE_KEY` (exactly this).
+    - Value: the **service_role** key from step 24.
+27. Click **Deploy** (or **Save and deploy**).
+28. Place a test order from the store link, with a phone number you can use. It should go through and the WhatsApp message should open as before. If it says the order could not be placed, do not go on to step 29; ask the developer.
+29. Only when step 28 works, open the Supabase dashboard, then **SQL Editor**, then **New query**. Open the file `supabase/patch-10-lockdown.sql` from the project's GitHub page, copy all of it, paste it in, and click **Run**. It should finish with "Success" and no red text.
+30. Place one more test order from the store link. It should still go through. Open the store link and check that the products still show, and that order tracking still works.
+31. To undo step 29 at any time: in the **SQL Editor**, click **New query**, open `supabase/patch-10-rollback.sql` from the same GitHub page, copy all of it, paste it in, and click **Run**. Orders then work the old way again. Nothing is deleted.
+
+Notes:
+- Running step 29 twice is safe.
+- Undoing it does not remove anything you have already saved, and it does not change the owner app.
+
 ## If something goes wrong
 
 - Step 4 shows an error: copy the error's first line and send it to the developer. Do not send the whole page if it contains a key.
