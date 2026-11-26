@@ -1,6 +1,6 @@
 # Online store - spec and acceptance criteria
 
-Status: stage 8 (bot check on the public order form, Cloudflare Turnstile, with a Worker in front of the site). Each criterion is a yes or no question. "Check" names the automated SQL check in `supabase/tests/store-checks.sql` (C01 to C46). "Demo check" names the headless browser run for the stage (`stage4-smoke.js`, `stage5-smoke.js`, `stage6-smoke.js`, `stage7-smoke.js`, `stage8-smoke.js`; 360 px, demo mode). Stage 8 also has a Worker check (`stage8-worker-smoke.mjs`, Cloudflare test keys, outside the repo). Criteria with no check are marked "review" and must be confirmed by reading the code or by hand.
+Status: stage 10 (suppliers in the app, limits per connection, one combined SQL file; stage 8 bot check and stage 9 lockdown remain as before). Each criterion is a yes or no question. "Check" names the automated SQL check in `supabase/tests/store-checks.sql` (C01 to C46). "Demo check" names the headless browser run for the stage (`stage4-smoke.js`, `stage5-smoke.js`, `stage6-smoke.js`, `stage7-smoke.js`, `stage8-smoke.js`; 360 px, demo mode). Stage 8 also has a Worker check (`stage8-worker-smoke.mjs`, Cloudflare test keys, outside the repo). Criteria with no check are marked "review" and must be confirmed by reading the code or by hand.
 
 How the owner turns the store on: from the **Store** page (not Settings). The store is off until the owner turns it on.
 
@@ -128,6 +128,25 @@ Orders are placed by the Worker with the server key, not by the public key from 
 
 Anonymous surface review (stage 9): the findings and what was left open are in `CHANGES.md`, Stage 9. Two items are product choices for the owner: the per-shop cap of 300 orders an hour, and the tracking cap that counts refused tries.
 
+## O. Suppliers and limits per connection (stage 10, `supabase/patch-11.sql`, `supabase/patch-12.sql`)
+
+74. Can the owner, manager and stock-keeper add and edit a supplier, and is a cashier refused? Must be **yes** for the first, **no** for the cashier. Check: S02, S03, S04.
+75. Can only the owner or manager delete a supplier, and does a stock-keeper get a clear refusal? Must be **yes**. Check: S05, S06.
+76. Once deleted, is a supplier gone from the list and refused for further edits or deletes? Must be **yes**. Check: S07, S12.
+77. Are an empty name and a name over 60 characters refused with a clear message? Must be **yes**. Check: S08.
+78. Can a user of another shop see or change these suppliers? Must be **no**. Check: S09.
+79. Does every add, edit and delete write a line to the activity log? Must be **yes**. Check: S10.
+80. Can the public (anonymous) role run the supplier functions? Must be **no**. Check: S11.
+81. Does the supplier list show the items and the note, and do the old columns still load if the new ones are missing? Must be **yes** for both. Check: S12 (items and note). Review: `v2/assets/supabase-api.js` (the fallback). The supplier form in the app is not checked on a screen yet.
+82. Does a 26th order from the same connection in one hour get refused, while another connection is not held back? Must be **yes** for both. Checks: K03, K04.
+83. Does an order with no connection key count against no connection, and does an unknown store get the same answer as the old function? Must be **yes** for both. Checks: K05, K06.
+84. Does the 31st tracking try from one connection in 15 minutes get a "wait" message, while another connection can still track? Must be **yes** for both. Checks: K07, K08.
+85. Does the old tracking function still work, so the fallback is safe? Must be **yes**. Check: K09.
+86. Does the Worker fall back to the old order and tracking functions when the new ones are missing, and only then? Must be **yes**. Worker check: `stage9-worker-smoke.mjs` (fallback check) and `stage8-worker-smoke.mjs` (section 10, tracking).
+
+- **Live project.** Nothing in this stage has been run on the live Supabase project. Run `supabase/run-all-pending.sql` there and then check criteria 74 to 82 by hand (see `supabase/RUN-ORDER.md`).
+- **Connection key.** A shared network (many phones behind one router) shares one limit.
+
 ## H. Known gaps and future work
 
 - **Two sessions at once are not tested.** Stock is locked per item, so two orders for the last of an item should not both succeed, but no check runs two orders at the same moment. The existing sale function (`create_sale`) locks items in cart order, so a rare deadlock between a sale and an online order placed at the same moment is possible. Postgres would stop one of them with an error; no wrong stock is written.
@@ -147,10 +166,10 @@ From the repository root, on an empty scratch database only (never the live proj
 
     DATABASE_URL=postgres://user:pass@host:5432/scratch node supabase/tests/run-checks.cjs --scratch
 
-The runner loads `supabase/tests/local-auth-shim.sql`, `supabase/schema.sql`, `supabase/patch-07.sql` (twice), `supabase/patch-08.sql` (twice) and `supabase/patch-09.sql` (twice), then `supabase/tests/store-checks.sql`, and prints PASS or FAIL for each check and a total.
+The runner loads `supabase/tests/local-auth-shim.sql`, `supabase/schema.sql`, `supabase/patch-07.sql` (twice), `supabase/patch-08.sql` (twice), `supabase/patch-09.sql` (twice), `supabase/patch-11.sql` (twice) and `supabase/patch-12.sql` (twice), then runs `supabase/tests/store-checks.sql`, `supabase/tests/supplier-checks.sql` (S01 to S12) and `supabase/tests/client-limit-checks.sql` (K01 to K09), and prints PASS or FAIL for each check and a total. The base run does not include patch-10.
 
 To test the stage 9 lockdown and its rollback as well, add `--lockdown` (same scratch database rules):
 
     DATABASE_URL=postgres://user:pass@host:5432/scratch node supabase/tests/run-checks.cjs --scratch --lockdown
 
-This runs the same steps, then `supabase/patch-10-lockdown.sql` (twice), `supabase/tests/lockdown-checks.sql`, `supabase/patch-10-rollback.sql` (twice) and `supabase/tests/rollback-checks.sql`. It prints the lockdown checks (L01 to L08) and the rollback checks (R01 to R03). The base run alone does not include patch-10.
+This runs the same steps, then `supabase/patch-10-lockdown.sql` (twice), `supabase/tests/lockdown-checks.sql` (L01 to L09), `supabase/patch-10-rollback.sql` (twice) and `supabase/tests/rollback-checks.sql` (R01 to R03).

@@ -14,3 +14,11 @@
 --   * It deletes nothing and changes no data.
 
 grant execute on function public.place_store_order(text, text, text, text, jsonb) to anon, authenticated;
+
+-- The per-connection order function (patch-12), if it is there.
+do $$
+begin
+  if to_regprocedure('public.place_store_order_for_client(text,text,text,text,jsonb,text)') is not null then
+    grant execute on function public.place_store_order_for_client(text, text, text, text, jsonb, text) to anon, authenticated;
+  end if;
+end $$;

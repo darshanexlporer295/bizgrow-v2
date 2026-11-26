@@ -12,7 +12,7 @@
 --   * The anonymous (public) role loses its empty table access on every table in the public
 --     schema. Row Level Security already blocked every row for it; this removes the door itself.
 --   * Unchanged on purpose: the shop page reads (public_store_catalogue), order tracking
---     (track_store_order), the owner app (signed-in users) and everything else.
+--     (track_store_order and track_store_order_for_client), the owner app (signed-in users) and everything else.
 --
 -- Needs patch-08 (place_store_order) to be in place first. Nothing is deleted and no data changes.
 
@@ -25,6 +25,17 @@ do $$
 begin
   if exists (select 1 from pg_roles where rolname = 'service_role') then
     grant execute on function public.place_store_order(text, text, text, text, jsonb) to service_role;
+  end if;
+end $$;
+
+-- ---------- the per-connection order function (patch-12), if it is there ----------
+do $$
+begin
+  if to_regprocedure('public.place_store_order_for_client(text,text,text,text,jsonb,text)') is not null then
+    revoke all on function public.place_store_order_for_client(text, text, text, text, jsonb, text) from public, anon, authenticated;
+    if exists (select 1 from pg_roles where rolname = 'service_role') then
+      grant execute on function public.place_store_order_for_client(text, text, text, text, jsonb, text) to service_role;
+    end if;
   end if;
 end $$;
 

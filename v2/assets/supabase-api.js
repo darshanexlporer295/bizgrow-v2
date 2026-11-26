@@ -395,10 +395,31 @@
       if (method === 'DELETE') { await q(sb.from('tasks').update({ deleted_at: nowIso() }).eq('id', id)); return OK(); }
     }
 
-    // Suppliers: read only (writes are in the next stage)
+    // Suppliers (stage 10). Add, edit and delete go through patch-11 functions; signed-in roles only.
     if (path === '/suppliers' && method === 'GET') {
-      rows = await q(sb.from('suppliers').select('id,name,phone').is('deleted_at', null).order('name'));
-      return reply(200, { items: rows.map(function (s) { return { id: s.id, name: s.name || '', phone: s.phone || '', items: '', note: '' }; }) });
+      // Before patch-11 is run, the items and note columns are missing: fall back to name and phone only.
+      try {
+        rows = await q(sb.from('suppliers').select('id,name,phone,items,note').is('deleted_at', null).order('name'));
+      } catch (eS) {
+        rows = await q(sb.from('suppliers').select('id,name,phone').is('deleted_at', null).order('name'));
+      }
+      return reply(200, { items: rows.map(function (s) { return { id: s.id, name: s.name || '', phone: s.phone || '', items: s.items || '', note: s.note || '' }; }) });
+    }
+    if (path === '/suppliers' && method === 'POST') {
+      need(b.name && String(b.name).trim(), 'Supplier name is needed');
+      id = await rpc('upsert_supplier', { p_shop: shopId, p_id: null, p_name: String(b.name).trim(), p_phone: phoneOf(b.phone) || null,
+        p_items: b.items === undefined ? null : (String(b.items || '').trim() || null), p_note: b.note === undefined ? null : (String(b.note || '').trim() || null) });
+      return reply(200, { id: id });
+    }
+    mm = path.match(/^\/suppliers\/([0-9a-fA-F-]{36})$/);
+    if (mm) {
+      if (method === 'PUT') {
+        need(b.name && String(b.name).trim(), 'Supplier name is needed');
+        await rpc('upsert_supplier', { p_shop: shopId, p_id: mm[1], p_name: String(b.name).trim(), p_phone: phoneOf(b.phone) || null,
+          p_items: b.items === undefined ? null : (String(b.items || '').trim() || null), p_note: b.note === undefined ? null : (String(b.note || '').trim() || null) });
+        return OK();
+      }
+      if (method === 'DELETE') { await rpc('delete_supplier', { p_shop: shopId, p_id: mm[1] }); return OK(); }
     }
 
     // Dashboard, reports and the day's summaries
@@ -718,7 +739,7 @@
   // Keep the page's own fetch calls to the same "/api" addresses; answer them here.
   var baseFetch = window.fetch.bind(window);
   // Stage 8: order placement and the bot check go to the Worker, which holds the check rules.
-  var WORKER_ROUTES = ['/api/public/order', '/api/public/bot-check'];
+  var WORKER_ROUTES = ['/api/public/order', '/api/public/bot-check', '/api/public/track'];
   window.fetch = function (input, init) {
     var url = typeof input === 'string' ? input : ((input && input.url) || '');
     if (url.indexOf('/api/') !== 0) return baseFetch(input, init);

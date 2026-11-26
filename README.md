@@ -36,6 +36,7 @@ It prints PASS or FAIL for each check and a total. The acceptance criteria that 
 ### Setting up the database (once)
 
 1. In the Supabase SQL Editor, run `supabase/schema.sql`, then `supabase/patch-01.sql`.
+   Later database steps are listed in `supabase/RUN-ORDER.md` (the main one is `supabase/run-all-pending.sql`).
 2. In Supabase, Authentication settings: turn on the **Google** provider (its client ID and secret are entered there, not in files), and add the live site address to the allowed redirect addresses.
 3. Open the live site address and tap **Continue with Google**.
 

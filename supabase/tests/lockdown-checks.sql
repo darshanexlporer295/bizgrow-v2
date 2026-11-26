@@ -1,5 +1,5 @@
 -- Lockdown checks (stage 9, patch-10). Run by run-checks.cjs --lockdown on a SCRATCH database only,
--- after store-checks.sql, patch-10.sql (twice) has run. Each check has an id L01 to L08.
+-- after store-checks.sql, patch-10.sql (twice) has run. Each check has an id L01 to L09.
 -- The anonymous and service roles are played with SET ROLE, the same way the database itself would see them.
 -- The last result lists one row per check: ok = true means the check passed.
 
@@ -100,5 +100,13 @@ select 'L08',
   and has_table_privilege('authenticated', 'public.tasks', 'select')
   and has_table_privilege('authenticated', 'public.products', 'select'),
   'owner app functions and signed-in table access unchanged';
+
+-- L09: the order-with-connection-code function is server-only too; the tracking-with-connection-code
+-- function stays open to the public web address (it is the page's own check).
+insert into lockdown_check_results
+select 'L09', not has_function_privilege('anon', 'public.place_store_order_for_client(text,text,text,text,jsonb,text)', 'execute')
+              and has_function_privilege('service_role', 'public.place_store_order_for_client(text,text,text,text,jsonb,text)', 'execute')
+              and has_function_privilege('anon', 'public.track_store_order_for_client(text,text,text,text)', 'execute'),
+  'anonymous role cannot place an order with a connection code; the server can; tracking stays open';
 
 select id, ok, detail from lockdown_check_results order by id;

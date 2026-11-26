@@ -1,4 +1,32 @@
-# BizGrow v2 - what changed (status: stage 1 build, demo and real sign-in code, tested in a browser)
+# BizGrow v2 - what changed (status: stage 10 build, demo and real sign-in code, tested in a browser and on scratch Postgres)
+
+## Stage 10: suppliers in the app, limits per connection, one file for the pending SQL (2026-11-26)
+
+### What was built
+- `supabase/patch-11.sql` (new). Suppliers get `items` (up to 120 characters) and `note` (up to 200). Two functions: `upsert_supplier` (add or edit; owner, manager and stock-keeper; name up to 60, phone up to 20) and `delete_supplier` (soft delete, so the row stays in the table; owner or manager only). Every change writes an activity log line. Public (anonymous) role has no rights.
+- `supabase/patch-12.sql` (new). Limits per connection, not only per shop. `place_store_order_for_client`: 25 orders an hour per connection per shop, counted only when the order is saved. `track_store_order_for_client`: 30 tries per 15 minutes per connection, every try counted. The connection key is a one-way code made from the visitor's IP address and the UTC date (the IP itself is not stored). Log rows older than 2 hours are trimmed. The old functions stay in place.
+- `worker/index.mjs`: the Worker calls the new per-connection functions first. If the database says they are missing (old database), it falls back to the old functions, so nothing breaks before patch-12 runs. Routes: `/api/public/track` is new in this stage (tracking through the Worker); `/api/public/order` and `/api/public/bot-check` are from stages 8 and 9. Database error messages shown to the visitor are limited to the friendly ones.
+- `supabase/patch-10-lockdown.sql` and `patch-10-rollback.sql` (changed): the lockdown also takes `place_store_order_for_client` away from the public and signed-in roles, and gives it to the server role. The rollback gives it back. Both still optional.
+- `supabase/run-all-pending.sql` (new). One file that runs patch-08, patch-09, patch-11 and patch-12 in that order. Patch-10 is not in it. Safe to run twice.
+- `supabase/RUN-ORDER.md` (new). The order to run the SQL files, what is already on the live project, and the optional last step.
+- `v2/assets/supabase-api.js`: the supplier list falls back to name and phone if the new columns are missing; add, edit and delete call the new functions; `/api/public/track` goes through the Worker.
+- `docs/SETUP-STEPS.md` and `README.md` point to `run-all-pending.sql` and `RUN-ORDER.md`.
+- `v2/dist/bizgrow-v2.html` rebuilt from `v2/`.
+
+### What was tested
+- Scratch database, fresh (schema, patch-07 twice, `run-all-pending.sql` twice): supplier checks **12 of 12**, store checks **46 of 46**, client-limit checks **9 of 9**, lockdown **9 of 9**, rollback **3 of 3**. Scenario prints `SCENARIO OK`.
+- Scratch database with patches 01 to 07 only, then `run-all-pending.sql` twice: the same counts, `SCENARIO OK`.
+- Patch-11 and patch-12 were re-run twice on both databases with no errors (idempotent).
+- Browser smoke suites in demo mode on the rebuilt file: stage4 22 passed, stage5 20, stage6 27, stage7 23, stage8 21, all with 0 failed.
+- Worker smoke (Cloudflare test keys, database stubbed): stage8 **36 of 36**, stage9 **13 of 13**. These tests live outside the repo.
+
+### Not done or not verified
+- Nothing was run on the live Supabase project. The live database has not been changed by this stage.
+- The live Worker version cannot be verified from here until the deploy is visible. The check is `/api/public/bot-check` returning JSON and the rebuilt file matching the committed one.
+- The supplier form in the app may not show the new Items and Note fields yet. Not checked on a screen.
+- The supplier functions were checked on scratch Postgres only, not through the real Supabase login.
+- Per-connection limits are based on the connection key from the Worker. A shared network (one router for many phones) shares the limit.
+- Lockdown (`patch-10-lockdown.sql`) is still optional and was not run on live. It must wait until the security check box shows and the server key secret is set.
 
 ## Stage 9: online orders only through the Worker (opt-in patch-10, lockdown, anonymous-access review)
 

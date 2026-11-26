@@ -12,6 +12,8 @@ Follow these in order. Do each step once. Nothing here needs you to write code.
 4. Click **Run**. You should see "Success". It is safe to run it again if you ever need to. The file sets its own access rules, so you do not need to change any switch in Supabase.
 5. Click **Table Editor** on the left. You should see the list of tables, such as shops, staff, bills and udhar_entries.
 
+Later database steps (the online store and supplier changes): see `supabase/RUN-ORDER.md`. The main one is `supabase/run-all-pending.sql`: paste the whole file into a new query and click **Run**. It is safe to run twice.
+
 ## Part 2: The sign-up list (Google Sheet)
 
 6. Create a new Google Sheet. Name it "BizGrow sign-ups". Rename its first tab to **Signups**.
