@@ -641,6 +641,10 @@
       return reply(200, await rpc('place_store_order', { p_slug: txt(ob.shop), p_name: txt(ob.name), p_phone: txt(ob.phone),
         p_note: txt(ob.note), p_items: Array.isArray(ob.items) ? ob.items : [] }));
     }
+    if (path === '/public/track' && method === 'POST') {
+      var tb = body || {};
+      return reply(200, await rpc('track_store_order', { p_slug: txt(tb.shop), p_ref: txt(tb.ref), p_phone: txt(tb.phone) }));
+    }
     if (/^\/(login|password|invite)/.test(path) || path === '/signup') {
       return fail(400, path.indexOf('/invite') === 0 ? 'This invite link is not valid.' : 'Sign in with Google. Email and password are not used here.');
     }

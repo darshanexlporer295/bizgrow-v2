@@ -1,7 +1,7 @@
 -- Online store checks (stage 4 and 5). Each check has an id that matches docs/specs/online-store.md.
 -- SCRATCH DATABASE ONLY: this file creates test users, a test shop and test orders.
 -- Do not run it on the live Supabase project. Run it with supabase/tests/run-checks.cjs,
--- which loads schema.sql, patch-07.sql and patch-08.sql into an empty scratch database first.
+-- which loads schema.sql, patch-07.sql, patch-08.sql and patch-09.sql into an empty scratch database first.
 -- The last result lists one row per check: ok = true means the check passed.
 
 create temp table if not exists store_check_results (id text primary key, ok boolean, detail text);
@@ -475,6 +475,86 @@ begin
     s = 'Only 10 kg of Stock Item is left. Please lower the quantity.' and pg_temp.stock() = 10
       and not (select o.stock_taken from public.store_orders o where o.id = h),
     'backstop: ' || s || '; stock ' || pg_temp.stock());
+end $$;
+
+-- ---------- C39 to C46: customers track an order (stage 7) ----------
+-- Uses the order placed in C09 (Test Shop, phone 9000000012). The rate-limit check (C46) runs last.
+insert into store_check_results
+select 'C39',
+  has_function_privilege('anon', 'public.track_store_order(text,text,text)', 'execute')
+    and not has_table_privilege('anon', 'public.store_track_log', 'select')
+    and not has_table_privilege('authenticated', 'public.store_track_log', 'select')
+    and (select c.relrowsecurity from pg_class c where c.oid = 'public.store_track_log'::regclass),
+  'anon can run the tracking function; the try log is closed to the API';
+
+do $$
+declare
+  shop_b1 constant uuid := '00000000-0000-0000-0000-0000000000b1';
+  ref12 text; orig text;
+  rok jsonb; r jsonb; r2 jsonb; r3 jsonb;
+  k text[];
+  n_ok int := 0; n_lim int := 0; other int := 0; bad int := 0; i int;
+begin
+  select upper(substr(md5(o.id::text), 1, 6)) into ref12
+    from public.store_orders o where o.shop_id = shop_b1 and o.customer_phone = '9000000012';
+
+  select o.status into orig from public.store_orders o where o.shop_id = shop_b1 and o.customer_phone = '9000000012';
+
+  -- C40: the right reference and phone give the status the order really has
+  rok := public.track_store_order('test-shop-1', ref12, '+91 90000 00012');
+  insert into store_check_results values ('C40',
+    rok->>'ok' = 'true' and rok->>'status' = orig and rok->>'ref' = ref12,
+    'right ref and phone: ' || rok::text || ' (saved status ' || orig || ')');
+
+  -- C41: a wrong phone, a wrong ref and an unknown store all get the same plain no
+  r  := public.track_store_order('test-shop-1', ref12, '9000000099');
+  r2 := public.track_store_order('test-shop-1', 'ZZZZZZ', '9000000012');
+  r3 := public.track_store_order('no-such-shop', ref12, '9000000012');
+  insert into store_check_results values ('C41',
+    r = '{"ok": false}'::jsonb and r2 = '{"ok": false}'::jsonb and r3 = '{"ok": false}'::jsonb,
+    'wrong phone: ' || r::text || '; wrong ref: ' || r2::text || '; unknown store: ' || r3::text);
+
+  -- C42: a match returns only the reference and the status, no name, phone, items or total
+  select array_agg(x order by x) into k from jsonb_object_keys(rok) x;
+  insert into store_check_results values ('C42',
+    k = array['ok', 'ref', 'status'] and rok::text not like '%Test Buyer%' and rok::text not like '%9000000012%',
+    'keys: ' || array_to_string(k, ', '));
+
+  -- C43: the try log keeps only hashed phone keys, never the number
+  insert into store_check_results values ('C43',
+    (select count(*) from public.store_track_log) > 0
+      and (select bool_and(length(phone_key) = 32 and phone_key ~ '^[0-9a-f]+$') from public.store_track_log),
+    'log rows are hashed phone keys');
+
+  -- C44: a closed store gives the same plain no, and is open again afterwards
+  update public.shops set store_enabled = false where id = shop_b1;
+  r := public.track_store_order('test-shop-1', ref12, '9000000012');
+  update public.shops set store_enabled = true where id = shop_b1;
+  insert into store_check_results values ('C44',
+    r = '{"ok": false}'::jsonb and (select store_enabled from public.shops where id = shop_b1),
+    'closed store: ' || r::text);
+
+  -- C45: a status change shows up in the tracking reply
+  update public.store_orders set status = 'packed' where shop_id = shop_b1 and customer_phone = '9000000012';
+  r := public.track_store_order('test-shop-1', ref12, '9000000012');
+  insert into store_check_results values ('C45', r->>'status' = 'packed', 'after packing: ' || coalesce(r->>'status', 'none'));
+  update public.store_orders set status = orig where shop_id = shop_b1 and customer_phone = '9000000012';
+
+  -- C46: more than 10 tries from one phone in 15 minutes are refused, and a refusal shows no status
+  for i in 1..15 loop
+    r := public.track_store_order('test-shop-1', ref12, '9000000012');
+    if r->>'limited' = 'true' then
+      n_lim := n_lim + 1;
+      if r->>'status' is not null then bad := bad + 1; end if;
+    elsif r->>'ok' = 'true' then
+      n_ok := n_ok + 1;
+    else
+      other := other + 1;
+    end if;
+  end loop;
+  insert into store_check_results values ('C46',
+    n_lim >= 1 and n_ok <= 10 and other = 0 and bad = 0 and n_ok + n_lim = 15,
+    'matched ' || n_ok || ', refused ' || n_lim || ', other ' || other || ', refusals showing a status ' || bad);
 end $$;
 
 select id, ok, detail from store_check_results order by id;

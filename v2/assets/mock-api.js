@@ -119,6 +119,7 @@
   function save(st) { mem = st; try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* in-memory fallback */ } }
   function nid(st) { st.seq += 1; return st.seq; }
   // Same shape as the real order reference: 6 characters, upper case.
+  var trackLog = []; // mock only: tracking tries in memory, not saved
   function refOf(n) { return (((n * 7919) % 16777216).toString(16)).toUpperCase().padStart(6, '0'); }
   function sumLines(ls) { return Math.round(ls.reduce(function (a, l) { return a + l.line_total; }, 0) * 100) / 100; }
   var STATUSES = ['new', 'accepted', 'packed', 'delivered', 'cancelled'];
@@ -346,6 +347,27 @@
       st.orders.unshift(ord); save(st);
       // The lines and total come from the saved order, so the WhatsApp message matches it.
       return { ok: true, ref: ord.ref, item_count: ord.item_count, total: ord.total, lines: ord.lines };
+    }
+
+    if (path === '/public/track' && method === 'POST') {
+      // Same rules as track_store_order in patch-09: a refused try still counts, and the reply
+      // holds only the reference and status. Wrong phone, wrong reference and unknown store all
+      // get the same plain no.
+      if (!st.shop.store_enabled || !st.shop.store_slug || String(b.shop || '') !== st.shop.store_slug) return { ok: false };
+      var tp = String(b.phone || '').replace(/[^0-9]/g, '').slice(-10);
+      var tr = String(b.ref || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      var now3 = Date.now();
+      trackLog = trackLog.filter(function (t) { return now3 - t.at < 2 * 3600000; });
+      trackLog.push({ phone: tp, at: now3 });
+      var byPhone = trackLog.filter(function (t) { return t.phone === tp && now3 - t.at < 15 * 60000; }).length;
+      var byShop = trackLog.filter(function (t) { return now3 - t.at < 3600000; }).length;
+      if (byPhone > 10 || byShop > 300) return { ok: false, limited: true, message: 'Too many tries for now. Please wait a few minutes and try again, or call the shop.' };
+      if (tr.length !== 6 || tp.length < 10) return { ok: false };
+      var tm = st.orders.find(function (o) {
+        return o.ref === tr && String(o.phone || '').replace(/[^0-9]/g, '').slice(-10) === tp;
+      });
+      if (!tm) return { ok: false };
+      return { ok: true, ref: tm.ref, status: tm.status };
     }
 
     var cu = me(st); if (!cu && path !== '/config') throw E('Please log in', 401);

@@ -1,5 +1,35 @@
 # BizGrow v2 - what changed (status: stage 1 build, demo and real sign-in code, tested in a browser)
 
+## Stage 7: order tracking for customers and a new-orders banner (patch-09, latest)
+
+### What was built
+- **Track your order** box on the public store. A customer enters the order reference and the phone number they used, and sees only the status: Received (new), Accepted by the shop, Packed, Delivered or Cancelled. No name, phone, items or total is shown.
+- A wrong phone, a wrong reference, an unknown store and a closed store all get the same plain "could not find an order" message, so the box cannot be used to check whether an order exists.
+- Rate limit: 10 tries per phone number in 15 minutes, and 300 tries per store in an hour. A refused try still counts, and the reply is a plain "too many tries, please wait" message.
+- After an order is sent, the done box has a "Track this order" button that fills the box with that reference and phone.
+- Owner side: a yellow banner shows how many orders are new (status new), on Home (with an "Open orders" button) and on the Orders page (with a "Show new orders" button that filters to them). The sidebar and More-list badge from stage 4 is unchanged.
+- Labels in English, Hindi, Marathi and Gujarati (new `ord_banner_*`, `ord_show_new`, `ord_open`, `pub_track_*`, `pub_st_*` keys in `v2-i18n-store.js`). The Hindi, Marathi and Gujarati wording is a first draft.
+
+### Database (new file, run once)
+- `supabase/patch-09.sql` (new, safe to run again). Adds `store_track_log` (a hashed phone key per try, kept two hours, no grants, no policies) and `track_store_order(p_slug, p_ref, p_phone)`, the only function the public role can call for tracking.
+- `supabase/tests/run-checks.cjs` runs patch-09 twice. `supabase/tests/store-checks.sql` has new checks C39 to C46 (checks now run C01 to C46).
+- `supabase/schema.sql` is not changed, so a fresh install from it alone has no tracking. Run `patch-09.sql` after it to get tracking.
+
+### Changed
+- `supabase/patch-09.sql` (new), `supabase/tests/run-checks.cjs`, `supabase/tests/store-checks.sql`.
+- `v2/assets/v2-store.js` (Track box, Track this order, banners, CSS), `v2/assets/v2-i18n-store.js` (new keys in four languages), `v2/assets/mock-api.js` (demo `/public/track` route, in memory only), `v2/assets/supabase-api.js` (`/public/track` calls `track_store_order`). `v2/dist/bizgrow-v2.html` rebuilt with `build.js`.
+- `docs/specs/online-store.md` (criteria K 51 to 58 and L 59 to 61; checks C01 to C46; patch-09 in the run list).
+
+### Tests
+- Local Postgres, scratch database only: fresh reset, schema, patch-07 twice, patch-08 twice, patch-09 twice, then all checks: **46 of 46 passed**.
+- Headless browser, demo mode, 360 px (`stage7-smoke.js`, kept outside the repo with the other smoke tests): **23 of 23 checks passed**, no page errors. Covers both banners and the filter button, the right and wrong reference and phone, the reply keys, the 11th-try refusal, the Track box status and the plain no message, the empty-box message, the 360 px fit, and Track this order filling the box.
+- Re-run of `stage4-smoke.js` (22 of 22), `stage6-smoke.js` (27 of 27) and `stage5-smoke.js` (20 of 20 checks, no failures). No page errors.
+
+### Known limits
+- Anyone who knows a customer's phone number can use up its 10 tries and block that number's tracking for 15 minutes. The reference is only 6 characters, so the phone plus the rate limit is the real protection.
+- The per-store limit (300 an hour) and the two-hour clearing of the try log have no automated check yet.
+- The live Supabase project has not run patch-09 yet. Until the owner runs it, tracking shows "could not find an order" for everyone.
+
 ## Fixes: public store wording (after the live shop check)
 
 - A customer search with no match now says "No item matches that search. Try another word." Before, it said "No items are in stock right now", which was wrong. An empty list still shows the out-of-stock wording.
@@ -8,7 +38,7 @@
 - Tests: demo mode at 390 px (focused check: no-match wording, one and two item headings, no page errors). Re-run of `stage4-smoke.js` (22 of 22), `stage6-smoke.js` (27 of 27) and `stage5-smoke.js` (20 checks, all passed). No page errors.
 - Live shop check (Bhakti Textile link, customer side, 390 px): cart, quantity, search, name and phone checks and the WhatsApp text all work. The final order was tested against a stub, so no real order was placed.
 
-## Stage 6: printable and shareable invoice (no database change, latest)
+## Stage 6: printable and shareable invoice (no database change)
 
 ### What was built
 - Each bill has an invoice page: shop name, address, phone and GSTIN when set, bill number, date, customer (or walk-in), items with quantity, price and amount, discount, total, paid, balance when part is paid, UPI when set, the note, and a footer.

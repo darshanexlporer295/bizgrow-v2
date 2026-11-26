@@ -1,6 +1,6 @@
 # Online store - spec and acceptance criteria
 
-Status: stage 4 (hardening). Each criterion is a yes or no question. "Check" names the automated SQL check in `supabase/tests/store-checks.sql` (C01 to C26). "Demo check" names the headless browser run `stage4-smoke.js` (360 px, demo mode). Criteria with no check are marked "review" and must be confirmed by reading the code or by hand.
+Status: stage 7 (order tracking and new-orders banner). Each criterion is a yes or no question. "Check" names the automated SQL check in `supabase/tests/store-checks.sql` (C01 to C46). "Demo check" names the headless browser run for the stage (`stage4-smoke.js`, `stage5-smoke.js`, `stage6-smoke.js`, `stage7-smoke.js`; 360 px, demo mode). Criteria with no check are marked "review" and must be confirmed by reading the code or by hand.
 
 How the owner turns the store on: from the **Store** page (not Settings). The store is off until the owner turns it on.
 
@@ -54,7 +54,7 @@ How the owner turns the store on: from the **Store** page (not Settings). The st
 ## G. Database file
 
 30. Can `supabase/patch-07.sql` be run twice on the same database without an error? Must be **yes**. Checked: `run-checks.cjs` runs it twice, and the run passes.
-31. Does a fresh database built from `supabase/schema.sql` pass all 38 checks? Must be **yes**. Checked on a local Postgres copy (see CHANGES.md). Not yet checked on the live Supabase project.
+31. Does a fresh database built from `supabase/schema.sql` pass all checks (C01 to C46, with patch-07, patch-08 and patch-09 applied)? Must be **yes**. Checked on a local Postgres copy (see CHANGES.md). Not yet checked on the live Supabase project.
 
 ## I. Stock taken by orders (stage 5, `supabase/patch-08.sql`)
 
@@ -83,12 +83,34 @@ An order takes its stock when it is placed, in the same step that saves it. It h
 49. Do the invoice labels show in Hindi when the member's language is Hindi, and in English otherwise? Must be **yes**. Demo check: "Hindi labels show". Marathi and Gujarati labels are in the file but not checked by a test yet.
 50. Does the invoice need no database change (it reads the bill or order that already exists)? Must be **yes**. Review only: no SQL file is changed in stage 6.
 
+## K. Order tracking for customers (stage 7, `supabase/patch-09.sql`)
+
+A customer enters the order reference and the phone number they ordered with, and sees only the status (new, accepted, packed, delivered or cancelled). The function is `track_store_order`. It is the only thing the public (anonymous) role can call for tracking.
+
+51. Does entering the right reference and phone show the order's status? Must be **yes**. Checks: C40, C45. Demo check: "right reference and phone show the status", "the Track box shows the status for the right reference and phone".
+52. Does the reply carry only `ok`, `ref` and `status` (no name, phone, items or total)? Must be **yes**. Checks: C42. Demo check: "the reply has only ok, ref and status".
+53. Do a wrong phone, a wrong reference, an unknown store and a closed store all get the same plain no (no status, no order data)? Must be **yes**. Checks: C41, C44. Demo check: "a wrong phone returns nothing", "a wrong reference returns nothing", "an unknown store returns nothing", "a wrong phone shows the plain no message and no status".
+54. Can the public (anonymous) role run only `track_store_order`, and not read the try log or the order tables? Must be **yes** for the function and **no** for both tables. Check: C39 (and C01 for the order tables).
+55. Is tracking refused after 10 tries for one phone number in 15 minutes, with refused tries still counted, and does a refusal show no status? Must be **yes**. Checks: C46. Demo check: "the 11th try in a row is refused as too many tries", "the first 10 tries are plain no answers". The per-store limit (300 an hour) is review only (no check yet).
+56. Does the try log keep only a hashed key for the phone (never the phone number), and clear entries older than two hours? Must be **yes**. Check: C43. The two-hour clearing is review only.
+57. Does the Track box fit a 360 px phone without sideways scrolling, with no page errors? Must be **yes**. Demo check: "the public store fits 360 px without sideways scroll", "no page errors".
+58. Does "Track this order" in the order-sent message fill the box with that order's reference and phone? Must be **yes**. Demo check: "Track this order fills the box with the reference and phone".
+
+## L. New-orders banner for the owner (stage 7, no database change)
+
+The owner sees how many orders are new (status new). The number is the same count the sidebar badge uses.
+
+59. Does the Home page show a banner with the count of new orders and an "Open orders" button when some are waiting? Must be **yes**. Demo check: "Home shows the new-orders banner", "Home banner links to Orders".
+60. Does the Orders page show the same banner when a filter other than New is selected, and does its button show only the new orders? Must be **yes**. Demo check: "Orders shows the new-orders banner", "the banner button filters to new orders and the banner goes".
+61. Does the banner use the same count as the sidebar badge? Must be **yes**. Review only: both read `new_count` from `list_store_orders` (patch-06, patch-07 and schema.sql).
+
 ## H. Known gaps and future work
 
 - **Two sessions at once are not tested.** Stock is locked per item, so two orders for the last of an item should not both succeed, but no check runs two orders at the same moment. The existing sale function (`create_sale`) locks items in cart order, so a rare deadlock between a sale and an online order placed at the same moment is possible. Postgres would stop one of them with an error; no wrong stock is written.
 - **Bot check (Turnstile) is not built.** It is planned as a future step on the public order form, to stop automated orders. Until then, the per-number limits (criteria 13 to 15) are the only protection.
 - **Shop-wide cap check** (criterion 15) has no automated check yet.
 - **Cancel from accepted or packed** (criterion 21) has no automated check yet.
+- **Tracking and phone numbers.** Anyone who knows a customer's phone number can use up its 10 tries and block that number's tracking for 15 minutes. The order reference is only 6 characters, so the phone number plus the rate limit is the real protection.
 - **Live project.** The SQL checks ran on a local Postgres copy with a stand-in for the Supabase login function. They have not been run on the live Supabase project.
 
 ## How to run the checks
@@ -97,4 +119,4 @@ From the repository root, on an empty scratch database only (never the live proj
 
     DATABASE_URL=postgres://user:pass@host:5432/scratch node supabase/tests/run-checks.cjs --scratch
 
-The runner loads `supabase/tests/local-auth-shim.sql`, `supabase/schema.sql`, `supabase/patch-07.sql` (twice) and `supabase/patch-08.sql` (twice), then `supabase/tests/store-checks.sql`, and prints PASS or FAIL for each check and a total.
+The runner loads `supabase/tests/local-auth-shim.sql`, `supabase/schema.sql`, `supabase/patch-07.sql` (twice), `supabase/patch-08.sql` (twice) and `supabase/patch-09.sql` (twice), then `supabase/tests/store-checks.sql`, and prints PASS or FAIL for each check and a total.

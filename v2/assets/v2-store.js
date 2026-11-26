@@ -40,7 +40,10 @@
     '.ord-lines{padding-left:18px;line-height:1.7;margin:8px 0}' +
     '.ord-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}' +
     '.ord-chips .btn{min-height:44px}' +
-    '.ord select.in{min-height:44px}';
+    '.ord select.in{min-height:44px}' +
+    '.ord-banner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:#FEF3C7;border:1px solid #FCD34D;color:#78350F;border-radius:12px;padding:12px 14px;margin:0 0 14px;font-size:15px}' +
+    '.ord-banner .btn{min-height:44px}' +
+    '.ps-track{margin-top:14px}';
   (function addCss() {
     var s = document.createElement('style'); s.id = 'v2-store-css'; s.textContent = CSS;
     document.head.appendChild(s);
@@ -149,7 +152,10 @@
       (B.isOwner() && lastNew > 0 ? '<button class="btn red" data-v2s="cancelnew">' + esc(B.tx('ord_cancel_new', { n: lastNew })) + '</button>' : '') +
       '</div>';
     var more = ordMore ? '<div class="ord-chips"><button class="btn sec" data-v2s="older">' + esc(B.tx('ord_older')) + '</button></div>' : '';
-    v.innerHTML = title + '<div class="ord-chips">' + chips + '</div>' + tools +
+    var banner = lastNew > 0 && ordStatus !== 'new'
+      ? newBanner(lastNew, '<button class="btn" data-v2s="filter" data-status="new">' + esc(B.tx('ord_show_new')) + '</button>', 'ord-banner-orders')
+      : '';
+    v.innerHTML = title + banner + '<div class="ord-chips">' + chips + '</div>' + tools +
       (ordItems.length ? ordItems.map(orderHtml).join('') + more : '<section class="card"><p class="muted">' + esc(B.tx('ord_none')) + '</p></section>');
   }
 
@@ -239,6 +245,20 @@
   B.on('*', function () { setTimeout(function () { refreshBadge(false); }, 0); });
   setInterval(function () { if (B.S.me) refreshBadge(true); }, 120000);
 
+  /* ---------- New-orders banner on Home and Orders ---------- */
+  function newBanner(n, btnHtml, cls) {
+    return '<div class="ord-banner ' + cls + '"><span>' +
+      esc(n === 1 ? B.tx('ord_banner_one') : B.tx('ord_banner_many', { n: n })) + '</span>' + btnHtml + '</div>';
+  }
+  B.on('home', function (v) {
+    if (!B.can('orders') || v.querySelector('.ord-banner-home')) return;
+    B.api('/orders?status=new').then(function (r) {
+      var n = r.new_count || 0;
+      if (n <= 0 || v.querySelector('.ord-banner-home')) return;
+      B.placeTop(v, newBanner(n, '<a class="btn" href="#/orders">' + esc(B.tx('ord_open')) + '</a>', 'ord-banner-home'));
+    }).catch(function () {});
+  });
+
   /* ---------- 3. Public: the store a buyer opens from the link ---------- */
   var PS = { slug: '', shop: null, items: [], cart: {}, lang: 'en', q: '' };
 
@@ -296,6 +316,15 @@
       '<div id="psMsg" class="ps-msg" role="alert"></div>' +
       '</section>' +
       '<div id="psDone"></div>' +
+      '<section class="ps-card ps-track" id="psTrack">' +
+      '<h2>' + esc(T('pub_track_title')) + '</h2>' +
+      '<p class="ps-intro">' + esc(T('pub_track_sub')) + '</p>' +
+      '<label class="ps-field">' + esc(T('pub_track_ref')) + '<input id="psRef" maxlength="12" autocomplete="off" autocapitalize="characters"></label>' +
+      '<label class="ps-field">' + esc(T('pub_phone')) + '<input id="psTrPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="20"></label>' +
+      '<button id="psTrackBtn" class="ps-send" data-ps="track" type="button">' + esc(T('pub_track_btn')) + '</button>' +
+      '<div id="psTrMsg" class="ps-msg" role="alert"></div>' +
+      '<div id="psTrOut"></div>' +
+      '</section>' +
       '</div>';
     $('#psSearch').addEventListener('input', function (e) { PS.q = e.target.value; renderList(); });
     renderList(); renderCart();
@@ -411,8 +440,36 @@
     PS.cart = {};
     renderList(); renderCart(); reset();
     $('#psDone').innerHTML = '<div class="ps-done"><b>' + esc(T('pub_sent', { ref: data.ref })) + '</b><br>' +
-      '<a class="ps-wa" target="_blank" rel="noopener" href="' + esc(url) + '">' + esc(T('pub_send')) + '</a></div>';
+      '<a class="ps-wa" target="_blank" rel="noopener" href="' + esc(url) + '">' + esc(T('pub_send')) + '</a><br>' +
+      '<button type="button" class="ps-btn" style="margin-top:8px" data-ps="trackthis" data-ref="' + esc(data.ref) + '">' + esc(T('pub_track_this')) + '</button></div>';
     $('#psDone').scrollIntoView ? $('#psDone').scrollIntoView({ block: 'center' }) : null;
+  }
+
+  function showTrackMsg(text) { var m = $('#psTrMsg'); if (m) m.textContent = text || ''; }
+
+  // Asks the server for one order's status. Only the status comes back. A wrong phone or reference
+  // gets the same plain no as an order that does not exist.
+  async function trackOrder(refIn, phoneIn) {
+    showTrackMsg('');
+    var ref = String(refIn || '').trim();
+    var phone = digits(phoneIn);
+    var btn = $('#psTrackBtn'), out = $('#psTrOut');
+    if (!ref || phone.length < 10 || phone.length > 13) return showTrackMsg(T('pub_track_need'));
+    btn.disabled = true;
+    var res, data = {};
+    try {
+      res = await fetch('/api/public/track', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ shop: PS.slug, ref: ref, phone: phone })
+      });
+      data = await res.json().catch(function () { return {}; });
+    } catch (e) { res = null; }
+    btn.disabled = false;
+    out.innerHTML = '';
+    if (!res || !res.ok) return showTrackMsg(T('pub_error'));
+    if (data.limited) return showTrackMsg(T('pub_track_limited'));
+    if (!data.ok) return showTrackMsg(T('pub_track_none'));
+    out.innerHTML = '<div class="ps-done">' + esc(T('pub_track_result', { ref: data.ref, status: T('pub_st_' + data.status) })) + '</div>';
   }
 
   document.addEventListener('click', function (e) {
@@ -420,6 +477,13 @@
     var act = el.getAttribute('data-ps');
     var id = el.getAttribute('data-id');
     if (act === 'send') { sendOrder(); return; }
+    if (act === 'track') { trackOrder($('#psRef').value, $('#psTrPhone').value); return; }
+    if (act === 'trackthis') {
+      $('#psRef').value = el.getAttribute('data-ref') || '';
+      $('#psTrPhone').value = digits($('#psPhone').value);
+      var tb = $('#psTrack'); if (tb && tb.scrollIntoView) tb.scrollIntoView({ block: 'center' });
+      return;
+    }
     var cur = cartQty(id);
     if (act === 'add' || act === 'inc') setQty(id, cur + 1);
     else if (act === 'dec') setQty(id, cur - 1);
