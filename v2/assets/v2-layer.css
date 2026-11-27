@@ -110,3 +110,13 @@
 @media (max-width:480px){.su-title{font-size:22px}.su-opt{min-height:56px;font-size:17px}}
 /* The one language dropdown: full width on a phone, big enough to tap, same field look as the rest. */
 .lang-pick{width:100%;max-width:360px;min-height:48px;font-size:16px}
+
+/* Plans: the owner's link in the sidebar and in the More list. Saffron label so it stands out.
+   Sidebar: saffron on navy (about 8:1). More list: a navy row, because saffron on white is too faint. */
+.nav a.plans-link{color:var(--saffron);font-weight:700}
+.nav a.plans-link svg{color:var(--saffron)}
+.nav a.plans-link:hover{background:rgba(245,158,11,.12)}
+.nav a.plans-link.on{background:rgba(245,158,11,.16);color:var(--saffron);box-shadow:inset 3px 0 0 var(--saffron)}
+.list>.li.plans-row{background:var(--navy);color:var(--saffron);font-weight:700;border-radius:12px;padding:14px 14px;margin:6px 0;border-bottom:0}
+.list>.li.plans-row .bold{color:var(--saffron)}
+.list>.li.plans-row:hover{background:var(--primary)}
