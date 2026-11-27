@@ -23,7 +23,7 @@
       noapi: 'Voice does not work in this browser. Type instead.',
       failed: 'Voice stopped. Tap the mic to try again, or type instead.',
       checking: 'Checking what you said…', retry: 'Online voice did not work. Speak again.',
-      mute_on: 'Hello sound: on (tap to mute)', mute_off: 'Hello sound: muted (tap to turn on)'
+      mute_on: 'Hello sound: on (tap to mute)', mute_off: 'Hello sound: muted (tap to turn on)', alt_head: 'Not right? Tap the right one:', not_pay: 'I heard a payment. Payments said by voice are not saved yet. Please add it in the app.', not_stock: 'I heard stock being added. Stock added by voice is not saved yet. Please add it in the app.'
     },
     hi: {
       greet: 'बोलिए?', bolo: 'Listening… bolo',
@@ -35,7 +35,7 @@
       noapi: 'इस ब्राउज़र में आवाज़ काम नहीं करती। लिखकर बताएं।',
       failed: 'आवाज़ रुक गई। माइक दबाकर फिर कोशिश करें, या लिखकर बताएं।',
       checking: 'आपकी बात जांची जा रही है…', retry: 'ऑनलाइन आवाज़ नहीं चली। फिर से बोलें।',
-      mute_on: 'नमस्ते की आवाज़: चालू (बंद करने के लिए दबाएं)', mute_off: 'नमस्ते की आवाज़: बंद (चालू करने के लिए दबाएं)'
+      mute_on: 'नमस्ते की आवाज़: चालू (बंद करने के लिए दबाएं)', mute_off: 'नमस्ते की आवाज़: बंद (चालू करने के लिए दबाएं)', alt_head: 'सही नहीं है? सही वाले को दबाएँ:', not_pay: 'मैंने जमा की बात सुनी। आवाज़ से कहा गया जमा अभी सेव नहीं होता। कृपया ऐप में जोड़ें।', not_stock: 'मैंने स्टॉक जोड़ने की बात सुनी। आवाज़ से जोड़ा गया स्टॉक अभी सेव नहीं होता। कृपया ऐप में जोड़ें।'
     },
     mr: {
       greet: 'बोला?', bolo: 'ऐकत आहे… बोला',
@@ -47,7 +47,7 @@
       noapi: 'या ब्राउझरमध्ये आवाज चालत नाही. लिहून सांगा.',
       failed: 'आवाज थांबला. माइक दाबून पुन्हा प्रयत्न करा, किंवा लिहून सांगा.',
       checking: 'तुम्ही काय सांगितले ते तपासत आहे…', retry: 'ऑनलाइन आवाज चालली नाही. पुन्हा बोला.',
-      mute_on: 'स्वागत आवाज: चालू (बंद करण्यासाठी दाबा)', mute_off: 'स्वागत आवाज: बंद (चालू करण्यासाठी दाबा)'
+      mute_on: 'स्वागत आवाज: चालू (बंद करण्यासाठी दाबा)', mute_off: 'स्वागत आवाज: बंद (चालू करण्यासाठी दाबा)', alt_head: 'चुकीचे आहे? बरोबर असलेल्यावर दाबा:', not_pay: 'मी जमा ऐकले. आवाजाने सांगितलेले जमा अजून सेव्ह होत नाही. कृपया ॲपमध्ये टाका.', not_stock: 'मी स्टॉक जोडण्याचे ऐकले. आवाजाने जोडलेला स्टॉक अजून सेव्ह होत नाही. कृपया ॲपमध्ये टाका.'
     },
     gu: {
       greet: 'બોલો?', bolo: 'સાંભળી રહ્યો છું… બોલો',
@@ -59,7 +59,7 @@
       noapi: 'આ બ્રાઉઝરમાં અવાજ ચાલતો નથી. લખીને કહો.',
       failed: 'અવાજ બંધ થયો. ફરી માઇક દબાવો, અથવા લખીને કહો.',
       checking: 'તમે જે કહ્યું તે તપાસું છું…', retry: 'ઓનલાઈન અવાજ ચાલ્યો નહીં. ફરી બોલો.',
-      mute_on: 'સ્વાગત અવાજ: ચાલુ (બંધ કરવા દબાવો)', mute_off: 'સ્વાગત અવાજ: બંધ (ચાલુ કરવા દબાવો)'
+      mute_on: 'સ્વાગત અવાજ: ચાલુ (બંધ કરવા દબાવો)', mute_off: 'સ્વાગત અવાજ: બંધ (ચાલુ કરવા દબાવો)', alt_head: 'ખોટું છે? સાચા પર ટેપ કરો:', not_pay: 'મેં જમાની વાત સાંભળી. અવાજથી કહેલું જમા હજી સેવ થતું નથી. કૃપા કરીને ઍપમાં ઉમેરો.', not_stock: 'મેં સ્ટોક ઉમેરવાની વાત સાંભળી. અવાજથી ઉમેરેલો સ્ટોક હજી સેવ થતો નથી. કૃપા કરીને ઍપમાં ઉમેરો.'
     }
   };
 
@@ -208,25 +208,38 @@
     if (!R) { stopWith('noapi'); return; }
     var r;
     try { r = new R(); } catch (e) { stopWith('noapi'); return; }
-    r.lang = langOf(); r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
+    r.lang = run.lang || langOf(); r.continuous = true; r.interimResults = true; r.maxAlternatives = 5;
     run.rec = r; run.err = '';
     r.onstart = function () { if (run.rec === r) msg(vt('bolo')); };
     r.onresult = function (ev) {
       if (run.rec !== r) return;
       var fin = '', mid = '';
       for (var i = ev.resultIndex || 0; i < ev.results.length; i++) {
-        var res = ev.results[i], tr = (res && res[0] && res[0].transcript) || '';
-        if (res.isFinal) fin += tr + ' '; else mid += tr;
+        var res = ev.results[i], alts = [], j;
+        for (j = 0; res && j < res.length; j++) { if (res[j] && res[j].transcript) alts.push(String(res[j].transcript)); }
+        var tr = alts[0] || '';
+        if (res && res.isFinal) {
+          // Pick the alternative that reads best as a bill (items, numbers, names)
+          var pick = alts.length > 1 && B.bestAlt ? B.bestAlt(alts) : null;
+          fin += (pick ? pick.text : tr) + ' ';
+        } else mid += tr;
       }
       if (fin.trim()) { run.finals = (run.finals + ' ' + fin).trim(); run.empty = 0; }
       run.interim = mid.trim();
       var box = $('v2-type'); if (box) box.value = (run.finals + ' ' + run.interim).trim();
     };
-    r.onerror = function (ev) { if (run.rec === r) run.err = (ev && ev.error) || 'failed'; };
+    r.onerror = function (ev) {
+      if (run.rec !== r) return;
+      var k = (ev && ev.error) || 'failed';
+      // This browser does not know the language: try English (India) once
+      if (k === 'language-not-supported' && !run.langTried) { run.langTried = true; run.lang = 'en-IN'; k = 'retry-lang'; }
+      run.err = k;
+    };
     r.onend = function () {
       if (run.rec !== r) return;
       run.rec = null;
       var k = run.err; run.err = '';
+      if (k === 'retry-lang' && !run.stopping && run.on) { startRec(run.id); return; }
       if (run.stopping) { finishRun(); return; }
       if (!run.on) return;
       if (run.finals || run.interim) { finishRun(); return; }   // the speaker paused after words: check them
@@ -401,12 +414,35 @@
     if (!B.can('sale')) { msg(B.tx('v2_view_only')); return; }
     if (!txt) { msg(B.tx('v2_nothing')); return; }
     if (!B.S.products || !B.S.products.length || !B.S.customers || !B.S.customers.length) { try { await B.refresh(); } catch (e) { /* use what we have */ } }
+    loadFixes();
     var p = B.parse(txt);
+    if (p.intent === 'payment') { msg(vt('not_pay')); return; }
+    if (p.intent === 'stock_in') { msg(vt('not_stock')); return; }
     if (!p.lines.length) { msg(B.tx('v2_nothing')); return; }
     if (p.lines.length > MAXLINES) { msg(B.tx('v2_too_many')); return; }
     openConfirm(p);
   }
   B.voiceReview = review;
+
+  // Corrections are learned per shop, in this browser only (no shop record change needed)
+  function fixKey() { return 'bg_v2_fix_' + ((B.S && B.S.me && B.S.me.shop && B.S.me.shop.id) || 'shop'); }
+  function loadFixes() {
+    var m = {};
+    try { m = JSON.parse(localStorage.getItem(fixKey()) || '{}') || {}; } catch (e) { m = {}; }
+    B.setFixes(m);
+  }
+  function saveFixes() {
+    var keys = Object.keys(B.fixes || {});
+    while (keys.length > 300) { delete B.fixes[keys.shift()]; }
+    try { localStorage.setItem(fixKey(), JSON.stringify(B.fixes || {})); } catch (e) { /* storage full: keep working without learning */ }
+  }
+  // The member picked a different item for a heard word: remember it. Picking the first guess again forgets it.
+  function learnLine(l, id) {
+    if (!l.heard) return;
+    if (id === l.autoId) { delete B.fixes[B.toRoman(l.heard)]; }
+    else { B.learnFix(l.heard, 'p', id); }
+    saveFixes();
+  }
 
   // ---- confirm sheet ----
   function openConfirm(p) {
@@ -414,7 +450,12 @@
       heard: p.heard, amount: p.amount, date: B.today(), more: false, override: false,
       method: p.method || 'cash', party: p.party.status === 'one' ? p.party.customer : null,
       choosing: p.party.status === 'choose', options: p.party.options || [],
-      lines: p.lines.map(function (l) { return { product_id: l.product_id, name: l.name, stock: l.stock, qty: String(l.qty), price: String(l.price) }; })
+      partyAlts: p.party.status === 'one' ? (p.party.alts || []) : [], partyHeard: p.party.status === 'one' ? p.party.heard : '',
+      partyAuto: p.party.status === 'one' ? p.party.customer.id : 0,
+      lines: p.lines.map(function (l) {
+        return { product_id: l.product_id, name: l.name, stock: l.stock, qty: String(l.qty), price: String(l.price),
+          heard: l.heard, autoId: l.product_id, alts: (l.alts || []).slice(0, 3) };
+      })
     };
     if (st.method === 'udhar' && !st.party) st.choosing = true;
     var o = B.modal('<div class="v2-cf"></div>');
@@ -424,7 +465,21 @@
       var el = e.target.closest('[data-vc]'); if (!el) return;
       var k = el.getAttribute('data-vc');
       if (k === 'cancel') { o.close(); return; }
-      if (k === 'party') { var id = +el.getAttribute('data-id'); st.party = id ? st.options.filter(function (c) { return c.id === id; })[0] : null; st.choosing = false; paint(); return; }
+      if (k === 'party') {
+        var id = +el.getAttribute('data-id'), pool = st.options.concat(st.partyAlts || []);
+        st.party = id ? pool.filter(function (c) { return c.id === id; })[0] : null; st.choosing = false;
+        if (st.party && st.partyHeard && id !== st.partyAuto) { B.learnFix(st.partyHeard, 'c', id); saveFixes(); }
+        paint(); return;
+      }
+      if (k === 'alt') {
+        var line = st.lines[+el.getAttribute('data-i')], pid = +el.getAttribute('data-id');
+        var pick = line && line.alts.filter(function (a) { return a.product_id === pid; })[0];
+        if (pick) {
+          line.product_id = pick.product_id; line.name = pick.name; line.price = String(pick.price); line.stock = pick.stock;
+          learnLine(line, pid);
+        }
+        paint(); return;
+      }
       if (k === 'change') { st.choosing = true; paint(); return; }
       if (k === 'method') { st.method = el.getAttribute('data-m'); if (st.method === 'udhar' && !st.party) st.choosing = true; if (st.method !== 'udhar' && st.choosing && !st.party) st.choosing = false; paint(); return; }
       if (k === 'more') { st.more = !st.more; paint(); return; }
@@ -486,13 +541,22 @@
     } else {
       h += '<div class="v2-for"><div><span class="muted small">' + esc(B.tx('v2_for')) + '</span><div class="bold">' +
         esc(st.party ? st.party.name : B.tx('v2_cash_customer')) + '</div></div><button class="linkbtn" data-vc="change">' + esc(B.tx('v2_change')) + '</button></div>';
+      if (st.partyAlts && st.partyAlts.length > 1) {
+        h += '<div class="v2-party"><small class="muted">' + esc(vt('alt_head')) + '</small> ' +
+          st.partyAlts.map(function (c) { return '<button class="btn ' + (st.party && st.party.id === c.id ? '' : 'sec') + '" data-vc="party" data-id="' + c.id + '">' + esc(c.name) + '</button>'; }).join(' ') + '</div>';
+      }
     }
     // Lines
     h += '<div class="v2-lines">';
     st.lines.forEach(function (l, i) {
       var short = l.product_id && l.stock != null && (B.vnum(l.qty).ok ? B.vnum(l.qty).n : 0) > l.stock;
+      var alts = '';
+      if (l.alts && l.alts.length > 1) {
+        alts = '<div class="v2-party"><small class="muted">' + esc(vt('alt_head')) + '</small> ' +
+          l.alts.map(function (a) { return '<button class="btn ' + (a.product_id === l.product_id ? '' : 'sec') + '" data-vc="alt" data-i="' + i + '" data-id="' + a.product_id + '">' + esc(a.name) + '</button>'; }).join(' ') + '</div>';
+      }
       h += '<div class="v2-line"><div class="grow"><b>' + esc(l.name) + '</b>' +
-        (short ? '<small class="v2-err">' + esc(B.tx('v2_stock_left', { stock: B.qn(l.stock) })) + '</small>' : '') + '</div>' +
+        (short ? '<small class="v2-err">' + esc(B.tx('v2_stock_left', { stock: B.qn(l.stock) })) + '</small>' : '') + alts + '</div>' +
         '<label class="v2-f">' + esc(B.tx('v2_qty')) + '<input class="in" inputmode="decimal" data-vc="qty" data-i="' + i + '" value="' + esc(l.qty) + '"></label>' +
         '<label class="v2-f">' + esc(B.tx('v2_price')) + '<input class="in" inputmode="decimal" data-vc="price" data-i="' + i + '" value="' + esc(l.price) + '"></label>' +
         '<button class="iconbtn" data-vc="rm" data-i="' + i + '" aria-label="' + esc(B.tx('v2_remove')) + '">&times;</button></div>';
