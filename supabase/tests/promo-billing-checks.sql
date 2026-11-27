@@ -27,7 +27,7 @@ insert into public.staff (shop_id, auth_user_id, name, role, active) values
 on conflict (shop_id, auth_user_id) do nothing;
 insert into public.platform_admins (user_id) values ('15000000-0000-0000-0000-000000000004') on conflict do nothing;
 -- Shop three starts on the top plan, so it cannot take a lower promo.
-update public.shops set plan = 'all' where id = '15100000-0000-0000-0000-000000000003';
+update public.shops set plan = 'all', plan_source = 'manual' where id = '15100000-0000-0000-0000-000000000003';
 
 -- Promo codes made directly (as the database owner, like the SQL Editor).
 insert into public.promo_codes (code, plan, duration_days, max_uses, active) values
@@ -133,7 +133,7 @@ declare r jsonb; v_used int;
 begin
   r := public.redeem_promo_code('15100000-0000-0000-0000-000000000003', 'P15-LOW');
   select used_count into v_used from public.promo_codes where code = 'P15-LOW';
-  insert into p15_results values ('P08', (r->>'ok')::boolean = false and v_used = 0 and r->>'message' like '%already has%',
+  insert into p15_results values ('P08', (r->>'ok')::boolean = false and v_used = 0 and r->>'message' like '%All Features%' and r->>'message' like '%for good%',
     'reply: ' || r::text);
 end $$;
 
@@ -358,6 +358,211 @@ begin
   end loop;
   insert into p15_results values ('P21', (n0 + n_ok) = 10 and v_msg like 'Too many payment tries%',
     'before: ' || n0 || ' new: ' || n_ok || ' last: ' || v_msg);
+end $$;
+
+
+-- ---------- P22-P32 (patch-16): shops given All Features by default, promo and payment rules, plan sources ----------
+-- Shop A (16200000-...-01) was made before patch-14, so the default All Features came to it and patch-16 marked it 'legacy'.
+-- Shops B, E: made here as legacy default shops. C: paid All Features with days left. D: a free shop.
+select set_config('request.jwt.claim.sub', '', false);  -- BizGrow's own setup: no signed-in user
+insert into auth.users (id, email) values
+  ('16200000-0000-0000-0000-00000000000b', 'paid-owner@test.local'),
+  ('16200000-0000-0000-0000-00000000000c', 'free-owner@test.local')
+on conflict (id) do nothing;
+insert into public.shops (id, name) values
+  ('16200000-0000-0000-0000-000000000002', 'P16 Legacy Shop B'),
+  ('16200000-0000-0000-0000-000000000003', 'P16 Paid Shop C'),
+  ('16200000-0000-0000-0000-000000000004', 'P16 Free Shop D'),
+  ('16200000-0000-0000-0000-000000000005', 'P16 Legacy Shop E')
+on conflict (id) do nothing;
+insert into public.staff (shop_id, auth_user_id, name, role, active) values
+  ('16200000-0000-0000-0000-000000000002', '16200000-0000-0000-0000-00000000000a', 'Legacy Owner', 'owner', true),
+  ('16200000-0000-0000-0000-000000000003', '16200000-0000-0000-0000-00000000000b', 'Paid Owner', 'owner', true),
+  ('16200000-0000-0000-0000-000000000004', '16200000-0000-0000-0000-00000000000c', 'Free Owner', 'owner', true),
+  ('16200000-0000-0000-0000-000000000005', '16200000-0000-0000-0000-00000000000a', 'Legacy Owner', 'owner', true)
+on conflict (shop_id, auth_user_id) do nothing;
+update public.shops set plan = 'all', plan_source = 'legacy' where id in ('16200000-0000-0000-0000-000000000002', '16200000-0000-0000-0000-000000000005');
+update public.shops set plan = 'all', plan_source = 'paid', plan_base = 'free', plan_base_source = 'free',
+       plan_until = now() + interval '20 days' where id = '16200000-0000-0000-0000-000000000003';
+insert into public.promo_codes (code, plan, duration_days, max_uses, active) values
+  ('P16-FOREVER', 'growth', null, 1, true),
+  ('P16-AGAIN',   'growth', 30,   1, true),
+  ('P16-TEMP',    'growth', 30,   2, true),
+  ('P16-EXT',     'growth', 30,   2, true),
+  ('P16-LOW',     'growth', 30,   1, true),
+  ('P16-FREE',    'growth', 30,   1, true);
+
+-- ---------- P22: the default shop from before patch-14 is marked legacy by the one-time backfill ----------
+do $$
+declare s public.shops;
+begin
+  select * into s from public.shops where id = '16200000-0000-0000-0000-000000000001';
+  insert into p15_results values ('P22', s.plan = 'all' and s.plan_source = 'legacy' and s.plan_until is null,
+    'plan ' || coalesce(s.plan, 'null') || ' source ' || coalesce(s.plan_source, 'null'));
+end $$;
+
+-- ---------- P23: a legacy default shop can take a permanent code (the bug: it was refused) ----------
+select set_config('request.jwt.claim.sub', '16200000-0000-0000-0000-00000000000a', false);
+do $$
+declare r jsonb; s public.shops;
+begin
+  r := public.redeem_promo_code('16200000-0000-0000-0000-000000000001', 'P16-FOREVER');
+  select * into s from public.shops where id = '16200000-0000-0000-0000-000000000001';
+  insert into p15_results values ('P23', (r->>'ok')::boolean and s.plan = 'growth' and s.plan_source = 'promo'
+      and s.plan_until is null and s.plan_base is null,
+    'reply: ' || r::text || ' | plan ' || s.plan || ' source ' || s.plan_source);
+end $$;
+
+-- ---------- P24: a code for the plan the shop already has for good is refused, and not counted ----------
+do $$
+declare r jsonb; n0 int;
+begin
+  select used_count into n0 from public.promo_codes where code = 'P16-AGAIN';
+  r := public.redeem_promo_code('16200000-0000-0000-0000-000000000001', 'P16-AGAIN');
+  insert into p15_results values ('P24', (r->>'ok')::boolean = false and r->>'message' like '%for good%'
+      and (select used_count from public.promo_codes where code = 'P16-AGAIN') = n0,
+    'reply: ' || r::text);
+end $$;
+
+-- ---------- P25: a legacy default shop takes a 30-day code: the plan and end date are set, and the base is kept as legacy ----------
+do $$
+declare r jsonb; s public.shops;
+begin
+  r := public.redeem_promo_code('16200000-0000-0000-0000-000000000002', 'P16-TEMP');
+  select * into s from public.shops where id = '16200000-0000-0000-0000-000000000002';
+  insert into p15_results values ('P25', (r->>'ok')::boolean and s.plan = 'growth' and s.plan_source = 'promo'
+      and s.plan_base = 'all' and s.plan_base_source = 'legacy'
+      and s.plan_until between now() + interval '29 days' and now() + interval '31 days',
+    'reply: ' || r::text || ' | plan ' || s.plan || ' base ' || coalesce(s.plan_base, 'null') || ' ' || coalesce(s.plan_base_source, 'null'));
+end $$;
+
+-- ---------- P26: the same plan, with days left: the code adds 30 days to the end date and says so ----------
+do $$
+declare r jsonb; before_until timestamptz; s public.shops;
+begin
+  select plan_until into before_until from public.shops where id = '16200000-0000-0000-0000-000000000002';
+  r := public.redeem_promo_code('16200000-0000-0000-0000-000000000002', 'P16-EXT');
+  select * into s from public.shops where id = '16200000-0000-0000-0000-000000000002';
+  insert into p15_results values ('P26', (r->>'ok')::boolean and (r->>'extended')::boolean
+      and s.plan_until - before_until between interval '29 days 23 hours' and interval '30 days 1 minute'
+      and s.plan_source = 'promo' and s.plan_base = 'all' and s.plan_base_source = 'legacy',
+    'reply: ' || r::text);
+end $$;
+
+-- ---------- P27: a lower plan code is refused; the message names the current plan and its end date; nothing changes ----------
+select set_config('request.jwt.claim.sub', '16200000-0000-0000-0000-00000000000b', false);
+do $$
+declare r jsonb; s public.shops; n0 int;
+begin
+  select used_count into n0 from public.promo_codes where code = 'P16-LOW';
+  r := public.redeem_promo_code('16200000-0000-0000-0000-000000000003', 'P16-LOW');
+  select * into s from public.shops where id = '16200000-0000-0000-0000-000000000003';
+  insert into p15_results values ('P27', (r->>'ok')::boolean = false
+      and r->>'message' like '%All Features%'
+      and r->>'message' like '%until ' || to_char(s.plan_until at time zone 'Asia/Kolkata', 'DD Mon YYYY') || '%'
+      and s.plan = 'all' and s.plan_source = 'paid'
+      and (select used_count from public.promo_codes where code = 'P16-LOW') = n0,
+    'reply: ' || r::text);
+end $$;
+
+-- ---------- P28: a free shop takes a 30-day code; the free plan is the one to go back to ----------
+select set_config('request.jwt.claim.sub', '16200000-0000-0000-0000-00000000000c', false);
+do $$
+declare r jsonb; s public.shops;
+begin
+  r := public.redeem_promo_code('16200000-0000-0000-0000-000000000004', 'P16-FREE');
+  select * into s from public.shops where id = '16200000-0000-0000-0000-000000000004';
+  insert into p15_results values ('P28', (r->>'ok')::boolean and s.plan = 'growth' and s.plan_source = 'promo'
+      and s.plan_base = 'free' and s.plan_base_source = 'free' and s.plan_until is not null,
+    'reply: ' || r::text);
+end $$;
+
+-- ---------- P29: a legacy default shop pays for Growth: the order is allowed, the payment sets the plan, a repeat changes nothing ----------
+select set_config('request.jwt.claim.sub', '', false);
+do $$
+declare o jsonb; pay uuid; m1 jsonb; m2 jsonb; s public.shops; u_until timestamptz;
+begin
+  o := public.billing_begin_order('16200000-0000-0000-0000-00000000000a', '16200000-0000-0000-0000-000000000005', 'growth');
+  pay := (o->>'payment_id')::uuid;
+  perform public.billing_attach_order(pay, 'order_p16_legacy');
+  m1 := public.billing_mark_paid('order_p16_legacy', 'pay_p16_legacy', 49900, 'INR', 'verify', '16200000-0000-0000-0000-00000000000a');
+  select * into s from public.shops where id = '16200000-0000-0000-0000-000000000005';
+  u_until := s.plan_until;
+  m2 := public.billing_mark_paid('order_p16_legacy', 'pay_p16_legacy', 49900, 'INR', 'webhook', null);
+  select * into s from public.shops where id = '16200000-0000-0000-0000-000000000005';
+  insert into p15_results values ('P29', (m1->>'plan_changed')::boolean and s.plan = 'growth' and s.plan_source = 'paid'
+      and s.plan_base = 'all' and s.plan_base_source = 'legacy' and s.plan_until is not null
+      and (m2->>'status') = 'paid' and s.plan_until = u_until
+      and (select count(*) from public.plan_payments where razorpay_payment_id = 'pay_p16_legacy') = 1,
+    'first: ' || m1::text || ' | repeat: ' || m2::text);
+end $$;
+
+-- ---------- P30: a paid shop on Growth with days left cannot order Growth again ----------
+do $$
+declare v_msg text := 'no error';
+begin
+  begin
+    perform public.billing_begin_order('16200000-0000-0000-0000-00000000000a', '16200000-0000-0000-0000-000000000005', 'growth');
+  exception when others then v_msg := sqlerrm; end;
+  insert into p15_results values ('P30', v_msg like 'Your shop is already on the Growth plan until%', 'message: ' || v_msg);
+end $$;
+
+-- ---------- P31: the platform owner can read a shop's plan source and set it; an owner cannot ----------
+select set_config('request.jwt.claim.sub', '15000000-0000-0000-0000-000000000004', false);
+set role authenticated;
+do $$
+declare j jsonb; v_set jsonb;
+begin
+  j := public.admin_shop_plan('16200000-0000-0000-0000-000000000001');
+  v_set := public.admin_set_plan_source('16200000-0000-0000-0000-000000000001', 'manual');
+  insert into p15_results values ('P31', j->>'plan_source' = 'promo' and (v_set->>'plan_source') = 'manual',
+    'read: ' || (j->>'plan_source') || ' set: ' || (v_set->>'plan_source'));
+end $$;
+reset role;
+select set_config('request.jwt.claim.sub', '16200000-0000-0000-0000-00000000000a', false);
+set role authenticated;
+do $$
+declare v_msg text := 'no error';
+begin
+  begin
+    perform public.admin_shop_plan('16200000-0000-0000-0000-000000000001');
+  exception when others then v_msg := sqlerrm; end;
+  insert into p15_results values ('P32', v_msg = 'Only the platform owner can do this.', 'owner tried: ' || v_msg);
+end $$;
+reset role;
+
+-- ---------- P33-P34: a code for the top plan (All Features) works for a free shop and for a legacy default shop ----------
+-- A new free shop F (16200000-...-06) and the code P16-TOP (All Features, 30 days, 2 uses).
+select set_config('request.jwt.claim.sub', '', false);
+insert into public.shops (id, name, plan, plan_base, plan_base_source) values
+  ('16200000-0000-0000-0000-000000000006', 'P16 Free Shop F', 'free', null, null)
+on conflict (id) do nothing;
+insert into public.staff (shop_id, auth_user_id, name, role, active) values
+  ('16200000-0000-0000-0000-000000000006', '16200000-0000-0000-0000-00000000000c', 'Free Owner', 'owner', true)
+on conflict (shop_id, auth_user_id) do nothing;
+insert into public.promo_codes (code, plan, duration_days, max_uses, active) values
+  ('P16-TOP', 'all', 30, 2, true);
+
+select set_config('request.jwt.claim.sub', '16200000-0000-0000-0000-00000000000c', false);
+do $$
+declare r jsonb; s public.shops;
+begin
+  r := public.redeem_promo_code('16200000-0000-0000-0000-000000000006', 'P16-TOP');
+  select * into s from public.shops where id = '16200000-0000-0000-0000-000000000006';
+  insert into p15_results values ('P33', (r->>'ok')::boolean and s.plan = 'all' and s.plan_source = 'promo'
+      and s.plan_until is not null and s.plan_base = 'free' and s.plan_base_source = 'free',
+    'reply: ' || r::text || ' | plan ' || coalesce(s.plan, 'null') || ' source ' || coalesce(s.plan_source, 'null'));
+end $$;
+
+select set_config('request.jwt.claim.sub', '16200000-0000-0000-0000-00000000000a', false);
+do $$
+declare r jsonb; s public.shops;
+begin
+  r := public.redeem_promo_code('16200000-0000-0000-0000-000000000002', 'P16-TOP');
+  select * into s from public.shops where id = '16200000-0000-0000-0000-000000000002';
+  insert into p15_results values ('P34', (r->>'ok')::boolean and s.plan = 'all' and s.plan_source = 'promo'
+      and s.plan_until is not null,
+    'reply: ' || r::text || ' | plan ' || coalesce(s.plan, 'null') || ' source ' || coalesce(s.plan_source, 'null'));
 end $$;
 
 select id, ok, detail from p15_results order by id;

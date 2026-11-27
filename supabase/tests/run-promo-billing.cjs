@@ -1,23 +1,32 @@
-// Runs the promo-code and plan-payment checks on a scratch Postgres database (patch-15).
+// Runs the promo-code, plan-payment and plan-source checks on a scratch Postgres database (patch-15, patch-16).
 // Usage (from this folder, after `npm install pg`):
-//   DATABASE_URL=postgres://user:pass@host:5432/scratch node run-promo-billing.cjs --scratch
-// The database must be empty. Loads the local auth stand-in, schema.sql, supabase-defaults.sql,
-// patch-14.sql (twice), patch-15.sql (twice), then promo-billing-checks.sql, then a real race:
+//   DATABASE_URL=postgres://user:pass@host:5432/scratch node run-promo-billing.cjs --scratch            (fresh scratch DB)
+//   DATABASE_URL=postgres://user:pass@host:5432/scratch node run-promo-billing.cjs --scratch --p07     (p07 scratch DB)
+// The database must be empty. Loads the local auth stand-in, schema.sql, supabase-defaults.sql, and (for --p07)
+// patch-01 to patch-07. Then one shop from before patch-14 is made (it gets the old All Features default),
+// then run-all-pending.sql (patch-08 to patch-16) runs TWICE, then promo-billing-checks.sql, then a real race:
 // 12 separate connections use one code that allows 3 uses. Exactly 3 must succeed.
-// PATCH14 can point at another copy of patch-14.sql (default: the one in the repo root).
 // --scratch is required on purpose: the stand-in replaces auth.uid() and must never run on the live project.
 const fs = require('fs');
 const path = require('path');
 const { Client } = require('pg');
 
 const root = path.resolve(__dirname, '..');
-const patch14 = process.env.PATCH14 || path.join(root, 'patch-14.sql');
+const pending = path.join(root, 'run-all-pending.sql');
+const p07 = process.argv.includes('--p07');
+const earlier = [1, 2, 3, 4, 5, 6, 7].map(n => path.join(root, 'patch-' + String(n).padStart(2, '0') + '.sql'));
+const PRE14 = `
+insert into auth.users (id, email) values ('16200000-0000-0000-0000-00000000000a', 'legacy-owner@test.local') on conflict (id) do nothing;
+insert into public.shops (id, name) values ('16200000-0000-0000-0000-000000000001', 'P16 Legacy Shop A') on conflict (id) do nothing;
+insert into public.staff (shop_id, auth_user_id, name, role, active) values ('16200000-0000-0000-0000-000000000001', '16200000-0000-0000-0000-00000000000a', 'Legacy Owner', 'owner', true)
+  on conflict (shop_id, auth_user_id) do nothing;`;
 const steps = [
   path.join(__dirname, 'local-auth-shim.sql'),
   path.join(root, 'schema.sql'),
   path.join(__dirname, 'supabase-defaults.sql'),
-  patch14, patch14,
-  path.join(root, 'patch-15.sql'), path.join(root, 'patch-15.sql'),
+  ...(p07 ? earlier : []),
+  PRE14,
+  pending, pending,
   path.join(__dirname, 'promo-billing-checks.sql'),
 ];
 const RACERS = 12;
@@ -72,14 +81,15 @@ async function race(c) {
   await c.connect();
   for (const f of steps) {
     try {
-      const r = await c.query(fs.readFileSync(f, 'utf8'));
+      const text = f === PRE14 ? PRE14 : fs.readFileSync(f, 'utf8');
+      const r = await c.query(text);
       if (path.basename(f) === 'promo-billing-checks.sql') {
         const rows = (Array.isArray(r) ? r[r.length - 1] : r).rows;
         for (const row of rows) console.log((row.ok ? 'PASS ' : 'FAIL ') + row.id + ' ' + (row.detail || ''));
       }
-      console.log('ran ' + path.basename(f));
+      console.log('ran ' + (f === PRE14 ? 'pre-patch-14 shop' : path.basename(f)));
     } catch (e) {
-      console.error('FAILED in ' + path.basename(f) + ': ' + e.message);
+      console.error('FAILED in ' + (f === PRE14 ? 'pre-patch-14 shop' : path.basename(f)) + ': ' + e.message);
       process.exit(1);
     }
   }
