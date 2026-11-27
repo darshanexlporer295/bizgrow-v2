@@ -773,7 +773,9 @@
   }
 
   // Keep the page's own fetch calls to the same "/api" addresses; answer them here.
-  var baseFetch = window.fetch.bind(window);
+  // The real network call. mock-api.js wraps window.fetch with the demo stand-in, so this must use the
+  // saved original (BGV2_fetch) or the Worker routes below would be answered by the demo instead.
+  var baseFetch = window.BGV2_fetch || window.fetch.bind(window);
   // Stage 8: order placement and the bot check go to the Worker, which holds the check rules.
   var WORKER_ROUTES = ['/api/public/order', '/api/public/bot-check', '/api/public/track'];
   window.fetch = function (input, init) {
