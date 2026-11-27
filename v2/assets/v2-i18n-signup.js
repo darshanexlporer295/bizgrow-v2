@@ -185,6 +185,40 @@
       pv_notice_sub: 'અમે શું એકત્ર કરીએ છીએ, કોણ જુએ છે, અને પાછું ખેંચવા કે કાઢવાની રીત.'
     }
   };
+  // The first sign-in screen: Apple, Google and email buttons, the Terms and Privacy links.
+  var AUTH_LANDING = {
+    en: {
+      auth_apple: 'Continue with Apple', auth_google: 'Continue with Google', auth_email: 'Continue with email',
+      auth_last: 'Last used', auth_sub: 'Billing, stock and udhar in one simple app',
+      auth_privacy: 'Privacy policy', auth_terms: 'Terms',
+      auth_terms_body: 'The Terms of Service are still being finalised and are not published yet. Please read the Privacy Notice in the meantime, and contact the BizGrow team with any question.',
+      auth_soon: '{p} sign-in is not available yet. Please use email for now.', auth_back: 'Back'
+    },
+    hi: {
+      auth_apple: 'Apple से जारी रखें', auth_google: 'Google से जारी रखें', auth_email: 'ईमेल से जारी रखें',
+      auth_last: 'पिछली बार उपयोग किया', auth_sub: 'बिलिंग, स्टॉक और उधार, एक आसान ऐप में',
+      auth_privacy: 'गोपनीयता नीति', auth_terms: 'शर्तें',
+      auth_terms_body: 'सेवा की शर्तें अभी अंतिम रूप ले रही हैं और अभी प्रकाशित नहीं हुई हैं। तब तक गोपनीयता सूचना पढ़ें, और किसी सवाल के लिए BizGrow टीम से संपर्क करें।',
+      auth_soon: '{p} से साइन इन अभी उपलब्ध नहीं है। अभी ईमेल का उपयोग करें।', auth_back: 'वापस'
+    },
+    mr: {
+      auth_apple: 'Apple ने पुढे जा', auth_google: 'Google ने पुढे जा', auth_email: 'ईमेलने पुढे जा',
+      auth_last: 'शेवटचे वापरले', auth_sub: 'बिलिंग, स्टॉक आणि उधारी, एका सोप्या ॲपमध्ये',
+      auth_privacy: 'गोपनीयता धोरण', auth_terms: 'अटी',
+      auth_terms_body: 'सेवेच्या अटी अजून अंतिम होत आहेत आणि अजून प्रकाशित झालेल्या नाहीत. तोपर्यंत गोपनीयता सूचना वाचा आणि प्रश्नांसाठी BizGrow टीमशी संपर्क करा.',
+      auth_soon: '{p} साइन-इन अजून उपलब्ध नाही. सध्या ईमेल वापरा.', auth_back: 'मागे'
+    },
+    gu: {
+      auth_apple: 'Apple સાથે ચાલુ રાખો', auth_google: 'Google સાથે ચાલુ રાખો', auth_email: 'ઈમેલ સાથે ચાલુ રાખો',
+      auth_last: 'છેલ્લે વાપર્યું', auth_sub: 'બિલિંગ, સ્ટોક અને ઉધાર, એક સરળ એપમાં',
+      auth_privacy: 'ગોપનીયતા નીતિ', auth_terms: 'શરતો',
+      auth_terms_body: 'સેવાની શરતો હજી અંતિમ થઈ રહી છે અને હજી પ્રકાશિત થઈ નથી. ત્યાં સુધી ગોપનીયતા સૂચના વાંચો, અને કોઈ પ્રશ્ન હોય તો BizGrow ટીમનો સંપર્ક કરો.',
+      auth_soon: '{p} સાઇન-ઇન હજી ઉપલબ્ધ નથી. અત્યારે ઈમેલ વાપરો.', auth_back: 'પાછા'
+    }
+  };
+  Object.keys(AUTH_LANDING).forEach(function (l) {
+    X[l] = Object.assign(X[l] || {}, AUTH_LANDING[l]);
+  });
   Object.keys(X).forEach(function (l) {
     window.I18N[l] = Object.assign(window.I18N[l] || {}, X[l]);
   });

@@ -127,12 +127,12 @@ async function renderAuth(){
   const title=resetTok?'Choose a new password':mode==='forgot'?'Forgot your password?':inv?'Join '+esc(invite.shop):mode==='login'?t('sign_in'):t('create_account');
   const sub=resetTok?'Pick a new password for your account. This link works once.':mode==='forgot'?'We will email you a link to set a new password.':inv?'Create your login to start working with the team.':t(mode==='login'?'sub_signin':'sub_signup');
   const plain=!!(inv||resetTok||mode==='forgot');
-  // Sign-in and sign-up share the Google row, the OR divider and the terms footer; the reset and forgot screens do not.
-  const social=(mode==='login'||mode==='signup')?`<button type="button" class="gbtn" disabled aria-disabled="true" title="${esc(t('google_soon'))}"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>${t('google_btn')}</span><em>${t('coming_soon')}</em></button><div class="or"><span>${t('or')}</span></div>`:'';
+  // First visit: the landing with the big buttons (Apple, Google, email). Email opens the form below.
+  if(!invite&&!resetTok&&!sessionStorage.getItem('bg_mode')){$('#app').innerHTML=landingHTML();const ll=document.getElementById('authLang');if(ll)ll.onchange=()=>{S.lang=ll.value;localStorage.setItem('bg_lang',S.lang);document.documentElement.lang=S.lang;renderAuth();};return;}
   const switchLink=plain?'':(mode==='login'
     ?`<div class="auth-switch">${t('no_account_q')} <button type="button" class="link" data-act="mode" data-m="signup">${t('switch_signup')}</button></div>`
     :`<div class="auth-switch">${t('have_account')} <button type="button" class="link" data-act="mode" data-m="login">${t('switch_signin')}</button></div>`);
-  const terms=(mode==='login'||mode==='signup')?`<p class="auth-terms">${t('terms_line').replace('{t}',`<span class="auth-terms-name">${t('terms_link')}</span>`).replace('{p}',`<a href="#" data-act="privacy-notice">${t('privacy_link')}</a>`)}</p>`:'';
+  const terms=(mode==='login'||mode==='signup')?`<p class="auth-terms">${t('terms_line').replace('{t}',`<a href="#" class="auth-terms-name" data-act="terms-notice">${t('terms_link')}</a>`).replace('{p}',`<a href="#" data-act="privacy-notice">${t('privacy_link')}</a>`)}</p>`:'';
   const langs=Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('');
   $('#app').innerHTML=`<div class="auth"><div class="l"><div><div class="row" style="gap:10px;font-weight:800;font-size:22px;font-family:'Plus Jakarta Sans'">${LOGO}BizGrow</div>
   <h1>Run your shop.<br>Effortlessly.</h1><p>Simple counter billing, smart stock alerts and daily accounts for kirana stores, cafés, salons and workshops.</p><ul>${ul.map(x=>`<li>${x}</li>`).join('')}</ul></div>
@@ -141,7 +141,6 @@ async function renderAuth(){
    <div class="auth-top"><div class="auth-m-brand">${LOGO}BizGrow</div><select class="in auth-lang" id="authLang" aria-label="Language">${langs}</select></div>
    ${invite&&invite.error?`<div class="err">${esc(invite.error)}</div>`:''}
    <h2 class="auth-title">${title}</h2><p class="auth-sub">${sub}</p>
-   ${social}
    ${mode==='reset'?`<form data-form="reset"><input type="hidden" name="token" value="${resetTok}"><div class="f"><label>New password</label><input class="in" name="password" type="password" autocomplete="new-password" minlength="8" required></div><button class="btn block" type="submit">Save new password</button></form>`
    :mode==='forgot'?`<form data-form="forgot"><div class="f"><label>${t('email')}</label><input class="in" name="email" type="email" autocomplete="email" required></div><button class="btn block" type="submit">Send reset link</button></form><div class="mt small"><button type="button" class="link" data-act="mode" data-m="login">Back to sign in</button></div>`
    :mode==='login'?`<form data-form="login"><div class="f"><label>${t('email')}</label><input class="in" name="email" type="email" autocomplete="email" required></div>
@@ -155,6 +154,7 @@ async function renderAuth(){
      <label class="chk f"><input type="checkbox" name="consent"><span>${t('consent_text').replace('{p}',`<a href="#" data-act="privacy-notice">${t('privacy_link')}</a>`)}</span></label>
      <button class="btn block auth-submit" type="submit">${t('signup')}</button></form>`}
    ${switchLink}
+   ${plain?'':`<div class="mt small"><button type="button" class="link" data-act="auth-back">${t('auth_back')}</button></div>`}
    ${terms}
   </div></div></div>`;
   if(window.BGV2&&BGV2.authDone)BGV2.authDone(mode);
@@ -162,6 +162,29 @@ async function renderAuth(){
   if(al)al.onchange=()=>{S.lang=al.value;localStorage.setItem('bg_lang',S.lang);document.documentElement.lang=S.lang;renderAuth();};
 }
 ACT.mode=el=>{sessionStorage.setItem('bg_mode',el.dataset.m);renderAuth();};
+// The landing screen: a big logo, the BizGrow name and three buttons. Apple and Google try the live sign-in; email opens the form.
+const LAST_LOGIN=()=>localStorage.getItem('bg_last_login')||'';
+function landingHTML(){
+  const last=LAST_LOGIN();
+  const logoSrc=(document.querySelector('link[rel="apple-touch-icon"]')||{}).href||'/assets/icon-192.png';
+  const btn=(k,label,act)=>`<button type="button" class="w-btn" data-act="${act}">${esc(label)}${last===k?`<span class="w-last">${t('auth_last')}</span>`:''}</button>`;
+  const langs=Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('');
+  return `<div class="welcome"><div class="w-top"><select class="w-lang" id="authLang" aria-label="Language">${langs}</select></div><div class="w-mid"><img class="w-logo" src="${logoSrc}" width="112" height="112" alt="BizGrow logo"><h1 class="w-name">BizGrow</h1><p class="w-sub">${t('auth_sub')}</p></div>
+  <div class="w-btns">${btn('apple',t('auth_apple'),'pick-apple')}${btn('google',t('auth_google'),'pick-google')}${btn('email',t('auth_email'),'pick-email')}</div>
+  <p class="w-legal"><a href="#" data-act="privacy-notice">${t('auth_privacy')}</a> · <a href="#" data-act="terms-notice">${t('auth_terms')}</a></p></div>`;
+}
+ACT['pick-email']=()=>{localStorage.setItem('bg_last_login','email');sessionStorage.setItem('bg_mode','login');renderAuth();};
+ACT['pick-google']=()=>pickOAuth('google');
+ACT['pick-apple']=()=>pickOAuth('apple');
+async function pickOAuth(p){
+  const before=LAST_LOGIN();
+  localStorage.setItem('bg_last_login',p);
+  let ok=false;
+  try{ok=!!(window.BGV2&&BGV2.oauth&&await BGV2.oauth(p));}catch(e){ok=false;}
+  if(!ok){if(before)localStorage.setItem('bg_last_login',before);else localStorage.removeItem('bg_last_login');toast(t('auth_soon').replace('{p}',p==='apple'?'Apple':'Google'));}
+}
+ACT['auth-back']=()=>{sessionStorage.removeItem('bg_mode');renderAuth();};
+ACT['terms-notice']=()=>modal(`<h2>${t('auth_terms')}</h2><p class="small">${t('auth_terms_body')}</p><button class="btn block mt" onclick="this.closest('.ov').close()">OK</button>`);
 ACT['privacy-notice']=()=>modal(`<h2>Privacy Notice (v1.0)</h2>
 <p class="small">BizGrow is built to follow India's Digital Personal Data Protection Act, 2023.</p>
 <ul class="small" style="padding-left:18px;margin:10px 0;line-height:1.7"><li><b>What we keep:</b> your name, email, shop details, and the items, bills, customers, expenses and notes you enter.</li><li><b>Why:</b> only to run billing, udhar, stock and reports for your shop.</li><li><b>What we never do:</b> no ads, no selling your or your customers' phone numbers, no loan offers.</li><li><b>Your rights:</b> download everything, correct it, or delete your account — in Privacy.</li><li><b>Complaints:</b> raise a grievance inside the app (Privacy → Grievance).</li></ul>
@@ -170,7 +193,7 @@ FORM.login=async(f,d)=>{await api('/login','POST',d);await boot();go('#/home');}
 FORM.forgot=async(f,d)=>{await api('/password/forgot','POST',d);modal('<h2>Check your email</h2><p class="muted">If that email has an account, a reset link is on its way. The link expires in 30 minutes and works once.</p><button class="btn block mt" onclick="this.closest(\'.ov\').close()">OK</button>');};
 FORM.reset=async(f,d)=>{await api('/password/reset','POST',d);sessionStorage.setItem('bg_mode','login');history.replaceState(null,'',location.pathname);toast('Password changed. Sign in with your new password.');renderAuth();};
 FORM.signup=async(f,d)=>{if(!d.consent)throw new Error('Please accept the Privacy Notice to continue.');await api('/signup','POST',d);await boot();go('#/home');};
-ACT.logout=async()=>{await api('/logout','POST');S.me=null;S.cart=[];location.hash='';render();};
+ACT.logout=async()=>{await api('/logout','POST');S.me=null;sessionStorage.removeItem('bg_mode');S.cart=[];location.hash='';render();};
 ACT.reload=()=>render();
 
 

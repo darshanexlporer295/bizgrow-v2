@@ -75,7 +75,7 @@ const restore = `(function(){ if(window.__realFetch){ window.fetch = window.__re
     await b.ev("location.hash='#/home'"); await b.sleep(300);
     await b.ev(fakeApi('/api/plan', 401, ['x-bg-session', 'gone']));
     await b.ev("location.hash='#/settings/plan'"); await b.sleep(900);
-    const outNow = await b.ev("!BGV2.S.me && !!document.querySelector('.auth')");
+    const outNow = await b.ev("!BGV2.S.me && !!document.querySelector('.auth, .welcome')");
     check('expired session still signs out', outNow === true);
     await b.ev(restore);
 

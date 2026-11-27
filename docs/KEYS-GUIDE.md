@@ -74,6 +74,36 @@ Add each one in Cloudflare under **Workers & Pages**, **bizgrow-v2**, **Settings
 
 Never put a key in a chat, an email, a file or a photo. Test keys take fake payments only; use live keys only after Razorpay has finished your account activation, as described in the payments guide.
 
+## Google and Apple sign-in (Supabase setting, no key pasted into the app)
+
+The buttons **Continue with Google** and **Continue with Apple** on the first sign-in screen start the sign-in through Supabase. Nothing secret goes into the app. Until these steps are done, tapping the button says the sign-in is not available yet and the shopkeeper can use email.
+
+The address to use everywhere below is the live site: **https://bizgrow.buildsit.workers.dev**
+
+**Before you start**
+- Open the Supabase dashboard for the BizGrow project. Under **Authentication**, open **URL Configuration**.
+- Set **Site URL** to `https://bizgrow.buildsit.workers.dev`.
+- Under **Redirect URLs**, add `https://bizgrow.buildsit.workers.dev` and save.
+
+**Google**
+1. In the Google Cloud Console (console.cloud.google.com), create a project, or pick the BizGrow one.
+2. Open **APIs & Services**, then **OAuth consent screen**. Fill in the app name (BizGrow), a support email and the live site address. Save.
+3. Open **Credentials**, click **Create credentials**, then **OAuth client ID**. Choose type **Web application**.
+4. Under **Authorized redirect URIs**, add the callback address that Supabase shows on its Google provider page. It looks like `https://<your-project-id>.supabase.co/auth/v1/callback`. Copy it from Supabase, not from this guide.
+5. Click **Create**. Copy the **Client ID** and the **Client secret** once. Do not paste them into a chat or a file.
+6. In Supabase, open **Authentication**, then **Sign In / Providers** (or **Providers**), and open **Google**. Switch it on. Paste the Client ID and the Client secret. Save.
+7. Test: open the live site in a private window, tap **Continue with Google**, and sign in with a Google account. The app should open the shop screen.
+
+**Apple**
+1. Apple needs a paid Apple Developer account (about USD 99 a year). Sign in at developer.apple.com.
+2. Under **Certificates, Identifiers & Profiles**, create an **App ID** with **Sign in with Apple** on, then create a **Services ID**. Turn on **Sign in with Apple** for the Services ID and open its settings.
+3. In the Services ID settings, set the **Domain** to `bizgrow.buildsit.workers.dev` and the **Return URL** to the same Supabase callback address as in Google step 4.
+4. Under **Keys**, create a key with **Sign in with Apple** on. Download the key file once (it can only be downloaded once) and note the Key ID and your Team ID.
+5. In Supabase, open **Authentication**, then **Sign In / Providers**, and open **Apple**. Switch it on. Enter the Services ID, the Team ID, the Key ID and the private key from the file. Save. Supabase asks for a secret built from the key file; follow the form it shows.
+6. Test: open the live site in a private window, tap **Continue with Apple**, and sign in. The app should open the shop screen.
+
+If a step fails, the message on the screen stays friendly. Check the Redirect URLs in Supabase first: most failures come from a missing or different address.
+
 ## After the keys: what to test
 
 Run the check script from a computer with a terminal, in the project folder: `bash scripts/post-keys-check.sh`. It checks the live site and prints one line per check. Then test these by hand, on your phone:
