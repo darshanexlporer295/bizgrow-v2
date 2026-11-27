@@ -15,10 +15,15 @@ async function api(path,method='GET',body){
   const o={method,credentials:'same-origin',headers:{}};
   if(method!=='GET'){o.headers['content-type']='application/json';o.body=JSON.stringify(body||{});}
   let r;try{r=await fetch('/api'+path,o);}catch(e){throw new Error('No internet connection. Please check and try again.');}
-  if(r.status===401&&S.me){S.me=null;render();throw new Error('Please sign in again.');}
+  // Only a real expired sign-in logs the owner out. The data layer marks that case with x-bg-session: gone.
+  // Any other 401 (a plan, billing or admin call that failed) is an ordinary error: the page shows a message and a retry.
+  if(r.status===401&&S.me&&r.headers.get('x-bg-session')==='gone'){S.me=null;render();throw new Error('Please sign in again.');}
   const ct=r.headers.get('content-type')||'';
   const d=ct.includes('json')?await r.json():await r.text();
-  if(!r.ok)throw new Error((d&&d.error)||'Something went wrong. Please try again.');
+  if(!r.ok){
+    if(r.status===401&&S.me)throw new Error(t('bl_fail'));
+    throw new Error((d&&d.error)||'Something went wrong. Please try again.');
+  }
   return d;
 }
 function toast(m){const e=document.createElement('div');e.className='toast';e.textContent=m;document.body.appendChild(e);setTimeout(()=>e.remove(),2600);}

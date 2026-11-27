@@ -1559,7 +1559,9 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       bl_back: "Back to plans",
       bl_forever: "Forever",
       bl_until_label: "Until",
-      bl_fail: "Something went wrong. Please try again."
+      bl_fail: "Something went wrong. Please try again.",
+      bl_plan_fail: "The plan could not be loaded just now. Your sign-in is fine. Tap Try again.",
+      bl_retry: "Try again"
     },
     hi: {
       bl_promo_title: "क्या आपके पास प्रोमो कोड है?",
@@ -1602,7 +1604,9 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       bl_back: "प्लान पर वापस",
       bl_forever: "हमेशा के लिए",
       bl_until_label: "तक",
-      bl_fail: "कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।"
+      bl_fail: "कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।",
+      bl_plan_fail: "प्लान अभी लोड नहीं हो सका। आपका साइन-इन ठीक है। फिर से कोशिश करें दबाएँ।",
+      bl_retry: "फिर से कोशिश करें"
     },
     mr: {
       bl_promo_title: "प्रोमो कोड आहे का?",
@@ -1645,7 +1649,9 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       bl_back: "प्लॅनकडे परत",
       bl_forever: "कायमचा",
       bl_until_label: "पर्यंत",
-      bl_fail: "काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा."
+      bl_fail: "काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा.",
+      bl_plan_fail: "प्लॅन आत्ता लोड होऊ शकला नाही. तुमचे साइन-इन ठीक आहे. पुन्हा प्रयत्न करा दाबा.",
+      bl_retry: "पुन्हा प्रयत्न करा"
     },
     gu: {
       bl_promo_title: "પ્રોમો કોડ છે?",
@@ -1688,7 +1694,9 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       bl_back: "પ્લાન પર પાછા",
       bl_forever: "કાયમ માટે",
       bl_until_label: "સુધી",
-      bl_fail: "કંઈક ગડબડ થઈ. કૃપા કરીને ફરી પ્રયાસ કરો."
+      bl_fail: "કંઈક ગડબડ થઈ. કૃપા કરીને ફરી પ્રયાસ કરો.",
+      bl_plan_fail: "પ્લાન અત્યારે લોડ ન થયો. તમારું સાઇન-ઇન બરાબર છે. ફરી પ્રયાસ કરો દબાવો.",
+      bl_retry: "ફરી પ્રયાસ કરો"
     }
   };
   Object.keys(X).forEach(function (l) {
@@ -2662,10 +2670,15 @@ async function api(path,method='GET',body){
   const o={method,credentials:'same-origin',headers:{}};
   if(method!=='GET'){o.headers['content-type']='application/json';o.body=JSON.stringify(body||{});}
   let r;try{r=await fetch('/api'+path,o);}catch(e){throw new Error('No internet connection. Please check and try again.');}
-  if(r.status===401&&S.me){S.me=null;render();throw new Error('Please sign in again.');}
+  // Only a real expired sign-in logs the owner out. The data layer marks that case with x-bg-session: gone.
+  // Any other 401 (a plan, billing or admin call that failed) is an ordinary error: the page shows a message and a retry.
+  if(r.status===401&&S.me&&r.headers.get('x-bg-session')==='gone'){S.me=null;render();throw new Error('Please sign in again.');}
   const ct=r.headers.get('content-type')||'';
   const d=ct.includes('json')?await r.json():await r.text();
-  if(!r.ok)throw new Error((d&&d.error)||'Something went wrong. Please try again.');
+  if(!r.ok){
+    if(r.status===401&&S.me)throw new Error(t('bl_fail'));
+    throw new Error((d&&d.error)||'Something went wrong. Please try again.');
+  }
   return d;
 }
 function toast(m){const e=document.createElement('div');e.className='toast';e.textContent=m;document.body.appendChild(e);setTimeout(()=>e.remove(),2600);}
@@ -6044,11 +6057,18 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     });
   }
 
+  // Only a good answer is remembered. A failed check throws, so the page can show a retry instead of "no access".
   async function isAdmin() {
     if (adminKnown !== null) return adminKnown;
-    try { var r = await B.api('/admin/me'); adminKnown = !!(r && r.admin); }
-    catch (e) { adminKnown = false; }
+    var r = await B.api('/admin/me');
+    adminKnown = !!(r && r.admin);
     return adminKnown;
+  }
+
+  // Inline message and a Try again button. Used instead of a sign-out when a plan or admin load fails.
+  function retryBox(message, action) {
+    return '<div class="card mt"><p class="small">' + esc(message) + '</p>' +
+      '<div class="mt"><button class="btn sec sm" data-act="' + action + '">' + esc(t('bl_retry')) + '</button></div></div>';
   }
 
   // ---------- Plan page: promo card, pay buttons, link for the platform owner ----------
@@ -6062,7 +6082,15 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
         isAdmin()
       ]);
       cur = got[0]; list = (got[1] && got[1].items) || []; cfg = got[2] || {}; admin = got[3];
-    } catch (e) { return; }
+    } catch (e) {
+      // The user may have moved to another page while this loaded.
+      if (!v.isConnected || B.S.page !== 'settings') return;
+      var failBox = document.createElement('div');
+      failBox.className = 'bg-billing';
+      failBox.innerHTML = retryBox(t('bl_plan_fail'), 'plan-retry');
+      v.appendChild(failBox);
+      return;
+    }
     // The user may have moved to another page while this loaded.
     if (!v.isConnected || B.S.page !== 'settings') return;
 
@@ -6170,7 +6198,13 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     adminBox = document.createElement('div');
     adminBox.className = 'bg-billing';
     v.appendChild(adminBox);
-    if (!(await isAdmin())) {
+    var admin;
+    try { admin = await isAdmin(); }
+    catch (e) {
+      adminBox.innerHTML = adminBack() + retryBox(t('bl_plan_fail'), 'plan-retry');
+      return;
+    }
+    if (!admin) {
       adminBox.innerHTML = adminBack() + '<div class="card mt"><p>' + esc(t('bl_no_access')) + '</p></div>';
       return;
     }
@@ -6185,7 +6219,7 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
       plans = (got[0] && got[0].items) || [];
       codes = (got[1] && got[1].items) || [];
     } catch (e) {
-      adminBox.innerHTML = adminBack() + '<div class="card mt"><p>' + esc(errText(e)) + '</p></div>';
+      adminBox.innerHTML = adminBack() + retryBox(errText(e), 'plan-retry');
       return;
     }
     var planOpts = plans.map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('');
@@ -6243,6 +6277,9 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     } catch (e) { B.toast(errText(e)); }
   };
 
+  // Try again on the Plan page and the promo screen: redraw the screen. Never signs anyone out.
+  B.ACT['plan-retry'] = function () { B.render(); };
+
   // Hook: app.js calls BGV2.after(page, view, subpath) after each screen is drawn.
   var before = B.after;
   B.after = function (page, v, sub) {
@@ -6284,6 +6321,10 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     return new Response(JSON.stringify(body), { status: status, headers: { 'content-type': 'application/json' } });
   }
   function fail(status, msg) { return reply(status, { error: msg }); }
+  // A real expired sign-in: the only 401 that makes the app sign the owner out (see app.js api()).
+  function signedOut() {
+    return new Response(JSON.stringify({ error: SIGN_IN }), { status: 401, headers: { 'content-type': 'application/json', 'x-bg-session': 'gone' } });
+  }
   function nowIso() { return new Date().toISOString(); }
   function appRole(v) { return v === 'owner' ? 'owner' : (v === 'manager' || v === 'accountant') ? 'manager' : 'staff'; }
   function txt(v) { return v == null ? (v === null ? null : '') : String(v); }
@@ -6936,9 +6977,9 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
       catch (e) {
         var sess = await session();
         if (sess) { B.toast('Google sign-in worked, but your shop could not be opened. The database setup may be missing. Code: ' + String((e && e.message) || e).slice(0, 80)); }
-        return fail(401, SIGN_IN);
+        return sess ? fail(401, SIGN_IN) : signedOut();
       }
-      return me ? reply(200, me) : fail(401, SIGN_IN);
+      return me ? reply(200, me) : signedOut();
     }
     if (path === '/logout' && method === 'POST') { await sb.auth.signOut(); return reply(200, { ok: true }); }
 
@@ -6957,7 +6998,7 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     }
 
     var s = await session();
-    if (!s) return fail(401, SIGN_IN);
+    if (!s) return signedOut();
     var uid = s.user.id;
     var st = await loadStaff(uid);
     if (!st) return fail(401, SIGN_IN);

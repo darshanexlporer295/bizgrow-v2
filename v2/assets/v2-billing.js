@@ -28,11 +28,18 @@
     });
   }
 
+  // Only a good answer is remembered. A failed check throws, so the page can show a retry instead of "no access".
   async function isAdmin() {
     if (adminKnown !== null) return adminKnown;
-    try { var r = await B.api('/admin/me'); adminKnown = !!(r && r.admin); }
-    catch (e) { adminKnown = false; }
+    var r = await B.api('/admin/me');
+    adminKnown = !!(r && r.admin);
     return adminKnown;
+  }
+
+  // Inline message and a Try again button. Used instead of a sign-out when a plan or admin load fails.
+  function retryBox(message, action) {
+    return '<div class="card mt"><p class="small">' + esc(message) + '</p>' +
+      '<div class="mt"><button class="btn sec sm" data-act="' + action + '">' + esc(t('bl_retry')) + '</button></div></div>';
   }
 
   // ---------- Plan page: promo card, pay buttons, link for the platform owner ----------
@@ -46,7 +53,15 @@
         isAdmin()
       ]);
       cur = got[0]; list = (got[1] && got[1].items) || []; cfg = got[2] || {}; admin = got[3];
-    } catch (e) { return; }
+    } catch (e) {
+      // The user may have moved to another page while this loaded.
+      if (!v.isConnected || B.S.page !== 'settings') return;
+      var failBox = document.createElement('div');
+      failBox.className = 'bg-billing';
+      failBox.innerHTML = retryBox(t('bl_plan_fail'), 'plan-retry');
+      v.appendChild(failBox);
+      return;
+    }
     // The user may have moved to another page while this loaded.
     if (!v.isConnected || B.S.page !== 'settings') return;
 
@@ -154,7 +169,13 @@
     adminBox = document.createElement('div');
     adminBox.className = 'bg-billing';
     v.appendChild(adminBox);
-    if (!(await isAdmin())) {
+    var admin;
+    try { admin = await isAdmin(); }
+    catch (e) {
+      adminBox.innerHTML = adminBack() + retryBox(t('bl_plan_fail'), 'plan-retry');
+      return;
+    }
+    if (!admin) {
       adminBox.innerHTML = adminBack() + '<div class="card mt"><p>' + esc(t('bl_no_access')) + '</p></div>';
       return;
     }
@@ -169,7 +190,7 @@
       plans = (got[0] && got[0].items) || [];
       codes = (got[1] && got[1].items) || [];
     } catch (e) {
-      adminBox.innerHTML = adminBack() + '<div class="card mt"><p>' + esc(errText(e)) + '</p></div>';
+      adminBox.innerHTML = adminBack() + retryBox(errText(e), 'plan-retry');
       return;
     }
     var planOpts = plans.map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('');
@@ -226,6 +247,9 @@
       await drawAdmin();
     } catch (e) { B.toast(errText(e)); }
   };
+
+  // Try again on the Plan page and the promo screen: redraw the screen. Never signs anyone out.
+  B.ACT['plan-retry'] = function () { B.render(); };
 
   // Hook: app.js calls BGV2.after(page, view, subpath) after each screen is drawn.
   var before = B.after;

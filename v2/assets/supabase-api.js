@@ -28,6 +28,10 @@
     return new Response(JSON.stringify(body), { status: status, headers: { 'content-type': 'application/json' } });
   }
   function fail(status, msg) { return reply(status, { error: msg }); }
+  // A real expired sign-in: the only 401 that makes the app sign the owner out (see app.js api()).
+  function signedOut() {
+    return new Response(JSON.stringify({ error: SIGN_IN }), { status: 401, headers: { 'content-type': 'application/json', 'x-bg-session': 'gone' } });
+  }
   function nowIso() { return new Date().toISOString(); }
   function appRole(v) { return v === 'owner' ? 'owner' : (v === 'manager' || v === 'accountant') ? 'manager' : 'staff'; }
   function txt(v) { return v == null ? (v === null ? null : '') : String(v); }
@@ -680,9 +684,9 @@
       catch (e) {
         var sess = await session();
         if (sess) { B.toast('Google sign-in worked, but your shop could not be opened. The database setup may be missing. Code: ' + String((e && e.message) || e).slice(0, 80)); }
-        return fail(401, SIGN_IN);
+        return sess ? fail(401, SIGN_IN) : signedOut();
       }
-      return me ? reply(200, me) : fail(401, SIGN_IN);
+      return me ? reply(200, me) : signedOut();
     }
     if (path === '/logout' && method === 'POST') { await sb.auth.signOut(); return reply(200, { ok: true }); }
 
@@ -701,7 +705,7 @@
     }
 
     var s = await session();
-    if (!s) return fail(401, SIGN_IN);
+    if (!s) return signedOut();
     var uid = s.user.id;
     var st = await loadStaff(uid);
     if (!st) return fail(401, SIGN_IN);

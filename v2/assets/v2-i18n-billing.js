@@ -44,7 +44,9 @@
       bl_back: "Back to plans",
       bl_forever: "Forever",
       bl_until_label: "Until",
-      bl_fail: "Something went wrong. Please try again."
+      bl_fail: "Something went wrong. Please try again.",
+      bl_plan_fail: "The plan could not be loaded just now. Your sign-in is fine. Tap Try again.",
+      bl_retry: "Try again"
     },
     hi: {
       bl_promo_title: "क्या आपके पास प्रोमो कोड है?",
@@ -87,7 +89,9 @@
       bl_back: "प्लान पर वापस",
       bl_forever: "हमेशा के लिए",
       bl_until_label: "तक",
-      bl_fail: "कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।"
+      bl_fail: "कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।",
+      bl_plan_fail: "प्लान अभी लोड नहीं हो सका। आपका साइन-इन ठीक है। फिर से कोशिश करें दबाएँ।",
+      bl_retry: "फिर से कोशिश करें"
     },
     mr: {
       bl_promo_title: "प्रोमो कोड आहे का?",
@@ -130,7 +134,9 @@
       bl_back: "प्लॅनकडे परत",
       bl_forever: "कायमचा",
       bl_until_label: "पर्यंत",
-      bl_fail: "काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा."
+      bl_fail: "काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा.",
+      bl_plan_fail: "प्लॅन आत्ता लोड होऊ शकला नाही. तुमचे साइन-इन ठीक आहे. पुन्हा प्रयत्न करा दाबा.",
+      bl_retry: "पुन्हा प्रयत्न करा"
     },
     gu: {
       bl_promo_title: "પ્રોમો કોડ છે?",
@@ -173,7 +179,9 @@
       bl_back: "પ્લાન પર પાછા",
       bl_forever: "કાયમ માટે",
       bl_until_label: "સુધી",
-      bl_fail: "કંઈક ગડબડ થઈ. કૃપા કરીને ફરી પ્રયાસ કરો."
+      bl_fail: "કંઈક ગડબડ થઈ. કૃપા કરીને ફરી પ્રયાસ કરો.",
+      bl_plan_fail: "પ્લાન અત્યારે લોડ ન થયો. તમારું સાઇન-ઇન બરાબર છે. ફરી પ્રયાસ કરો દબાવો.",
+      bl_retry: "ફરી પ્રયાસ કરો"
     }
   };
   Object.keys(X).forEach(function (l) {
