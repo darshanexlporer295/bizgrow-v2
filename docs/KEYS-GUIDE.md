@@ -61,6 +61,19 @@ Add this only if you are going to run `patch-10-lockdown.sql`. Without that step
 
 Run the lockdown only after the security check box shows on your store link and a test order goes through. The full order is in `docs/SETUP-STEPS.md`, Part 6, and `supabase/RUN-ORDER.md`.
 
+## RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET (online payment for plans)
+
+These three turn on the Pay button for plan upgrades. Until all three are set (and `SUPABASE_SERVICE_KEY` is set, see above), the Pay button says "Online payment coming soon", and manual upgrades and promo codes keep working.
+
+The click-by-click steps are in `docs/PAYMENTS-GUIDE.md`. In short:
+- `RAZORPAY_KEY_ID` - the Key Id from Razorpay's **API Keys** page in **Test Mode** (starts with `rzp_test_`).
+- `RAZORPAY_KEY_SECRET` - the Key Secret shown once when you generate the key. Copy it right away.
+- `RAZORPAY_WEBHOOK_SECRET` - a long random text you make up when you create the webhook in Razorpay. It is not the Key Secret.
+
+Add each one in Cloudflare under **Workers & Pages**, **bizgrow-v2**, **Settings**, **Variables and Secrets**, as type **Secret**, with the name typed exactly as above. Then click **Deploy**. Check that `https://bizgrow.buildsit.workers.dev/api/billing/config` says `"enabled":true`.
+
+Never put a key in a chat, an email, a file or a photo. Test keys take fake payments only; use live keys only after Razorpay has finished your account activation, as described in the payments guide.
+
 ## After the keys: what to test
 
 Run the check script from a computer with a terminal, in the project folder: `bash scripts/post-keys-check.sh`. It checks the live site and prints one line per check. Then test these by hand, on your phone:
