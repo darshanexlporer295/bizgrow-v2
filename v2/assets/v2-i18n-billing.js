@@ -46,7 +46,16 @@
       bl_until_label: "Until",
       bl_fail: "Something went wrong. Please try again.",
       bl_plan_fail: "The plan could not be loaded just now. Your sign-in is fine. Tap Try again.",
-      bl_retry: "Try again"
+      bl_retry: "Try again",
+      bl_ends_in: "Your {plan} plan ends in {n} days, on {date}. After that the shop goes back to {back}. Your data is kept.",
+      bl_ends_tomorrow: "Your {plan} plan ends tomorrow, on {date}. After that the shop goes back to {back}. Your data is kept.",
+      bl_ends_today: "Your {plan} plan ends today. After that the shop goes back to {back}. Your data is kept.",
+      bl_adm_left: "{n} left",
+      bl_adm_who: "Who used it",
+      bl_adm_who_hide: "Hide",
+      bl_adm_who_none: "Nobody has used this code yet.",
+      bl_adm_who_row: "{shop} · {plan} · ends {date} · used on {when}",
+      bl_adm_who_row_good: "{shop} · {plan} · for good · used on {when}"
     },
     hi: {
       bl_promo_title: "क्या आपके पास प्रोमो कोड है?",
@@ -91,7 +100,16 @@
       bl_until_label: "तक",
       bl_fail: "कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।",
       bl_plan_fail: "प्लान अभी लोड नहीं हो सका। आपका साइन-इन ठीक है। फिर से कोशिश करें दबाएँ।",
-      bl_retry: "फिर से कोशिश करें"
+      bl_retry: "फिर से कोशिश करें",
+      bl_ends_in: "आपका {plan} प्लान {n} दिनों में, {date} को खत्म होगा। उसके बाद दुकान {back} पर वापस चली जाएगी। आपका डेटा रखा रहेगा।",
+      bl_ends_tomorrow: "आपका {plan} प्लान कल, {date} को खत्म होगा। उसके बाद दुकान {back} पर वापस चली जाएगी। आपका डेटा रखा रहेगा।",
+      bl_ends_today: "आपका {plan} प्लान आज खत्म हो रहा है। उसके बाद दुकान {back} पर वापस चली जाएगी। आपका डेटा रखा रहेगा।",
+      bl_adm_left: "{n} बाकी",
+      bl_adm_who: "किसने इस्तेमाल किया",
+      bl_adm_who_hide: "छिपाएँ",
+      bl_adm_who_none: "अभी तक किसी ने यह कोड इस्तेमाल नहीं किया है।",
+      bl_adm_who_row: "{shop} · {plan} · {date} तक · {when} को इस्तेमाल हुआ",
+      bl_adm_who_row_good: "{shop} · {plan} · हमेशा के लिए · {when} को इस्तेमाल हुआ"
     },
     mr: {
       bl_promo_title: "प्रोमो कोड आहे का?",
@@ -136,7 +154,16 @@
       bl_until_label: "पर्यंत",
       bl_fail: "काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा.",
       bl_plan_fail: "प्लॅन आत्ता लोड होऊ शकला नाही. तुमचे साइन-इन ठीक आहे. पुन्हा प्रयत्न करा दाबा.",
-      bl_retry: "पुन्हा प्रयत्न करा"
+      bl_retry: "पुन्हा प्रयत्न करा",
+      bl_ends_in: "तुमचा {plan} प्लॅन {n} दिवसांनी, {date} रोजी संपेल. त्यानंतर दुकान {back} वर परत जाईल. तुमचा डेटा जपून ठेवला जाईल.",
+      bl_ends_tomorrow: "तुमचा {plan} प्लॅन उद्या, {date} रोजी संपेल. त्यानंतर दुकान {back} वर परत जाईल. तुमचा डेटा जपून ठेवला जाईल.",
+      bl_ends_today: "तुमचा {plan} प्लॅन आज संपत आहे. त्यानंतर दुकान {back} वर परत जाईल. तुमचा डेटा जपून ठेवला जाईल.",
+      bl_adm_left: "{n} शिल्लक",
+      bl_adm_who: "कोणी वापरला",
+      bl_adm_who_hide: "लपवा",
+      bl_adm_who_none: "अजून कोणीही हा कोड वापरलेला नाही.",
+      bl_adm_who_row: "{shop} · {plan} · {date} पर्यंत · {when} रोजी वापरला",
+      bl_adm_who_row_good: "{shop} · {plan} · कायमसाठी · {when} रोजी वापरला"
     },
     gu: {
       bl_promo_title: "પ્રોમો કોડ છે?",
@@ -181,7 +208,16 @@
       bl_until_label: "સુધી",
       bl_fail: "કંઈક ગડબડ થઈ. કૃપા કરીને ફરી પ્રયાસ કરો.",
       bl_plan_fail: "પ્લાન અત્યારે લોડ ન થયો. તમારું સાઇન-ઇન બરાબર છે. ફરી પ્રયાસ કરો દબાવો.",
-      bl_retry: "ફરી પ્રયાસ કરો"
+      bl_retry: "ફરી પ્રયાસ કરો",
+      bl_ends_in: "તમારો {plan} પ્લાન {n} દિવસમાં, {date} ના રોજ પૂરો થશે. ત્યાર પછી દુકાન {back} પર પાછી જશે. તમારો ડેટા સચવાયેલો રહેશે.",
+      bl_ends_tomorrow: "તમારો {plan} પ્લાન કાલે, {date} ના રોજ પૂરો થશે. ત્યાર પછી દુકાન {back} પર પાછી જશે. તમારો ડેટા સચવાયેલો રહેશે.",
+      bl_ends_today: "તમારો {plan} પ્લાન આજે પૂરો થાય છે. ત્યાર પછી દુકાન {back} પર પાછી જશે. તમારો ડેટા સચવાયેલો રહેશે.",
+      bl_adm_left: "{n} બાકી",
+      bl_adm_who: "કોણે વાપર્યો",
+      bl_adm_who_hide: "છુપાવો",
+      bl_adm_who_none: "હજી સુધી કોઈએ આ કોડ વાપર્યો નથી.",
+      bl_adm_who_row: "{shop} · {plan} · {date} સુધી · {when} ના રોજ વાપર્યો",
+      bl_adm_who_row_good: "{shop} · {plan} · કાયમ માટે · {when} ના રોજ વાપર્યો"
     }
   };
   Object.keys(X).forEach(function (l) {

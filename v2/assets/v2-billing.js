@@ -9,6 +9,7 @@
   var RZP_SRC = 'https://checkout.razorpay.com/v1/checkout.js';
   var adminBox = null;
   var adminKnown = null;
+  var adminPlanNames = {};
 
   function fill(s, k, v) { return String(s).split('{' + k + '}').join(String(v)); }
   function dayText(iso) {
@@ -71,6 +72,14 @@
     var box = document.createElement('div');
     box.className = 'bg-billing';
     var html = '';
+    // A paid or promo plan with an end date: a gentle note with the days left. Free shops show nothing.
+    if (cur && cur.plan_until_text && cur.days_left != null && cur.code !== 'free') {
+      var nLeft = Number(cur.days_left);
+      var key = nLeft <= 0 ? 'bl_ends_today' : (nLeft === 1 ? 'bl_ends_tomorrow' : 'bl_ends_in');
+      var note = fill(fill(fill(t(key), 'plan', cur.name || cur.code), 'n', nLeft), 'date', cur.plan_until_text);
+      note = fill(note, 'back', cur.back_to_name || 'Free');
+      html += '<div class="card mt" role="status"><p class="small" style="margin:0">' + esc(note) + '</p></div>';
+    }
     // Only the shop owner can use a code or pay (the database and the Worker check this too).
     if (B.isOwner()) {
       html += '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_pay_title')) + '</h3>' +
@@ -118,7 +127,7 @@
   B.ACT['bill-promo'] = async function () {
     var inp = document.getElementById('blCode');
     var msg = document.getElementById('blPromoMsg');
-    var code = inp ? inp.value.trim() : '';
+    var code = inp ? inp.value.replace(/\s+/g, '').toUpperCase() : '';
     if (!code) { if (msg) msg.textContent = t('bl_promo_need'); return; }
     try {
       var r = await B.api('/promo/redeem', 'POST', { code: code });
@@ -208,6 +217,8 @@
       adminBox.innerHTML = adminBack() + retryBox(errText(e), 'plan-retry');
       return;
     }
+    adminPlanNames = {};
+    plans.forEach(function (p) { adminPlanNames[p.code] = p.name; });
     var planOpts = plans.map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('');
     var form = '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_adm_new')) + '</h3>' +
       '<div class="mt"><label class="small">' + esc(t('bl_adm_code')) + '</label><input id="blNewCode" class="in" maxlength="30" style="text-transform:uppercase" autocomplete="off"></div>' +
@@ -226,9 +237,13 @@
       var length = c.duration_days == null ? t('bl_forever') : c.duration_days + ' d';
       var until = c.expires_at ? ' · ' + t('bl_until_label') + ' ' + dayText(c.expires_at) : '';
       var used = fill(fill(t('bl_adm_used'), 'n', c.used_count), 'm', c.max_uses);
+      var left = Math.max(0, Number(c.max_uses || 0) - Number(c.used_count || 0));
+      used += ' · ' + fill(t('bl_adm_left'), 'n', left);
       return '<div class="li"><div class="grow"><b>' + esc(c.code) + '</b><div class="small muted">' + esc(planName) + ' · ' +
         esc(length) + until + '</div>' +
-        '<div class="small">' + esc(used) + '</div></div>' +
+        '<div class="small">' + esc(used) + '</div>' +
+        '<div class="mt"><button class="btn sec sm" data-act="bill-promo-who" data-id="' + esc(c.id) + '">' + esc(t('bl_adm_who')) + '</button></div>' +
+        '<div class="who-list"></div></div>' +
         '<div><span class="badge ' + (c.active ? '' : ' amber') + '">' + esc(c.active ? t('bl_adm_on') : t('bl_adm_off')) + '</span>' +
         '<div class="mt"><button class="btn sec sm" data-act="bill-promo-toggle" data-id="' + esc(c.id) + '" data-active="' + (c.active ? 'true' : 'false') + '">' +
         esc(c.active ? t('bl_adm_switch_off') : t('bl_adm_switch_on')) + '</button></div></div></div>';
@@ -238,12 +253,37 @@
       '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_adm_list')) + '</h3><div class="list mt">' + rows + '</div></div>';
   }
 
+  // Who used a code: the shop, the plan it got, the end date, and when it was used.
+  B.ACT['bill-promo-who'] = async function (el) {
+    var box = el.parentNode && el.parentNode.parentNode ? el.parentNode.parentNode.querySelector('.who-list') : null;
+    if (!box) return;
+    if (box.getAttribute('data-open') === 'true') {
+      box.setAttribute('data-open', 'false'); box.innerHTML = ''; el.textContent = t('bl_adm_who'); return;
+    }
+    el.disabled = true;
+    try {
+      var r = await B.api('/admin/promos/usage', 'POST', { id: el.dataset.id });
+      var items = (r && r.items) || [];
+      box.innerHTML = items.length ? items.map(function (u) {
+        var key = u.plan_until ? 'bl_adm_who_row' : 'bl_adm_who_row_good';
+        var line = fill(fill(fill(fill(t(key), 'shop', u.shop_name || '-'), 'plan', adminPlanNames[u.plan] || u.plan || '-'), 'date', u.plan_until ? dayText(u.plan_until) : ''), 'when', dayText(u.redeemed_at));
+        return '<div class="small mt">' + esc(line) + '</div>';
+      }).join('') : '<p class="small muted mt">' + esc(t('bl_adm_who_none')) + '</p>';
+      box.setAttribute('data-open', 'true');
+      el.textContent = t('bl_adm_who_hide');
+    } catch (e) {
+      box.innerHTML = '<p class="small mt">' + esc(errText(e)) + '</p>';
+    } finally {
+      el.disabled = false;
+    }
+  };
+
   B.ACT['bill-promo-make'] = async function () {
     function val(id) { var el = document.getElementById(id); return el ? el.value : ''; }
     var dur = val('blNewDur');
     var exp = val('blNewExp');
     var body = {
-      code: val('blNewCode').trim().toUpperCase(),
+      code: val('blNewCode').replace(/\s+/g, '').toUpperCase(),
       plan: val('blNewPlan'),
       duration_days: dur === 'forever' ? null : Number(dur),
       max_uses: Number(val('blNewMax')),

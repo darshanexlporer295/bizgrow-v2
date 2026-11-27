@@ -222,6 +222,10 @@
         p_max_uses: Number(pm.max_uses), p_expires_at: pm.expires_at || null
       }));
     }
+    if (path === '/admin/promos/usage' && method === 'POST') {
+      var pu = body || {};
+      return reply(200, { items: (await rpc('admin_promo_usage', { p_id: txt(pu.id) })) || [] });
+    }
     if (path === '/admin/promos/active' && method === 'POST') {
       var pa = body || {};
       return reply(200, await rpc('admin_set_promo_active', { p_id: txt(pa.id), p_active: pa.active === true }));

@@ -155,6 +155,14 @@
     var bills = liveSales(st).filter(function (s) { return s.date.slice(0, 7) === todayS().slice(0, 7); }).length;
     var out = Object.assign({}, planOf(st), { usage: { bills: bills, items: st.products.filter(function (x) { return !x.deleted_at; }).length, people: st.users.filter(function (u) { return !u.deleted_at; }).length } });
     out.requested = st.shop.plan_request ? { to_plan: st.shop.plan_request.to_plan, at: st.shop.plan_request.at } : null;
+    // Demo: a code with an end date shows how many days are left (the database does this for real shops).
+    if (st.shop.plan_until && new Date(st.shop.plan_until) > new Date()) {
+      var left = Math.max(0, Math.ceil((new Date(st.shop.plan_until) - new Date()) / 86400000));
+      out.plan_until = st.shop.plan_until;
+      out.days_left = left;
+      out.plan_until_text = new Date(st.shop.plan_until).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      out.back_to = 'free'; out.back_to_name = 'Free';
+    }
     return out;
   }
 
@@ -432,14 +440,17 @@
     // Promo codes and online payment (patch-15). Demo only: nothing is charged and codes live in this browser's memory.
     if (path === '/promo/redeem' && method === 'POST') {
       need(st, 'settings', 'Only the owner can use a promo code.');
-      var dc = String(b.code || '').trim().toUpperCase();
+      var dc = String(b.code || '').replace(/\s+/g, '').toUpperCase();
       var dp = DEMO_PROMOS.filter(function (x) { return x.code === dc; })[0];
       if (!dp || !dp.active) return { ok: false, message: 'That code is not valid or has ended.' };
       if (dp.used_count >= dp.max_uses) return { ok: false, message: 'This code has been used up.' };
       dp.used_count += 1;
-      st.shop.plan = dp.plan; save(st);
+      var dUntil = dp.duration_days ? new Date(Date.now() + dp.duration_days * 86400000).toISOString() : null;
+      st.shop.plan = dp.plan; st.shop.plan_until = dUntil; save(st);
+      dp.redemptions = dp.redemptions || [];
+      dp.redemptions.unshift({ shop_name: st.shop.name || 'Demo shop', plan: dp.plan, plan_until: dUntil, redeemed_at: nowIso() });
       var dpl = PLANS.filter(function (p) { return p.code === dp.plan; })[0] || { name: dp.plan };
-      return { ok: true, plan: dp.plan, plan_name: dpl.name, plan_until: dp.duration_days ? new Date(Date.now() + dp.duration_days * 86400000).toISOString() : null };
+      return { ok: true, plan: dp.plan, plan_name: dpl.name, plan_until: dUntil };
     }
     if (path === '/billing/config' && method === 'GET') return { enabled: false, message: 'Online payment coming soon.' };
     if (path === '/billing/create-order' && method === 'POST') throw E('Online payment coming soon. You can still pay by the manual way or use a promo code.', 503);
@@ -455,6 +466,10 @@
       var made = { id: 'demo-' + (DEMO_PROMOS.length + 1), code: nc, plan: b.plan || 'growth', duration_days: b.duration_days == null ? null : Number(b.duration_days), max_uses: mu, used_count: 0, expires_at: b.expires_at || null, active: true };
       DEMO_PROMOS.push(made);
       return { id: made.id, ok: true, code: nc };
+    }
+    if (path === '/admin/promos/usage' && method === 'POST') {
+      var du = DEMO_PROMOS.filter(function (x) { return x.id === b.id; })[0];
+      return { items: du ? (du.redemptions || []).slice() : [] };
     }
     if (path === '/admin/promos/active' && method === 'POST') {
       var pz = DEMO_PROMOS.filter(function (x) { return x.id === b.id; })[0];
