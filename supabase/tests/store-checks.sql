@@ -14,8 +14,8 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000a3', 'cashier@test.local'),
   ('00000000-0000-0000-0000-0000000000a9', 'nobody@test.local');
 
-insert into public.shops (id, name, phone, city, lang, store_enabled, store_slug) values
-  ('00000000-0000-0000-0000-0000000000b1', 'Test Shop', '9811111111', 'Jaipur', 'en', true, 'test-shop-1');
+insert into public.shops (id, name, phone, city, lang, store_enabled, store_slug, plan) values
+  ('00000000-0000-0000-0000-0000000000b1', 'Test Shop', '9811111111', 'Jaipur', 'en', true, 'test-shop-1', 'all');
 
 insert into public.staff (shop_id, auth_user_id, name, email, role) values
   ('00000000-0000-0000-0000-0000000000b1', '00000000-0000-0000-0000-0000000000a1', 'Owner', 'owner@test.local', 'owner'),
@@ -333,8 +333,8 @@ end $$;
 
 -- ---------- C27 to C38: orders move stock (stage 5) ----------
 -- A second shop, so these checks do not share the order limits of the shop above.
-insert into public.shops (id, name, phone, city, lang, store_enabled, store_slug) values
-  ('00000000-0000-0000-0000-0000000000b2', 'Stock Shop', '9822222222', 'Jaipur', 'en', true, 'stock-shop-2');
+insert into public.shops (id, name, phone, city, lang, store_enabled, store_slug, plan) values
+  ('00000000-0000-0000-0000-0000000000b2', 'Stock Shop', '9822222222', 'Jaipur', 'en', true, 'stock-shop-2', 'all');
 insert into public.staff (shop_id, auth_user_id, name, email, role) values
   ('00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000a1', 'Owner', 'owner@test.local', 'owner');
 insert into public.products (id, shop_id, name, category, unit, buy_price, sell_price, stock_qty) values

@@ -35,7 +35,7 @@
     var st = {
       seq: 100,
       session: { uid: null },
-      shop: { id: 1, name: 'Sharma General Store (example)', phone: '9800000000', address: 'Example Road, Pune', gstin: '', upi_id: 'sharma@upi', category: 'kirana', lang: 'en', store_enabled: false, store_slug: '', onboarded: true, assistant_name: 'Chotu', staff_discount_limit: 50 },
+      shop: { id: 1, name: 'Sharma General Store (example)', phone: '9800000000', address: 'Example Road, Pune', gstin: '', upi_id: 'sharma@upi', category: 'kirana', lang: 'en', store_enabled: false, store_slug: '', onboarded: true, assistant_name: 'Chotu', staff_discount_limit: 50, plan: 'all' },
       users: [
         { id: 1, name: 'Demo Owner', email: 'owner@example.com', v2role: 'owner', status: 'active' },
         { id: 2, name: 'Sunita (cashier)', email: 'sunita@example.com', v2role: 'cashier', status: 'active' },
@@ -139,6 +139,23 @@
   };
   function can(u, p) { return (PERM[u.v2role] || []).indexOf(p) >= 0; }
   function need(st, p, msg) { var u = me(st); if (!u) throw E('Please log in again.', 401); if (!can(u, p)) throw E(msg || 'Your role does not allow this. Ask the owner.', 403); return u; }
+
+  // Plans (patch-14): the same limits as the plans table in the database. Change both together.
+  var PLANS = [
+    { code: 'free', name: 'Free', sort_order: 1, bills_per_month: 30, max_items: 50, max_people: 2, features: { online_store: false, suppliers: false, udhar_reminders: false, voice: false, full_reports: false } },
+    { code: 'growth', name: 'Growth', sort_order: 2, bills_per_month: 300, max_items: 500, max_people: 5, features: { online_store: true, suppliers: true, udhar_reminders: true, voice: false, full_reports: true } },
+    { code: 'all', name: 'All Features', sort_order: 3, bills_per_month: null, max_items: null, max_people: null, features: { online_store: true, suppliers: true, udhar_reminders: true, voice: true, full_reports: true } }
+  ];
+  // A demo shop saved before plans existed counts as an existing shop, so it gets All Features.
+  function planOf(st) { var code = st.shop.plan || 'all'; return PLANS.filter(function (p) { return p.code === code; })[0] || PLANS[2]; }
+  function planCap(st, field, count, msg) { var p = planOf(st); if (p[field] != null && count >= p[field]) throw E(msg(p), 403); }
+  function planFeature(st, f, msg) { if (!planOf(st).features[f]) throw E(msg(planOf(st)), 403); }
+  function planView(st) {
+    var bills = liveSales(st).filter(function (s) { return s.date.slice(0, 7) === todayS().slice(0, 7); }).length;
+    var out = Object.assign({}, planOf(st), { usage: { bills: bills, items: st.products.filter(function (x) { return !x.deleted_at; }).length, people: st.users.filter(function (u) { return !u.deleted_at; }).length } });
+    out.requested = st.shop.plan_request ? { to_plan: st.shop.plan_request.to_plan, at: st.shop.plan_request.at } : null;
+    return out;
+  }
 
   function audit(st, u, action, entity, entityId, label, before, after) {
     st.audit.unshift({ id: nid(st), at: nowIso(), by: u.name, role: u.v2role, action: action, entity: entity, entity_id: entityId, label: label, before: before || null, after: after || null, undone: false });
@@ -259,6 +276,7 @@
       if (b.date < date) { if (!can(u, 'backdate')) throw E('Only the owner or manager can back-date a bill', 403); date = b.date; }
     }
     var total = Math.round((sub - disc) * 100) / 100;
+    planCap(st, 'bills_per_month', liveSales(st).filter(function (s) { return s.date.slice(0, 7) === date.slice(0, 7); }).length, function (p) { return 'The ' + p.bills_per_month + ' bills for this month are used up on the ' + p.name + ' plan. Ask BizGrow about the next plan.'; });
     var paid = method === 'udhar' ? Math.min(total, Math.max(0, num(b.paid) || 0)) : total;
     var dueS = method === 'udhar' ? addDays(date, 30) : null;
     if (method === 'udhar' && cust.advance > 0 && paid < total) { var use = Math.min(cust.advance, total - paid); paid += use; cust.advance -= use; }
@@ -399,6 +417,17 @@
       return { ok: true, consent: st.consents[st.consents.length - 1] };
     }
     if (path === '/language' && method === 'PUT') { st.shop.lang = b.lang || 'en'; save(st); return { ok: true }; }
+    // Plans (patch-14): the shop's plan and usage, the three plans, and a manual request for the BizGrow team.
+    if (path === '/plan' && method === 'GET') return planView(st);
+    if (path === '/plans' && method === 'GET') return { items: PLANS };
+    if (path === '/plan/request' && method === 'POST') {
+      need(st, 'settings', 'Only the owner can ask for a plan change.');
+      var want = String(b.plan || '').trim().toLowerCase();
+      if (!PLANS.some(function (p) { return p.code === want; })) throw E('Pick a plan');
+      if (want === planOf(st).code) throw E('That is already your plan');
+      st.shop.plan_request = { to_plan: want, at: nowIso() }; save(st);
+      return { ok: true, to_plan: want };
+    }
     if (path === '/onboarding' && method === 'PUT') return { ok: true };
     if (path === '/business-type' && method === 'PUT') {
       need(st, 'settings', 'Only the owner can change shop details');
@@ -415,6 +444,7 @@
     // Online store on or off. The link name is made once and kept (the real server does the same).
     if (path === '/store' && method === 'PUT') {
       need(st, 'settings', 'Only the owner can turn the online store on or off');
+      if (b.enabled === true) planFeature(st, 'online_store', function (p) { return 'The online store is not on your plan. Ask BizGrow about upgrading.'; });
       st.shop.store_enabled = b.enabled === true;
       if (!st.shop.store_slug) st.shop.store_slug = slugOf(st.shop.name);
       save(st); return { ok: true, store_enabled: st.shop.store_enabled, store_slug: st.shop.store_slug };
@@ -473,6 +503,7 @@
       var ps = num(b.stock || 0); if (!isFinite(ps)) throw E('Stock must be a number');
       if (ps < 0) throw E('Stock cannot be negative');
       var rl = num(b.reorder || 0); if (!isFinite(rl) || rl < 0) throw E('Reorder level must be 0 or more');
+      planCap(st, 'max_items', st.products.filter(function (x) { return !x.deleted_at; }).length, function (p) { return 'Your ' + p.name + ' plan allows ' + p.max_items + ' items. Remove some items or ask BizGrow about the next plan.'; });
       var np = { id: nid(st), name: pn, sku: b.sku || '', category: b.category || 'General', unit: b.unit || 'pc', price: pp, cost: pc, stock: ps, reorder: rl, deleted_at: null };
       st.products.push(np); audit(st, cu, 'create', 'product', np.id, 'Item ' + pn, null, { deleted_at: null }); save(st); return { id: np.id };
     }
@@ -629,6 +660,7 @@
     if (path === '/team' && method === 'GET') return { members: st.users.filter(function (u2) { return !u2.deleted_at; }).map(function (u2) { return { id: u2.id, name: u2.name, email: u2.email, role: appRole(u2), status: u2.status }; }) };
     if (path === '/team/invite' && method === 'POST') {
       need(st, 'team', 'Only the owner can invite staff');
+      planCap(st, 'max_people', st.users.filter(function (u) { return !u.deleted_at; }).length, function (p) { return 'Your ' + p.name + ' plan allows ' + p.max_people + ' people in the shop. Remove someone or ask BizGrow about the next plan.'; });
       var tn = text(b.name || b.email || 'New staff', 'Name', 60); var tok = 'demo-' + nid(st);
       st.users.push({ id: nid(st), name: tn, email: b.email || '', v2role: b.role === 'manager' ? 'manager' : 'cashier', status: 'invited', token: tok });
       save(st); return { token: tok };
@@ -640,7 +672,7 @@
     if (k === 'tasks' && id && method === 'PUT') { need(st, 'task', 'Only owner or manager can change tasks'); var tk = st.tasks.find(function (x) { return x.id === id; }); if (tk) tk.done = !!b.done; save(st); return { ok: true }; }
     if (k === 'tasks' && id && method === 'DELETE') { need(st, 'task', 'Only owner or manager can delete tasks'); st.tasks = st.tasks.filter(function (x) { return x.id !== id; }); save(st); return { ok: true }; }
     if (k === 'suppliers' && !parts[1] && method === 'GET') return st.suppliers.slice();
-    if (k === 'suppliers' && !parts[1] && method === 'POST') { need(st, 'supplier', 'Your role cannot add suppliers'); st.suppliers.push({ id: nid(st), name: text(b.name, 'Supplier name'), phone: String(b.phone || ''), items: String(b.items || '').slice(0, 120), note: String(b.note || '').slice(0, 120) }); save(st); return { ok: true }; }
+    if (k === 'suppliers' && !parts[1] && method === 'POST') { need(st, 'supplier', 'Your role cannot add suppliers'); planFeature(st, 'suppliers', function (p) { return 'Suppliers are not on your ' + p.name + ' plan. Ask BizGrow about upgrading.'; }); st.suppliers.push({ id: nid(st), name: text(b.name, 'Supplier name'), phone: String(b.phone || ''), items: String(b.items || '').slice(0, 120), note: String(b.note || '').slice(0, 120) }); save(st); return { ok: true }; }
     if (k === 'suppliers' && id && method === 'PUT') { need(st, 'supplier', 'Your role cannot change suppliers'); var sp = st.suppliers.find(function (x) { return x.id === id; }); if (sp) { sp.name = text(b.name, 'Supplier name'); sp.phone = String(b.phone || ''); sp.items = String(b.items || '').slice(0, 120); } save(st); return { ok: true }; }
     if (k === 'suppliers' && id && method === 'DELETE') { need(st, 'supplier', 'Your role cannot delete suppliers'); st.suppliers = st.suppliers.filter(function (x) { return x.id !== id; }); save(st); return { ok: true }; }
 

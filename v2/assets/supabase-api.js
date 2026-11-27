@@ -191,6 +191,14 @@
     function ownerOnly() { need(owner, 'Only the owner can do this.'); }
     function moneyOnly() { need(money, 'Your role cannot see this. Ask the owner.'); }
 
+    // Plans (patch-14): the shop's plan and usage, the three plans, and a manual upgrade request for the BizGrow team.
+    if (path === '/plan' && method === 'GET') return reply(200, await rpc('get_my_plan', { p_shop: shopId }));
+    if (path === '/plans' && method === 'GET') return reply(200, { items: await rpc('get_plans', {}) });
+    if (path === '/plan/request' && method === 'POST') {
+      ownerOnly();
+      return reply(200, await rpc('request_plan_upgrade', { p_shop: shopId, p_plan: txt(b.plan) }));
+    }
+
     // Online store (patch-06): owner turns it on or off; owner, manager and cashier see and move orders.
     if (path === '/store' && method === 'PUT') {
       ownerOnly();

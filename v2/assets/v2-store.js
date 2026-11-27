@@ -69,7 +69,12 @@
   }
 
   /* ---------- 1. Owner: the Store page ---------- */
-  B.on('store', function (v) { renderStore(v); });
+  B.on('store', function (v) {
+    B.planNow().then(function (p) {
+      if (B.planLocked(p, 'online_store')) v.innerHTML = B.head(B.t('store'), B.t('st_sub')) + B.lockCard('online_store');
+      else renderStore(v);
+    }).catch(function () { renderStore(v); });
+  });
 
   function renderStore(v) {
     var sh = B.S.me.shop, on = !!(sh.store_enabled && sh.store_slug);

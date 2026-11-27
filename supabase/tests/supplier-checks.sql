@@ -12,9 +12,9 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000d5', 'sup-other-owner@test.local')
 on conflict (id) do nothing;
 
-insert into public.shops (id, name, phone, city, lang) values
-  ('00000000-0000-0000-0000-0000000000e1', 'Supplier Shop', '9822222222', 'Jaipur', 'en'),
-  ('00000000-0000-0000-0000-0000000000e2', 'Other Shop', '9833333333', 'Surat', 'en')
+insert into public.shops (id, name, phone, city, lang, plan) values
+  ('00000000-0000-0000-0000-0000000000e1', 'Supplier Shop', '9822222222', 'Jaipur', 'en', 'all'),
+  ('00000000-0000-0000-0000-0000000000e2', 'Other Shop', '9833333333', 'Surat', 'en', 'all')
 on conflict (id) do nothing;
 
 insert into public.staff (shop_id, auth_user_id, name, email, role) values

@@ -96,7 +96,16 @@
 
   // Home card, shown to anyone who can make a bill.
   B.on('home', function (v) {
-    if (v.querySelector('.v2-voice') || !B.can('sale')) return;
+    if (v.querySelector('.v2-voice') || v.querySelector('.v2-voice-lock') || !B.can('sale')) return;
+    // Voice is a plan feature. On a plan without it, show the upgrade card instead of the mic.
+    var planP = B.planNow ? B.planNow().catch(function () { return null; }) : Promise.resolve(null);
+    planP.then(function (p) {
+      if (v.querySelector('.v2-voice') || v.querySelector('.v2-voice-lock')) return;
+      if (B.planLocked && B.planLocked(p, 'voice')) { B.placeTop(v, '<div class="v2-voice-lock">' + B.lockCard('voice') + '</div>'); return; }
+      showVoiceCard(v);
+    });
+  });
+  function showVoiceCard(v) {
     var rename = B.can('settings') ? '<button class="linkbtn" data-v2="rename">' + esc(B.tx('v2_chotu_title')) + '</button>' : '';
     B.placeTop(v,
       '<section class="card v2-voice">' +
@@ -109,7 +118,7 @@
       '<button class="linkbtn v2-mute" data-v2="mute" aria-pressed="' + (isMuted() ? 'true' : 'false') + '">' + esc(muteLabel()) + '</button>' +
       '<p class="muted small">' + esc(B.tx('v2_try')) + ': <i>"Ramesh ko 2 kg atta, 50 rupees udhar"</i></p>' +
       rename + '</section>');
-  });
+  }
 
   function msg(t) { var m = $('v2-voice-msg'); if (m) m.textContent = t || ''; }
 

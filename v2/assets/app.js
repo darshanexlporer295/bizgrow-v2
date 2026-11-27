@@ -494,6 +494,7 @@ const REM_TPL_NAME={polite:'Polite',firm:'Firm',friendly:'Friendly'};
 const remKey=()=>'bg_rem_'+new Date().toISOString().slice(0,10);
 function remText(tpl,c,amt){const base=t(REM_TPL[tpl]).replace('{name}',c.name).replace('{shop}',S.me.shop.name).replace('{amount}',inr(amt));const up=S.me.shop.upi_id?t('wa_upi').replace('{upi}',S.me.shop.upi_id)+' ':'';return base+' '+up+t('m_thanks');}
 async function pReminders(v){
+  if(planLocked(await planNow().catch(()=>null),'udhar_reminders')){v.innerHTML=head('Send reminders','Open WhatsApp with each message ready, then tap Send there.')+lockCard('udhar_reminders');return;}
   await loadCustomers();
   const tpl=S.remTpl&&REM_TPL[S.remTpl]?S.remTpl:'polite';
   const days=c=>c.last_credit?Math.floor((Date.now()-new Date(c.last_credit))/864e5):null;
@@ -602,12 +603,14 @@ FORM.exp=async(f,d)=>{await api('/expenses','POST',d);f.closest('.ov').close();r
 ACT.delexp=async el=>{if(!confirm('Delete this expense?'))return;await api('/expenses/'+el.dataset.id,'DELETE');render();};
 
 /* ---------- reports ---------- */
+const repChips=()=>`<div class="chips" style="margin:0"><button class="chip ${S.repDays===7?'on':''}" data-act="rdays" data-d="7">${t('week')}</button><button class="chip ${S.repDays===30?'on':''}" data-act="rdays" data-d="30">${t('month')}</button><button class="chip ${S.repDays===90?'on':''}" data-act="rdays" data-d="90">90 days</button></div>`;
 async function pReports(v){
+  if(planLocked(await planNow().catch(()=>null),'full_reports')&&S.repDays>7){v.innerHTML=head(t('reports'),'How your shop is doing',repChips())+lockCard('full_reports');return;}
   const [r,z]=await Promise.all([api('/reports?days='+S.repDays),api('/zreport')]);
   const days=[];for(let i=S.repDays-1;i>=0;i--){const d=new Date(Date.now()+IST-i*864e5).toISOString().slice(0,10);const f=r.daily.find(x=>x.d===d);days.push({d,s:f?f.sales:0});}
   const max=Math.max(1,...days.map(x=>x.s));const show=S.repDays<=14?days:days.filter((_,i)=>i%Math.ceil(days.length/14)===0);
   const topMax=Math.max(1,...r.top.map(x=>x.revenue)),exMax=Math.max(1,...r.expenses_by_category.map(x=>x.amount));
-  v.innerHTML=head(t('reports'),'How your shop is doing',`<div class="chips" style="margin:0"><button class="chip ${S.repDays===7?'on':''}" data-act="rdays" data-d="7">${t('week')}</button><button class="chip ${S.repDays===30?'on':''}" data-act="rdays" data-d="30">${t('month')}</button><button class="chip ${S.repDays===90?'on':''}" data-act="rdays" data-d="90">90 days</button></div>`)+
+  v.innerHTML=head(t('reports'),'How your shop is doing',repChips())+
   `<div class="grid g4 mb"><div class="card kpi"><div class="k">${t('revenue')}</div><div class="v num">${inr(r.totals.revenue)}</div><div class="s">${r.totals.bills} ${r.totals.bills===1?'bill':'bills'}</div></div>
    <div class="card kpi"><div class="k">${t('expenses')}</div><div class="v num">${inr(r.totals.expenses)}</div></div>
    ${r.totals.profit!==null?`<div class="card kpi"><div class="k">Profit</div><div class="v num ${r.totals.profit<0?'dn':''}">${inr(r.totals.profit)}</div><div class="s">After cost of items</div></div>`:''}
@@ -624,6 +627,7 @@ ACT.rdays=el=>{S.repDays=+el.dataset.d;render();};
 
 /* ---------- suppliers ---------- */
 async function pSuppliers(v){
+  if(planLocked(await planNow().catch(()=>null),'suppliers')){v.innerHTML=head(t('suppliers'),'People you buy from')+lockCard('suppliers');return;}
   const l=(await api('/suppliers')).items;S.sup=l;
   v.innerHTML=head(t('suppliers'),'People you buy from',`<button class="btn" data-act="addsup">+ Add supplier</button>`)+`<div class="card">${l.length?`<div class="list">${l.map(s=>`<div class="li"><div class="avatar">${esc(s.name[0]||'?').toUpperCase()}</div><div class="grow"><div class="t">${esc(s.name)}</div><div class="d">${esc(s.items||'')}${s.note?' · '+esc(s.note):''}</div></div>${s.phone?`<a class="btn sec sm" href="tel:${esc(s.phone)}">Call</a><a class="btn sec sm" target="_blank" rel="noopener" href="${waLink(s.phone,t('wa_order').replace('{name}',s.name))}">WhatsApp</a>`:''}<button class="btn sec sm" data-act="editsup" data-id="${s.id}">${t('edit')}</button></div>`).join('')}</div>`:emptyBox('No suppliers yet','Save your wholesalers here so reordering is one tap.','<button class="btn" data-act="addsup">Add supplier</button>')}</div>${revoCard('stock')}`;
 }
@@ -679,23 +683,42 @@ ACT.erase=()=>modal(`<h2 style="color:var(--danger)">Delete everything?</h2><p c
 FORM.erase=async(f,d)=>{await api('/privacy/erase','POST',d);S.me=null;location.hash='';render();};
 
 /* ---------- settings ---------- */
-/* plans: notice only, nothing is blocked and nothing is charged (see v2-i18n-stage3.js) */
-async function planCount(){const r=await api('/sales?from='+today().slice(0,8)+'01&to='+today());return (r.items||[]).length;}
-function billNotice(n){if(n>=30)return `<p class="small mt" style="color:#7a4a00">${t('s3_bills_limit')}</p>`;if(n>=25)return `<p class="small mt" style="color:#7a4a00">${t('s3_bills_near')}</p>`;return '';}
-async function planNote(){const el=$('#planNote');if(!el)return;try{el.innerHTML=billNotice(await planCount());}catch(e){}}
+/* plans (patch-14): the shop's plan and usage come from GET /plan; the three plans from GET /plans. Wording is in v2-i18n-stage3.js. */
+const planNow=()=>api('/plan');
+const planName=code=>t('s3_pn_'+code);
+const planLocked=(p,f)=>!!p&&!(p.features&&p.features[f]);
+function lockCard(feature){return `<div class="card lock-card"><b>${t('s3_lk_title')}</b><p class="small mt">${t('s3_lk_'+feature)}</p><a class="btn sm mt" href="#/settings/plan">${t('s3_lk_btn')}</a></div>`;}
+function meterHtml(p){if(p.bills_per_month==null)return '';const n=p.usage.bills,max=p.bills_per_month;const pct=Math.min(100,Math.round(n/max*100));return `<div class="mt"><div class="small">${t('s3_meter').replace('{n}',n).replace('{max}',max)}</div><div class="bar"><i style="width:${pct}%"></i></div></div>`;}
+function billNotice(p){if(p.bills_per_month==null)return '';const n=p.usage.bills,max=p.bills_per_month;if(n>=max)return `<p class="small mt" style="color:#7a4a00">${t('s3_bills_limit').replace('{n}',max)}</p>`;if(n>=Math.ceil(max*0.8))return `<p class="small mt" style="color:#7a4a00">${t('s3_bills_near')}</p>`;return '';}
+async function planNote(){const el=$('#planNote');if(!el)return;try{const p=await planNow();el.innerHTML=meterHtml(p)+billNotice(p);}catch(e){}}
 async function pPlan(v){
-  const n=await planCount();
-  const card=(name,price,yearly,desc,extra)=>`<div class="card"><div class="row sp"><h3 style="margin:0">${name}</h3><span class="badge amber">${t('s3_proposed')}</span></div><div class="num bold" style="font-size:24px;margin-top:8px">${price}</div>${yearly?`<div class="small muted">${yearly}</div>`:''}<p class="small mt">${desc}</p>${extra||''}</div>`;
+  const [cur,list]=await Promise.all([planNow(),api('/plans')]);
+  const req=cur.requested;
+  const lim=n=>n==null?t('s3_unlimited'):String(n);
+  const yn=b=>b?t('s3_yes'):t('s3_no');
+  const rowsFor=p=>[
+    [t('s3_row_bills'),p.bills_per_month==null?t('s3_unlimited'):t('s3_per_month').replace('{n}',p.bills_per_month)],
+    [t('s3_row_people'),lim(p.max_people)],
+    [t('s3_row_items'),lim(p.max_items)],
+    [t('s3_row_store'),yn(p.features.online_store)],
+    [t('s3_row_sup'),yn(p.features.suppliers)],
+    [t('s3_row_rem'),yn(p.features.udhar_reminders)],
+    [t('s3_row_voice'),yn(p.features.voice)],
+    [t('s3_row_reports'),yn(p.features.full_reports)]
+  ];
+  const planCard=p=>{const isNow=p.code===cur.code;
+    const action=isNow?'':(isOwner()?`<div class="mt"><button class="btn sec sm" data-act="planreq" data-plan="${esc(p.code)}">${t('s3_ask_upgrade')}</button></div>`:`<p class="small muted mt">${t('s3_owner_only')}</p>`);
+    return `<div class="card${isNow?' plan-now':''}"><div class="row sp"><h3 style="margin:0">${esc(planName(p.code))}</h3>${isNow?`<span class="badge amber">${t('s3_current')}</span>`:''}</div><div class="list small mt">${rowsFor(p).map(([k,val])=>`<div class="li"><span class="grow">${esc(k)}</span><b>${esc(val)}</b></div>`).join('')}</div>${action}</div>`;};
   v.innerHTML=`<a class="link" href="#/settings">← ${t('settings')}</a>`+head(t('s3_plan_title'),t('s3_plan_sub'))+
-  `<div class="plans" style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">`+
-  card(t('s3_starter'),t('s3_starter_price'),'',t('s3_starter_desc'),`<div class="mt"><b>${t('s3_current')}</b><div class="small">${t('s3_bills_used').replace('{n}',n)}</div>${billNotice(n)}</div>`)+
-  card(t('s3_pro'),t('s3_pro_price'),t('s3_pro_yearly'),t('s3_pro_desc'))+
-  card(t('s3_team'),t('s3_team_price'),t('s3_team_yearly'),t('s3_team_desc'))+
-  `</div><div class="card mt"><b>${t('s3_soon')}</b><p class="small muted">${t('s3_soon_note')}</p><button class="btn sec" data-act="plansoon">${t('s3_soon')}</button></div>`;
+  `<div class="card"><div class="row sp"><b>${esc(planName(cur.code))}</b><span class="badge amber">${t('s3_current')}</span></div>${meterHtml(cur)}${billNotice(cur)}</div>`+
+  (req?`<div class="card mt"><p class="small">${esc(t('s3_req_sent').replace('{plan}',planName(req.to_plan)))}</p></div>`:'')+
+  `<div class="plans mt" style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${list.items.map(planCard).join('')}</div>`+
+  `<div class="card mt"><p class="small muted">${t('s3_no_pay')}</p></div>`;
 }
-ACT.plansoon=()=>toast(t('s3_soon_note'));
+ACT.planreq=async el=>{try{await api('/plan/request','POST',{plan:el.dataset.plan});toast(t('s3_req_toast'));render();}catch(e){toast(e.message);}};
 async function pSettings(v,args){
   if(args&&args[0]==='plan')return pPlan(v);
+  const plan=await planNow().catch(()=>null);
   const s=S.me.shop;
   const cur=s.business_type||localStorage.getItem('bg_biztype_'+s.id)||'';
   const bizOpts=[['','—'],...['textile_trader','yarn_fabric','raw_material','other'].map(k=>[k,t('s3_bt_'+k)])].map(([k,l])=>`<option value="${k}" ${cur===k?'selected':''}>${l}</option>`).join('');
@@ -706,13 +729,13 @@ async function pSettings(v,args){
   <div class="f"><label>GST number (optional)</label><input class="in" name="gstin" value="${esc(s.gstin||'')}"></div>
   <button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>
   <div class="card mt" style="max-width:640px"><h3>${t('s3_biz_title')}</h3><p class="muted small mb">${t('s3_biz_sub')}</p><form data-form="biztype"><div class="f"><select class="in" name="business_type">${bizOpts}</select></div><button class="btn sec" type="submit">${t('save')}</button></form></div>
-  <div class="card mt" style="max-width:640px"><h3>${t('s3_plan_title')}</h3><a class="btn sec" href="#/settings/plan">${t('s3_plan_link')}</a></div>`;
+  <div class="card mt" style="max-width:640px"><h3>${t('s3_plan_title')}</h3>${plan?`<b>${esc(planName(plan.code))}</b>${meterHtml(plan)}`:''}<a class="btn sec mt" href="#/settings/plan">${t('s3_plan_link')}</a></div>`;
 }
 ACT.redoob=()=>onboarding();
 FORM.biztype=async(f,d)=>{const v=d.business_type||'';localStorage.setItem('bg_biztype_'+S.me.shop.id,v);const r=await api('/business-type','PUT',{business_type:v});S.me=await api('/me');toast(r&&r.saved_here?t('s3_biz_local'):t('s3_biz_saved'));render();};
 FORM.settings=async(f,d)=>{delete d.store_enabled;delete d.lang;const r=await api('/business','PUT',d);S.me=await api('/me');toast((r&&r.warning)||'Saved');render();};
 
-window.BGV2={ACT,FORM,S,api,render,toast,isOwner:()=>isOwner(),esc,inr,t,head,modal,go};
+window.BGV2={ACT,FORM,S,api,render,toast,isOwner:()=>isOwner(),esc,inr,t,head,modal,go,lockCard,planNow,planLocked};
 document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicStore&&BGV2.publicStore())return;boot();});
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 })();
