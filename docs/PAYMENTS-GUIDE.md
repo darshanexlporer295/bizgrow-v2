@@ -77,7 +77,7 @@ service key is missing. Check the spelling, then deploy again.
 
 ## Part 4 - Test with a test card (no real money)
 
-1. Open BizGrow, go to Settings, then Plan, and press **Pay** for a plan.
+1. Open BizGrow, go to Settings, then Plan, and press **Pay for Growth** (or the plan you want). The Pay buttons appear only when the shop owner is signed in and the plan is higher than the current one.
 2. In the Razorpay test window, use Razorpay's published test card (search "Razorpay test
    cards" on their docs site). Use any future expiry date and any CVV.
 3. The plan should change after the payment finishes. If the window closed early, the

@@ -1513,6 +1513,190 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
 })();
 
 </script><script>
+/* BizGrow v2: text for promo codes, online payment and the platform owner's promo screen (on the Plan page). English, Hindi, Marathi, Gujarati. */
+(function () {
+  'use strict';
+  window.I18N = window.I18N || {};
+  var X = {
+    en: {
+      bl_promo_title: "Have a promo code?",
+      bl_promo_sub: "Type the code you got from BizGrow. It turns on the plan for your shop.",
+      bl_promo_ph: "Code",
+      bl_promo_btn: "Use code",
+      bl_promo_need: "Type the code first.",
+      bl_promo_ok: "Done. Your shop is now on {plan}.",
+      bl_promo_until: "It lasts until {date}.",
+      bl_pay_title: "Pay online",
+      bl_pay_sub: "Pay for a plan by UPI, card or net banking. Your plan turns on once the payment is confirmed.",
+      bl_pay_btn: "Pay for {plan}",
+      bl_pay_soon: "Online payment coming soon",
+      bl_pay_soon_note: "You can still pay by the manual way or use a promo code.",
+      bl_pay_done: "Payment received. Your shop is now on {plan}.",
+      bl_pay_pending: "Payment received. Your plan will update as soon as it is confirmed.",
+      bl_admin_link: "Promo codes (for the BizGrow owner)",
+      bl_adm_title: "Promo codes",
+      bl_adm_sub: "Only the BizGrow owner can see and make codes here.",
+      bl_adm_new: "Make a new code",
+      bl_adm_code: "Code (letters and numbers, a dash is allowed)",
+      bl_adm_plan: "Plan",
+      bl_adm_dur: "How long",
+      bl_adm_d30: "30 days",
+      bl_adm_d90: "90 days",
+      bl_adm_d365: "1 year",
+      bl_adm_forever: "Forever",
+      bl_adm_max: "How many shops can use it",
+      bl_adm_exp: "Stop on (optional)",
+      bl_adm_make: "Make code",
+      bl_adm_list: "Codes",
+      bl_adm_none: "No codes yet.",
+      bl_adm_used: "Used {n} of {m}",
+      bl_adm_on: "On",
+      bl_adm_off: "Off",
+      bl_adm_switch_off: "Switch off",
+      bl_adm_switch_on: "Switch on",
+      bl_adm_made: "Code {code} is ready.",
+      bl_no_access: "Only the BizGrow owner can open this page.",
+      bl_back: "Back to plans",
+      bl_forever: "Forever",
+      bl_until_label: "Until",
+      bl_fail: "Something went wrong. Please try again."
+    },
+    hi: {
+      bl_promo_title: "क्या आपके पास प्रोमो कोड है?",
+      bl_promo_sub: "BizGrow से मिला कोड यहाँ लिखें। इससे आपकी दुकान का प्लान चालू हो जाएगा।",
+      bl_promo_ph: "कोड",
+      bl_promo_btn: "कोड लगाएँ",
+      bl_promo_need: "पहले कोड लिखें।",
+      bl_promo_ok: "हो गया। अब आपकी दुकान {plan} प्लान पर है।",
+      bl_promo_until: "यह {date} तक चलेगा।",
+      bl_pay_title: "ऑनलाइन पैसे दें",
+      bl_pay_sub: "UPI, कार्ड या नेट बैंकिंग से प्लान के पैसे दें। पैसे पक्के होते ही आपका प्लान चालू हो जाएगा।",
+      bl_pay_btn: "{plan} के पैसे दें",
+      bl_pay_soon: "ऑनलाइन भुगतान जल्द आ रहा है",
+      bl_pay_soon_note: "आप अभी भी तरीके से पैसे दे सकते हैं या प्रोमो कोड लगा सकते हैं।",
+      bl_pay_done: "पैसे मिल गए। अब आपकी दुकान {plan} प्लान पर है।",
+      bl_pay_pending: "पैसे मिल गए। पक्का होते ही आपका प्लान अपने आप बदल जाएगा।",
+      bl_admin_link: "प्रोमो कोड (BizGrow मालिक के लिए)",
+      bl_adm_title: "प्रोमो कोड",
+      bl_adm_sub: "यहाँ सिर्फ BizGrow मालिक कोड देख और बना सकते हैं।",
+      bl_adm_new: "नया कोड बनाएँ",
+      bl_adm_code: "कोड (अक्षर और अंक, बीच में डैश चल सकता है)",
+      bl_adm_plan: "प्लान",
+      bl_adm_dur: "कितने दिन",
+      bl_adm_d30: "30 दिन",
+      bl_adm_d90: "90 दिन",
+      bl_adm_d365: "1 साल",
+      bl_adm_forever: "हमेशा के लिए",
+      bl_adm_max: "कितनी दुकानें इसे लगा सकती हैं",
+      bl_adm_exp: "इस तारीख को बंद हो (जरूरी नहीं)",
+      bl_adm_make: "कोड बनाएँ",
+      bl_adm_list: "कोड",
+      bl_adm_none: "अभी कोई कोड नहीं है।",
+      bl_adm_used: "{m} में से {n} लगे",
+      bl_adm_on: "चालू",
+      bl_adm_off: "बंद",
+      bl_adm_switch_off: "बंद करें",
+      bl_adm_switch_on: "चालू करें",
+      bl_adm_made: "कोड {code} तैयार है।",
+      bl_no_access: "यह पेज सिर्फ BizGrow मालिक खोल सकते हैं।",
+      bl_back: "प्लान पर वापस",
+      bl_forever: "हमेशा के लिए",
+      bl_until_label: "तक",
+      bl_fail: "कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।"
+    },
+    mr: {
+      bl_promo_title: "प्रोमो कोड आहे का?",
+      bl_promo_sub: "BizGrow कडून मिळालेला कोड इथे टाइप करा. त्यामुळे तुमच्या दुकानाचा प्लॅन चालू होईल.",
+      bl_promo_ph: "कोड",
+      bl_promo_btn: "कोड वापरा",
+      bl_promo_need: "आधी कोड टाइप करा.",
+      bl_promo_ok: "झाले. आता तुमचे दुकान {plan} प्लॅनवर आहे.",
+      bl_promo_until: "हा {date} पर्यंत चालेल.",
+      bl_pay_title: "ऑनलाइन पैसे भरा",
+      bl_pay_sub: "UPI, कार्ड किंवा नेट बँकिंगने प्लॅनचे पैसे भरा. पैसे पक्के झाल्यावर प्लॅन चालू होईल.",
+      bl_pay_btn: "{plan} चे पैसे भरा",
+      bl_pay_soon: "ऑनलाइन पेमेंट लवकरच येत आहे",
+      bl_pay_soon_note: "तुम्ही अजूनही नेहमीच्या पद्धतीने पैसे भरू शकता किंवा प्रोमो कोड वापरू शकता.",
+      bl_pay_done: "पैसे मिळाले. आता तुमचे दुकान {plan} प्लॅनवर आहे.",
+      bl_pay_pending: "पैसे मिळाले. पक्के झाल्यावर तुमचा प्लॅन आपोआप बदलेल.",
+      bl_admin_link: "प्रोमो कोड (BizGrow मालकासाठी)",
+      bl_adm_title: "प्रोमो कोड",
+      bl_adm_sub: "इथे फक्त BizGrow मालक कोड पाहू आणि बनवू शकतो.",
+      bl_adm_new: "नवीन कोड बनवा",
+      bl_adm_code: "कोड (अक्षरे आणि अंक, मध्ये डॅश चालतो)",
+      bl_adm_plan: "प्लॅन",
+      bl_adm_dur: "किती दिवस",
+      bl_adm_d30: "30 दिवस",
+      bl_adm_d90: "90 दिवस",
+      bl_adm_d365: "1 वर्ष",
+      bl_adm_forever: "कायमचा",
+      bl_adm_max: "किती दुकाने वापरू शकतात",
+      bl_adm_exp: "या तारखेला बंद व्हावा (ऐच्छिक)",
+      bl_adm_make: "कोड बनवा",
+      bl_adm_list: "कोड",
+      bl_adm_none: "अजून कोड नाहीत.",
+      bl_adm_used: "{m} पैकी {n} वापरले",
+      bl_adm_on: "चालू",
+      bl_adm_off: "बंद",
+      bl_adm_switch_off: "बंद करा",
+      bl_adm_switch_on: "चालू करा",
+      bl_adm_made: "कोड {code} तयार आहे.",
+      bl_no_access: "हे पान फक्त BizGrow मालक उघडू शकतो.",
+      bl_back: "प्लॅनकडे परत",
+      bl_forever: "कायमचा",
+      bl_until_label: "पर्यंत",
+      bl_fail: "काहीतरी चुकले. कृपया पुन्हा प्रयत्न करा."
+    },
+    gu: {
+      bl_promo_title: "પ્રોમો કોડ છે?",
+      bl_promo_sub: "BizGrow તરફથી મળેલો કોડ અહીં લખો. તેનાથી તમારી દુકાનનો પ્લાન ચાલુ થશે.",
+      bl_promo_ph: "કોડ",
+      bl_promo_btn: "કોડ વાપરો",
+      bl_promo_need: "પહેલા કોડ લખો.",
+      bl_promo_ok: "થઈ ગયું. હવે તમારી દુકાન {plan} પ્લાન પર છે.",
+      bl_promo_until: "તે {date} સુધી ચાલશે.",
+      bl_pay_title: "ઓનલાઇન પૈસા ચૂકવો",
+      bl_pay_sub: "UPI, કાર્ડ કે નેટ બેંકિંગથી પ્લાનના પૈસા ચૂકવો. પૈસા પાક્કા થતાં જ પ્લાન ચાલુ થઈ જશે.",
+      bl_pay_btn: "{plan} માટે પૈસા ચૂકવો",
+      bl_pay_soon: "ઓનલાઇન પેમેન્ટ જલ્દી આવી રહ્યું છે",
+      bl_pay_soon_note: "તમે હજી પણ જૂની રીતે ચૂકવી શકો છો અથવા પ્રોમો કોડ વાપરી શકો છો.",
+      bl_pay_done: "પૈસા મળી ગયા. હવે તમારી દુકાન {plan} પ્લાન પર છે.",
+      bl_pay_pending: "પૈસા મળી ગયા. પાક્કું થતાં તમારો પ્લાન આપોઆપ બદલાઈ જશે.",
+      bl_admin_link: "પ્રોમો કોડ (BizGrow ના માલિક માટે)",
+      bl_adm_title: "પ્રોમો કોડ",
+      bl_adm_sub: "અહીં ફક્ત BizGrow ના માલિક કોડ જોઈ અને બનાવી શકે છે.",
+      bl_adm_new: "નવો કોડ બનાવો",
+      bl_adm_code: "કોડ (અક્ષરો અને અંક, વચ્ચે ડેશ ચાલે)",
+      bl_adm_plan: "પ્લાન",
+      bl_adm_dur: "કેટલા દિવસ",
+      bl_adm_d30: "30 દિવસ",
+      bl_adm_d90: "90 દિવસ",
+      bl_adm_d365: "1 વર્ષ",
+      bl_adm_forever: "કાયમ માટે",
+      bl_adm_max: "કેટલી દુકાનો વાપરી શકે",
+      bl_adm_exp: "આ તારીખે બંધ થાય (ફરજિયાત નથી)",
+      bl_adm_make: "કોડ બનાવો",
+      bl_adm_list: "કોડ",
+      bl_adm_none: "હજી કોઈ કોડ નથી.",
+      bl_adm_used: "{m} માંથી {n} વપરાયા",
+      bl_adm_on: "ચાલુ",
+      bl_adm_off: "બંધ",
+      bl_adm_switch_off: "બંધ કરો",
+      bl_adm_switch_on: "ચાલુ કરો",
+      bl_adm_made: "કોડ {code} તૈયાર છે.",
+      bl_no_access: "આ પેજ ફક્ત BizGrow ના માલિક ખોલી શકે છે.",
+      bl_back: "પ્લાન પર પાછા",
+      bl_forever: "કાયમ માટે",
+      bl_until_label: "સુધી",
+      bl_fail: "કંઈક ગડબડ થઈ. કૃપા કરીને ફરી પ્રયાસ કરો."
+    }
+  };
+  Object.keys(X).forEach(function (l) {
+    window.I18N[l] = Object.assign(window.I18N[l] || {}, X[l]);
+  });
+})();
+
+</script><script>
 /* BizGrow v2: connection settings. Only the public (publishable) key lives here, and that is safe in the browser.
    Never put a secret or service key in this file. Leave both values empty to run the demo only.
    Add ?demo=1 to the web address to open the demo even when these values are set. */
@@ -1686,6 +1870,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
   function planOf(st) { var code = st.shop.plan || 'all'; return PLANS.filter(function (p) { return p.code === code; })[0] || PLANS[2]; }
   function planCap(st, field, count, msg) { var p = planOf(st); if (p[field] != null && count >= p[field]) throw E(msg(p), 403); }
   function planFeature(st, f, msg) { if (!planOf(st).features[f]) throw E(msg(planOf(st)), 403); }
+  var DEMO_PROMOS = [];
   function planView(st) {
     var bills = liveSales(st).filter(function (s) { return s.date.slice(0, 7) === todayS().slice(0, 7); }).length;
     var out = Object.assign({}, planOf(st), { usage: { bills: bills, items: st.products.filter(function (x) { return !x.deleted_at; }).length, people: st.users.filter(function (u) { return !u.deleted_at; }).length } });
@@ -1963,6 +2148,38 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
       if (want === planOf(st).code) throw E('That is already your plan');
       st.shop.plan_request = { to_plan: want, at: nowIso() }; save(st);
       return { ok: true, to_plan: want };
+    }
+    // Promo codes and online payment (patch-15). Demo only: nothing is charged and codes live in this browser's memory.
+    if (path === '/promo/redeem' && method === 'POST') {
+      need(st, 'settings', 'Only the owner can use a promo code.');
+      var dc = String(b.code || '').trim().toUpperCase();
+      var dp = DEMO_PROMOS.filter(function (x) { return x.code === dc; })[0];
+      if (!dp || !dp.active) return { ok: false, message: 'That code is not valid or has ended.' };
+      if (dp.used_count >= dp.max_uses) return { ok: false, message: 'This code has been used up.' };
+      dp.used_count += 1;
+      st.shop.plan = dp.plan; save(st);
+      var dpl = PLANS.filter(function (p) { return p.code === dp.plan; })[0] || { name: dp.plan };
+      return { ok: true, plan: dp.plan, plan_name: dpl.name, plan_until: dp.duration_days ? new Date(Date.now() + dp.duration_days * 86400000).toISOString() : null };
+    }
+    if (path === '/billing/config' && method === 'GET') return { enabled: false, message: 'Online payment coming soon.' };
+    if (path === '/billing/create-order' && method === 'POST') throw E('Online payment coming soon. You can still pay by the manual way or use a promo code.', 503);
+    if (path === '/admin/me' && method === 'GET') return { admin: true };
+    if (path === '/admin/promos' && method === 'GET') return { items: DEMO_PROMOS.slice() };
+    if (path === '/admin/promos' && method === 'POST') {
+      var nc = String(b.code || '').trim().toUpperCase();
+      if (!/^[A-Z0-9][A-Z0-9-]{3,29}$/.test(nc)) throw E('The code must be 4 to 30 letters or numbers (a dash is allowed inside).');
+      if (DEMO_PROMOS.some(function (x) { return x.code === nc; })) throw E('That code already exists. Pick another.');
+      var mu = parseInt(b.max_uses, 10);
+      if (!(mu >= 1 && mu <= 10000)) throw E('Pick how many shops can use it');
+      var made = { id: 'demo-' + (DEMO_PROMOS.length + 1), code: nc, plan: b.plan || 'growth', duration_days: b.duration_days == null ? null : Number(b.duration_days), max_uses: mu, used_count: 0, expires_at: b.expires_at || null, active: true };
+      DEMO_PROMOS.push(made);
+      return { id: made.id, ok: true, code: nc };
+    }
+    if (path === '/admin/promos/active' && method === 'POST') {
+      var pz = DEMO_PROMOS.filter(function (x) { return x.id === b.id; })[0];
+      if (!pz) throw E('That code was not found.');
+      pz.active = b.active === true;
+      return { ok: true };
     }
     if (path === '/onboarding' && method === 'PUT') return { ok: true };
     if (path === '/business-type' && method === 'PUT') {
@@ -5373,6 +5590,245 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
 })();
 
 </script><script>
+/* BizGrow v2: "Have a promo code?", online payment (Razorpay through the Worker) and the platform owner's promo screen.
+   Shown on the Plan page (#/settings/plan). The owner-only promo screen is #/settings/plan/promos.
+   Loaded after app.js (window.BGV2). Plan prices and rules live in the database (patch-14, patch-15). */
+(function () {
+  'use strict';
+  var B = window.BGV2;
+  if (!B) return;
+  var esc = B.esc, t = B.t;
+  var RZP_SRC = 'https://checkout.razorpay.com/v1/checkout.js';
+  var adminBox = null;
+  var adminKnown = null;
+
+  function fill(s, k, v) { return String(s).split('{' + k + '}').join(String(v)); }
+  function dayText(iso) {
+    try { return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }); }
+    catch (e) { return String(iso || '').slice(0, 10); }
+  }
+  function errText(e) { return (e && e.message) || t('bl_fail'); }
+
+  function loadRazorpay() {
+    if (window.Razorpay) return Promise.resolve();
+    return new Promise(function (ok, bad) {
+      var s = document.createElement('script');
+      s.src = RZP_SRC;
+      s.onload = function () { ok(); };
+      s.onerror = function () { bad(new Error(t('bl_fail'))); };
+      document.head.appendChild(s);
+    });
+  }
+
+  async function isAdmin() {
+    if (adminKnown !== null) return adminKnown;
+    try { var r = await B.api('/admin/me'); adminKnown = !!(r && r.admin); }
+    catch (e) { adminKnown = false; }
+    return adminKnown;
+  }
+
+  // ---------- Plan page: promo card, pay buttons, link for the platform owner ----------
+  async function planExtras(v) {
+    var cur, list, cfg, admin;
+    try {
+      var got = await Promise.all([
+        B.api('/plan'),
+        B.api('/plans'),
+        B.api('/billing/config').catch(function () { return { enabled: false }; }),
+        isAdmin()
+      ]);
+      cur = got[0]; list = (got[1] && got[1].items) || []; cfg = got[2] || {}; admin = got[3];
+    } catch (e) { return; }
+    // The user may have moved to another page while this loaded.
+    if (!v.isConnected || B.S.page !== 'settings') return;
+
+    var box = document.createElement('div');
+    box.className = 'bg-billing';
+    var html = '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_promo_title')) + '</h3>' +
+      '<p class="small muted mt">' + esc(t('bl_promo_sub')) + '</p>' +
+      '<div class="row mt" style="gap:8px"><input id="blCode" class="in" style="flex:1;text-transform:uppercase" maxlength="30" autocomplete="off" autocapitalize="characters" placeholder="' + esc(t('bl_promo_ph')) + '">' +
+      '<button class="btn" data-act="bill-promo">' + esc(t('bl_promo_btn')) + '</button></div>' +
+      '<div id="blPromoMsg" class="small mt" role="status"></div></div>';
+
+    if (B.isOwner()) {
+      var order = cur.sort_order || 0;
+      var higher = list.filter(function (p) { return p.sort_order > order; });
+      if (higher.length) {
+        html += '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_pay_title')) + '</h3>' +
+          '<p class="small muted mt">' + esc(t('bl_pay_sub')) + '</p>';
+        if (cfg.enabled) {
+          higher.forEach(function (p) {
+            html += '<div class="mt"><button class="btn" data-act="bill-pay" data-plan="' + esc(p.code) + '">' +
+              esc(fill(t('bl_pay_btn'), 'plan', p.name)) + '</button></div>';
+          });
+        } else {
+          html += '<div class="mt"><button class="btn sec" disabled>' + esc(t('bl_pay_soon')) + '</button>' +
+            '<p class="small muted mt">' + esc(t('bl_pay_soon_note')) + '</p></div>';
+        }
+        html += '</div>';
+      }
+    }
+    if (admin) {
+      html += '<div class="card mt"><a class="link" href="#/settings/plan/promos">' + esc(t('bl_admin_link')) + '</a></div>';
+    }
+    box.innerHTML = html;
+    v.appendChild(box);
+  }
+
+  // Promo code redemption.
+  B.ACT['bill-promo'] = async function () {
+    var inp = document.getElementById('blCode');
+    var msg = document.getElementById('blPromoMsg');
+    var code = inp ? inp.value.trim() : '';
+    if (!code) { if (msg) msg.textContent = t('bl_promo_need'); return; }
+    try {
+      var r = await B.api('/promo/redeem', 'POST', { code: code });
+      if (r && r.ok) {
+        var text = fill(t('bl_promo_ok'), 'plan', r.plan_name || r.plan);
+        if (r.plan_until) text += ' ' + fill(t('bl_promo_until'), 'date', dayText(r.plan_until));
+        B.toast(text);
+        B.S.me = await B.api('/me');
+        B.render();
+        return;
+      }
+      if (msg) msg.textContent = (r && r.message) || t('bl_fail');
+    } catch (e) {
+      if (msg) msg.textContent = errText(e);
+    }
+  };
+
+  // Online payment: create the order on the server, open Razorpay checkout, confirm on the server.
+  B.ACT['bill-pay'] = async function (el) {
+    var plan = el.dataset.plan;
+    el.disabled = true;
+    try {
+      var o = await B.api('/billing/create-order', 'POST', { shop_id: B.S.me.shop.id, plan: plan });
+      await loadRazorpay();
+      var rz = new window.Razorpay({
+        key: o.keyId,
+        amount: o.amount,
+        currency: o.currency,
+        order_id: o.orderId,
+        name: 'BizGrow',
+        description: o.plan,
+        prefill: { name: (B.S.me.user && B.S.me.user.name) || '' },
+        handler: function (resp) { confirmPay(resp, o.plan); },
+        modal: { ondismiss: function () { el.disabled = false; } }
+      });
+      rz.open();
+    } catch (e) {
+      el.disabled = false;
+      B.toast(errText(e));
+    }
+  };
+
+  async function confirmPay(resp, planCode) {
+    try {
+      var r = await B.api('/billing/verify', 'POST', {
+        razorpay_order_id: resp.razorpay_order_id,
+        razorpay_payment_id: resp.razorpay_payment_id,
+        razorpay_signature: resp.razorpay_signature
+      });
+      B.toast(r && r.status === 'pending' ? t('bl_pay_pending') : fill(t('bl_pay_done'), 'plan', planCode));
+      B.S.me = await B.api('/me');
+      B.render();
+    } catch (e) {
+      B.toast(errText(e));
+    }
+  }
+
+  // ---------- Platform owner: make, list and switch off promo codes ----------
+  function adminBack() { return '<a class="link" href="#/settings/plan">← ' + esc(t('bl_back')) + '</a>'; }
+
+  async function adminScreen(v) {
+    v.innerHTML = '';
+    adminBox = document.createElement('div');
+    adminBox.className = 'bg-billing';
+    v.appendChild(adminBox);
+    if (!(await isAdmin())) {
+      adminBox.innerHTML = adminBack() + '<div class="card mt"><p>' + esc(t('bl_no_access')) + '</p></div>';
+      return;
+    }
+    await drawAdmin();
+  }
+
+  async function drawAdmin() {
+    if (!adminBox) return;
+    var plans, codes;
+    try {
+      var got = await Promise.all([B.api('/plans'), B.api('/admin/promos')]);
+      plans = (got[0] && got[0].items) || [];
+      codes = (got[1] && got[1].items) || [];
+    } catch (e) {
+      adminBox.innerHTML = adminBack() + '<div class="card mt"><p>' + esc(errText(e)) + '</p></div>';
+      return;
+    }
+    var planOpts = plans.map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('');
+    var form = '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_adm_new')) + '</h3>' +
+      '<div class="mt"><label class="small">' + esc(t('bl_adm_code')) + '</label><input id="blNewCode" class="in" maxlength="30" style="text-transform:uppercase" autocomplete="off"></div>' +
+      '<div class="mt"><label class="small">' + esc(t('bl_adm_plan')) + '</label><select id="blNewPlan" class="in">' + planOpts + '</select></div>' +
+      '<div class="mt"><label class="small">' + esc(t('bl_adm_dur')) + '</label><select id="blNewDur" class="in">' +
+        '<option value="30">' + esc(t('bl_adm_d30')) + '</option>' +
+        '<option value="90">' + esc(t('bl_adm_d90')) + '</option>' +
+        '<option value="365">' + esc(t('bl_adm_d365')) + '</option>' +
+        '<option value="forever">' + esc(t('bl_adm_forever')) + '</option></select></div>' +
+      '<div class="mt"><label class="small">' + esc(t('bl_adm_max')) + '</label><input id="blNewMax" class="in" type="number" min="1" max="10000" value="1"></div>' +
+      '<div class="mt"><label class="small">' + esc(t('bl_adm_exp')) + '</label><input id="blNewExp" class="in" type="date"></div>' +
+      '<div class="mt"><button class="btn" data-act="bill-promo-make">' + esc(t('bl_adm_make')) + '</button></div></div>';
+
+    var rows = codes.length ? codes.map(function (c) {
+      var planName = (plans.filter(function (p) { return p.code === c.plan; })[0] || {}).name || c.plan;
+      var length = c.duration_days == null ? t('bl_forever') : c.duration_days + ' d';
+      var until = c.expires_at ? ' · ' + t('bl_until_label') + ' ' + dayText(c.expires_at) : '';
+      var used = fill(fill(t('bl_adm_used'), 'n', c.used_count), 'm', c.max_uses);
+      return '<div class="li"><div class="grow"><b>' + esc(c.code) + '</b><div class="small muted">' + esc(planName) + ' · ' +
+        esc(length) + until + '</div>' +
+        '<div class="small">' + esc(used) + '</div></div>' +
+        '<div><span class="badge ' + (c.active ? '' : ' amber') + '">' + esc(c.active ? t('bl_adm_on') : t('bl_adm_off')) + '</span>' +
+        '<div class="mt"><button class="btn sec sm" data-act="bill-promo-toggle" data-id="' + esc(c.id) + '" data-active="' + (c.active ? 'true' : 'false') + '">' +
+        esc(c.active ? t('bl_adm_switch_off') : t('bl_adm_switch_on')) + '</button></div></div></div>';
+    }).join('') : '<p class="small muted">' + esc(t('bl_adm_none')) + '</p>';
+
+    adminBox.innerHTML = adminBack() + B.head(t('bl_adm_title'), t('bl_adm_sub')) + form +
+      '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_adm_list')) + '</h3><div class="list mt">' + rows + '</div></div>';
+  }
+
+  B.ACT['bill-promo-make'] = async function () {
+    function val(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+    var dur = val('blNewDur');
+    var exp = val('blNewExp');
+    var body = {
+      code: val('blNewCode').trim().toUpperCase(),
+      plan: val('blNewPlan'),
+      duration_days: dur === 'forever' ? null : Number(dur),
+      max_uses: Number(val('blNewMax')),
+      expires_at: exp ? new Date(exp + 'T23:59:59+05:30').toISOString() : null
+    };
+    try {
+      var r = await B.api('/admin/promos', 'POST', body);
+      B.toast(fill(t('bl_adm_made'), 'code', (r && r.code) || body.code));
+      await drawAdmin();
+    } catch (e) { B.toast(errText(e)); }
+  };
+
+  B.ACT['bill-promo-toggle'] = async function (el) {
+    try {
+      await B.api('/admin/promos/active', 'POST', { id: el.dataset.id, active: el.dataset.active !== 'true' });
+      await drawAdmin();
+    } catch (e) { B.toast(errText(e)); }
+  };
+
+  // Hook: app.js calls BGV2.after(page, view, subpath) after each screen is drawn.
+  var before = B.after;
+  B.after = function (page, v, sub) {
+    if (before) before(page, v, sub);
+    if (page !== 'settings' || !v || !sub || sub[0] !== 'plan') return;
+    if (sub[1] === 'promos') { adminScreen(v); return; }
+    if (!sub[1]) planExtras(v);
+  };
+})();
+
+</script><script>
 /* BizGrow v2: real sign-in and shop data through Supabase (stage 1).
    Runs when config.js has a project address and key, and the page is not opened with ?demo=1.
    Otherwise this file does nothing and the demo stand-in (mock-api.js) runs as before.
@@ -5572,6 +6028,30 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     if (path === '/plan/request' && method === 'POST') {
       ownerOnly();
       return reply(200, await rpc('request_plan_upgrade', { p_shop: shopId, p_plan: txt(b.plan) }));
+    }
+
+    // Promo codes (patch-15): an owner uses a code for the shop. Only the platform owner makes or switches codes off.
+    if (path === '/promo/redeem' && method === 'POST') {
+      var pr = body || {};
+      return reply(200, await rpc('redeem_promo_code', { p_shop: shopId, p_code: txt(pr.code) }));
+    }
+    if (path === '/admin/me' && method === 'GET') {
+      return reply(200, { admin: (await rpc('is_platform_admin', {})) === true });
+    }
+    if (path === '/admin/promos' && method === 'GET') {
+      return reply(200, { items: (await rpc('admin_list_promos', {})) || [] });
+    }
+    if (path === '/admin/promos' && method === 'POST') {
+      var pm = body || {};
+      return reply(200, await rpc('admin_create_promo', {
+        p_code: txt(pm.code), p_plan: txt(pm.plan),
+        p_duration_days: pm.duration_days == null ? null : Number(pm.duration_days),
+        p_max_uses: Number(pm.max_uses), p_expires_at: pm.expires_at || null
+      }));
+    }
+    if (path === '/admin/promos/active' && method === 'POST') {
+      var pa = body || {};
+      return reply(200, await rpc('admin_set_promo_active', { p_id: txt(pa.id), p_active: pa.active === true }));
     }
 
     // Online store (patch-06): owner turns it on or off; owner, manager and cashier see and move orders.
@@ -6128,6 +6608,14 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     if (url.indexOf('/api/') !== 0) return baseFetch(input, init);
     var pathOnly = url.split('?')[0];
     if (WORKER_ROUTES.indexOf(pathOnly) >= 0) return baseFetch(input, init);
+    // Online payment (billing) goes to the Worker, which needs the signed-in user's token to check the owner.
+    if (pathOnly.indexOf('/api/billing/') === 0) {
+      return session().then(function (s) {
+        var h = new Headers((init && init.headers) || {});
+        if (s && s.access_token) h.set('authorization', 'Bearer ' + s.access_token);
+        return baseFetch(url, Object.assign({}, init || {}, { headers: h }));
+      }, function () { return baseFetch(url, init); });
+    }
     var u = new URL(url, location.origin);
     var path = u.pathname.slice(4);
     var method = ((init && init.method) || 'GET').toUpperCase();

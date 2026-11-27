@@ -199,6 +199,30 @@
       return reply(200, await rpc('request_plan_upgrade', { p_shop: shopId, p_plan: txt(b.plan) }));
     }
 
+    // Promo codes (patch-15): an owner uses a code for the shop. Only the platform owner makes or switches codes off.
+    if (path === '/promo/redeem' && method === 'POST') {
+      var pr = body || {};
+      return reply(200, await rpc('redeem_promo_code', { p_shop: shopId, p_code: txt(pr.code) }));
+    }
+    if (path === '/admin/me' && method === 'GET') {
+      return reply(200, { admin: (await rpc('is_platform_admin', {})) === true });
+    }
+    if (path === '/admin/promos' && method === 'GET') {
+      return reply(200, { items: (await rpc('admin_list_promos', {})) || [] });
+    }
+    if (path === '/admin/promos' && method === 'POST') {
+      var pm = body || {};
+      return reply(200, await rpc('admin_create_promo', {
+        p_code: txt(pm.code), p_plan: txt(pm.plan),
+        p_duration_days: pm.duration_days == null ? null : Number(pm.duration_days),
+        p_max_uses: Number(pm.max_uses), p_expires_at: pm.expires_at || null
+      }));
+    }
+    if (path === '/admin/promos/active' && method === 'POST') {
+      var pa = body || {};
+      return reply(200, await rpc('admin_set_promo_active', { p_id: txt(pa.id), p_active: pa.active === true }));
+    }
+
     // Online store (patch-06): owner turns it on or off; owner, manager and cashier see and move orders.
     if (path === '/store' && method === 'PUT') {
       ownerOnly();
@@ -753,6 +777,14 @@
     if (url.indexOf('/api/') !== 0) return baseFetch(input, init);
     var pathOnly = url.split('?')[0];
     if (WORKER_ROUTES.indexOf(pathOnly) >= 0) return baseFetch(input, init);
+    // Online payment (billing) goes to the Worker, which needs the signed-in user's token to check the owner.
+    if (pathOnly.indexOf('/api/billing/') === 0) {
+      return session().then(function (s) {
+        var h = new Headers((init && init.headers) || {});
+        if (s && s.access_token) h.set('authorization', 'Bearer ' + s.access_token);
+        return baseFetch(url, Object.assign({}, init || {}, { headers: h }));
+      }, function () { return baseFetch(url, init); });
+    }
     var u = new URL(url, location.origin);
     var path = u.pathname.slice(4);
     var method = ((init && init.method) || 'GET').toUpperCase();
