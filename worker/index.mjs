@@ -11,12 +11,15 @@
 // code made from the visitor's connection address and today's date. The address itself is never stored or sent.
 // Until patch-12 is run, the new functions are missing and the Worker falls back to the old ones, so nothing breaks.
 // The server key is never sent to the browser, never logged, and never echoed in a reply.
+//   GET  /api/billing/config, POST /api/billing/create-order, /verify, /webhook (worker/billing.mjs; payments).
 // Voice (speech-to-text): the Worker secret SARVAM_API_KEY is used only here, on the server.
 //   GET  /api/voice/config      says whether voice is on (the key is set) and the max recording length.
 //   POST /api/voice/transcribe  takes one short recording, sends it to the speech service, returns the text.
 //   Limits: 1 MB per recording, 20 requests per minute per connection (best effort: each Worker instance
 //   keeps its own count), 20 second timeout. When voice is off or a call fails, the page uses its own
 //   browser recognition instead. Only product names are sent as hints; customer names never are.
+
+import { handleBilling } from './billing.mjs';
 
 const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const NO_STORE = { 'content-type': 'application/json', 'cache-control': 'no-store' };
@@ -265,6 +268,10 @@ export default {
     if (url.pathname === '/api/public/track') {
       if (request.method !== 'POST') return json(405, { ok: false, error: 'Use POST' });
       return trackOrder(request, env);
+    }
+    if (url.pathname.indexOf('/api/billing/') === 0) {
+      const billed = await handleBilling(request, env, url.pathname);
+      if (billed) return billed;
     }
     if (url.pathname.indexOf('/api/') === 0) return json(404, { error: 'Not found' });
     return env.ASSETS.fetch(request);
