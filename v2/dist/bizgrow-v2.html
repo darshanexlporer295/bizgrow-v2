@@ -2163,7 +2163,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     }
     if (path === '/billing/config' && method === 'GET') return { enabled: false, message: 'Online payment coming soon.' };
     if (path === '/billing/create-order' && method === 'POST') throw E('Online payment coming soon. You can still pay by the manual way or use a promo code.', 503);
-    if (path === '/admin/me' && method === 'GET') return { admin: true };
+    // Demo: the platform owner's screens show only when the demo address has &admin=1, so public demo visitors never see them.
+    if (path === '/admin/me' && method === 'GET') return { admin: /[?&]admin=1(&|$)/.test(location.search) };
     if (path === '/admin/promos' && method === 'GET') return { items: DEMO_PROMOS.slice() };
     if (path === '/admin/promos' && method === 'POST') {
       var nc = String(b.code || '').trim().toUpperCase();
@@ -5644,13 +5645,14 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
 
     var box = document.createElement('div');
     box.className = 'bg-billing';
-    var html = '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_promo_title')) + '</h3>' +
-      '<p class="small muted mt">' + esc(t('bl_promo_sub')) + '</p>' +
-      '<div class="row mt" style="gap:8px"><input id="blCode" class="in" style="flex:1;text-transform:uppercase" maxlength="30" autocomplete="off" autocapitalize="characters" placeholder="' + esc(t('bl_promo_ph')) + '">' +
-      '<button class="btn" data-act="bill-promo">' + esc(t('bl_promo_btn')) + '</button></div>' +
-      '<div id="blPromoMsg" class="small mt" role="status"></div></div>';
-
+    var html = '';
+    // Only the shop owner can use a code or pay (the database and the Worker check this too).
     if (B.isOwner()) {
+      html += '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_promo_title')) + '</h3>' +
+        '<p class="small muted mt">' + esc(t('bl_promo_sub')) + '</p>' +
+        '<div class="row mt" style="gap:8px"><input id="blCode" class="in" style="flex:1;text-transform:uppercase" maxlength="30" autocomplete="off" autocapitalize="characters" placeholder="' + esc(t('bl_promo_ph')) + '">' +
+        '<button class="btn" data-act="bill-promo">' + esc(t('bl_promo_btn')) + '</button></div>' +
+        '<div id="blPromoMsg" class="small mt" role="status"></div></div>';
       var order = cur.sort_order || 0;
       var higher = list.filter(function (p) { return p.sort_order > order; });
       if (higher.length) {
