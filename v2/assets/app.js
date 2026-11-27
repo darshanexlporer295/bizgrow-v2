@@ -357,12 +357,12 @@ const cartSub=()=>S.cart.reduce((s,i)=>s+i.qty*i.price,0);
 async function pSell(v){
   await Promise.all([loadProducts(),loadCustomers()]);
   const cats=[...new Set(S.products.map(p=>p.category).filter(Boolean))];
-  v.innerHTML=head(t('new_sale'),'Tap an item to add it to the bill')+`<div class="pos"><div>
+  v.innerHTML=head(t('new_sale'),'Tap an item to add it to the bill')+`<div id="sellPlanNote" class="mb"></div><div class="pos"><div>
    <div class="row mb"><input class="in grow" style="min-width:0" id="pq" placeholder="${t('search')} / scan barcode" value="${esc(S.q)}" autocomplete="off"><button class="btn sec" style="flex:none" data-act="scanbill">📷 ${t('scan_btn')}</button><button class="btn sec" style="flex:none" data-act="addcustom">+ Other</button></div>
    ${cats.length?`<div class="chips"><button class="chip ${!S.cat?'on':''}" data-act="cat" data-c="">All</button>${cats.map(c=>`<button class="chip ${S.cat===c?'on':''}" data-act="cat" data-c="${esc(c)}">${esc(c)}</button>`).join('')}</div>`:''}
    <div class="tiles" id="tiles"></div></div>
    <div class="card cart" id="cartcard"><h3>${t('cart')}</h3><div id="cartbox"></div></div></div><button class="cartbar hide" id="cartbar" data-act="gocart"></button>`;
-  drawTiles();drawCart();
+  drawTiles();drawCart();planNote('#sellPlanNote');
   $('#pq').addEventListener('input',e=>{S.q=e.target.value;drawTiles();});
   $('#pq').addEventListener('keydown',e=>{if(e.key==='Enter'){const q=S.q.trim().toLowerCase();const hit=S.products.find(p=>p.sku&&p.sku.toLowerCase()===q)||(visible().length===1&&visible()[0]);if(hit){addToCart(hit.id);S.q='';e.target.value='';drawTiles();}}});
 }
@@ -690,7 +690,7 @@ const planLocked=(p,f)=>!!p&&!(p.features&&p.features[f]);
 function lockCard(feature){return `<div class="card lock-card"><b>${t('s3_lk_title')}</b><p class="small mt">${t('s3_lk_'+feature)}</p><a class="btn sm mt" href="#/settings/plan">${t('s3_lk_btn')}</a></div>`;}
 function meterHtml(p){if(p.bills_per_month==null)return '';const n=p.usage.bills,max=p.bills_per_month;const pct=Math.min(100,Math.round(n/max*100));return `<div class="mt"><div class="small">${t('s3_meter').replace('{n}',n).replace('{max}',max)}</div><div class="bar"><i style="width:${pct}%"></i></div></div>`;}
 function billNotice(p){if(p.bills_per_month==null)return '';const n=p.usage.bills,max=p.bills_per_month;if(n>=max)return `<p class="small mt" style="color:#7a4a00">${t('s3_bills_limit').replace('{n}',max)}</p>`;if(n>=Math.ceil(max*0.8))return `<p class="small mt" style="color:#7a4a00">${t('s3_bills_near')}</p>`;return '';}
-async function planNote(){const el=$('#planNote');if(!el)return;try{const p=await planNow();el.innerHTML=meterHtml(p)+billNotice(p);}catch(e){}}
+async function planNote(sel){const el=$(sel||'#planNote');if(!el)return;try{const p=await planNow();el.innerHTML=meterHtml(p)+billNotice(p);}catch(e){}}
 async function pPlan(v){
   const [cur,list]=await Promise.all([planNow(),api('/plans')]);
   const req=cur.requested;
@@ -718,7 +718,6 @@ async function pPlan(v){
 ACT.planreq=async el=>{try{await api('/plan/request','POST',{plan:el.dataset.plan});toast(t('s3_req_toast'));render();}catch(e){toast(e.message);}};
 async function pSettings(v,args){
   if(args&&args[0]==='plan')return pPlan(v);
-  const plan=await planNow().catch(()=>null);
   const s=S.me.shop;
   const cur=s.business_type||localStorage.getItem('bg_biztype_'+s.id)||'';
   const bizOpts=[['','—'],...['textile_trader','yarn_fabric','raw_material','other'].map(k=>[k,t('s3_bt_'+k)])].map(([k,l])=>`<option value="${k}" ${cur===k?'selected':''}>${l}</option>`).join('');
@@ -729,7 +728,9 @@ async function pSettings(v,args){
   <div class="f"><label>GST number (optional)</label><input class="in" name="gstin" value="${esc(s.gstin||'')}"></div>
   <button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>
   <div class="card mt" style="max-width:640px"><h3>${t('s3_biz_title')}</h3><p class="muted small mb">${t('s3_biz_sub')}</p><form data-form="biztype"><div class="f"><select class="in" name="business_type">${bizOpts}</select></div><button class="btn sec" type="submit">${t('save')}</button></form></div>
-  <div class="card mt" style="max-width:640px"><h3>${t('s3_plan_title')}</h3>${plan?`<b>${esc(planName(plan.code))}</b>${meterHtml(plan)}`:''}<a class="btn sec mt" href="#/settings/plan">${t('s3_plan_link')}</a></div>`;
+  <div class="card mt" style="max-width:640px"><h3>${t('s3_plan_title')}</h3><div id="setPlanBox"></div><a class="btn sec mt" href="#/settings/plan">${t('s3_plan_link')}</a></div>`;
+  // The plan figures fill in after the page is drawn, so the page does not wait on the network (keeps focus where it was).
+  planNow().then(p=>{const el=$('#setPlanBox');if(el&&p)el.innerHTML=`<b>${esc(planName(p.code))}</b>${meterHtml(p)}`;}).catch(()=>{});
 }
 ACT.redoob=()=>onboarding();
 FORM.biztype=async(f,d)=>{const v=d.business_type||'';localStorage.setItem('bg_biztype_'+S.me.shop.id,v);const r=await api('/business-type','PUT',{business_type:v});S.me=await api('/me');toast(r&&r.saved_here?t('s3_biz_local'):t('s3_biz_saved'));render();};
