@@ -1,15 +1,15 @@
 -- make-platform-owner.sql: makes ONE login the BizGrow platform owner (the only one who can make promo codes).
 -- Run once in the Supabase SQL Editor, after patch-15 (or run-all-pending.sql) has run.
 --
--- STEP 1: replace the placeholder email on the line marked EDIT HERE with the email you use to log in to BizGrow.
---         Keep the quote marks. Use the exact email of the login, not a shop staff email.
--- STEP 2: click Run. It says "platform owner added" when it worked.
+-- STEP 1: check the email on the line marked EDIT HERE is the one you use to log in to BizGrow (it is set to
+--         revobuildsit@gmail.com). If it is not, change it. Keep the quote marks. Use the exact login email, not a staff email.
+-- STEP 2: click Run. It says "platform owner added" when it worked. The login must already exist (signed in once with Google).
 --
 -- Safe to run again. It never creates a login; the login must already exist (sign up in the app first).
 
 do $$
 declare
-  v_email text := 'REPLACE-WITH-YOUR-LOGIN-EMAIL@example.com';   -- EDIT HERE (step 1)
+  v_email text := 'revobuildsit@gmail.com';   -- EDIT HERE (step 1): the platform owner's login email
   v_id    uuid;
 begin
   if v_email like 'REPLACE-WITH-%' then

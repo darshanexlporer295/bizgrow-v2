@@ -20,7 +20,7 @@ Run each file in the Supabase dashboard: **SQL Editor**, then **New query**, pas
    - `patch-15.sql`: online payment for plan upgrades (Razorpay, set up later), promo codes, and plan end dates. Prices: Growth Rs 499 and All Features Rs 999 for 30 days (to be confirmed). Promo codes are made only by the BizGrow team.
 3. Nothing is deleted. Running it a second time is safe.
 4. Open the live site in a new tab, and do a hard refresh (on a phone: close the tab and open it again).
-5. Only once, for the BizGrow team's own login (needed to make promo codes): open `supabase/make-platform-owner.sql` on GitHub, click the pencil icon, and replace the placeholder email (the line marked REPLACE-WITH-YOUR-LOGIN-EMAIL) with the email you use to log in to BizGrow. Then paste the whole file into **SQL Editor**, **New query**, and click **Run**. It stops with a clear message if the placeholder was not changed or the email has no login yet. Do not put the email in any other file.
+5. Only once, for the BizGrow team's own login (needed to make promo codes): open `supabase/make-platform-owner.sql` on GitHub, click the pencil icon, and check that the email on the line marked EDIT HERE is the BizGrow login email. It is already set to revobuildsit@gmail.com; change it only if your login uses another email. Then paste the whole file into **SQL Editor**, **New query**, and click **Run**. It stops with a clear message if the placeholder was not changed or the email has no login yet. Do not put the email in any other file.
 6. Test: place one order from the shop link, check its tracking, and add and then delete a test supplier in the Suppliers screen. Delete the test supplier afterwards.
 
 The live website and the server part (the Worker) are published by pushing to GitHub `main`. They do not need any step from you.
@@ -46,7 +46,7 @@ The live website and the server part (the Worker) are published by pushing to Gi
 | `patch-13.sql` | Tighter limits per connection, code required, no default public rights | In `run-all-pending.sql` |
 | `patch-14.sql` | Plans and limits (Free, Growth, All Features); existing shops get All Features | In `run-all-pending.sql` |
 | `patch-15.sql` | Payments for plan upgrades, promo codes, plan end dates | In `run-all-pending.sql` |
-| `make-platform-owner.sql` | Marks your login as the BizGrow team (for promo codes). Edit the email first | Run once, after the main file |
+| `make-platform-owner.sql` | Marks the login revobuildsit@gmail.com as the BizGrow platform owner (for promo codes). Sign in once first | Run once, after the main file |
 | `run-all-pending.sql` | patch-08, 09, 11, 12, 13, 14 and 15 joined, in order | Run tomorrow |
 | `patch-10-lockdown.sql` | Only the server can place orders | Optional, last |
 | `patch-10-rollback.sql` | Undo of patch-10 | Only if needed |

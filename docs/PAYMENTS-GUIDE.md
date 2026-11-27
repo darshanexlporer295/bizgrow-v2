@@ -99,6 +99,15 @@ Do not mix test and live keys.
 
 ---
 
+## Promo codes and the platform owner (BizGrow team only)
+
+Promo codes are made on the **Promo codes** link at the bottom of Settings, then Plan. That link shows only to the platform owner.
+
+- The platform owner login is **revobuildsit@gmail.com**. Sign in to BizGrow once with that email first.
+- Then, once, run `supabase/make-platform-owner.sql` in the Supabase **SQL Editor**. It must say "platform owner added".
+- A shop owner types a code on Settings, then Plan. The code turns on its plan for the shop, for the number of days set (or for good), and stops when it reaches its maximum number of shops or its end date.
+- Switch a code off at any time from the same screen. Shops that already used it keep their plan until its end.
+
 ## What BizGrow does with a payment (for your information)
 
 - It creates the order with the price from the plan settings. The browser cannot change the price.
