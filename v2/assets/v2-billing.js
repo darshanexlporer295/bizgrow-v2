@@ -43,6 +43,9 @@
   }
 
   // ---------- Plan page: promo card, pay buttons, link for the platform owner ----------
+  // The Plan page is reached from #/settings/plan and from #/plans (sidebar and More).
+  function onPlanScreen() { return B.S.page === 'plans' || B.S.page === 'settings'; }
+
   async function planExtras(v) {
     var cur, list, cfg, admin;
     try {
@@ -55,7 +58,7 @@
       cur = got[0]; list = (got[1] && got[1].items) || []; cfg = got[2] || {}; admin = got[3];
     } catch (e) {
       // The user may have moved to another page while this loaded.
-      if (!v.isConnected || B.S.page !== 'settings') return;
+      if (!v.isConnected || !onPlanScreen()) return;
       var failBox = document.createElement('div');
       failBox.className = 'bg-billing';
       failBox.innerHTML = retryBox(t('bl_plan_fail'), 'plan-retry');
@@ -63,40 +66,52 @@
       return;
     }
     // The user may have moved to another page while this loaded.
-    if (!v.isConnected || B.S.page !== 'settings') return;
+    if (!v.isConnected || !onPlanScreen()) return;
 
     var box = document.createElement('div');
     box.className = 'bg-billing';
     var html = '';
     // Only the shop owner can use a code or pay (the database and the Worker check this too).
     if (B.isOwner()) {
-      html += '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_promo_title')) + '</h3>' +
+      html += '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_pay_title')) + '</h3>' +
+        '<p class="small muted mt">' + esc(cfg.enabled ? t('bl_pay_sub') : t('bl_pay_soon_note')) + '</p></div>' +
+        '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_promo_title')) + '</h3>' +
         '<p class="small muted mt">' + esc(t('bl_promo_sub')) + '</p>' +
         '<div class="row mt" style="gap:8px"><input id="blCode" class="in" style="flex:1;text-transform:uppercase" maxlength="30" autocomplete="off" autocapitalize="characters" placeholder="' + esc(t('bl_promo_ph')) + '">' +
         '<button class="btn" data-act="bill-promo">' + esc(t('bl_promo_btn')) + '</button></div>' +
         '<div id="blPromoMsg" class="small mt" role="status"></div></div>';
-      var order = cur.sort_order || 0;
-      var higher = list.filter(function (p) { return p.sort_order > order; });
-      if (higher.length) {
-        html += '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_pay_title')) + '</h3>' +
-          '<p class="small muted mt">' + esc(t('bl_pay_sub')) + '</p>';
-        if (cfg.enabled) {
-          higher.forEach(function (p) {
-            html += '<div class="mt"><button class="btn" data-act="bill-pay" data-plan="' + esc(p.code) + '">' +
-              esc(fill(t('bl_pay_btn'), 'plan', p.name)) + '</button></div>';
-          });
-        } else {
-          html += '<div class="mt"><button class="btn sec" disabled>' + esc(t('bl_pay_soon')) + '</button>' +
-            '<p class="small muted mt">' + esc(t('bl_pay_soon_note')) + '</p></div>';
-        }
-        html += '</div>';
-      }
     }
     if (admin) {
       html += '<div class="card mt"><a class="link" href="#/settings/plan/promos">' + esc(t('bl_admin_link')) + '</a></div>';
     }
     box.innerHTML = html;
     v.appendChild(box);
+    if (B.isOwner()) fillPlanActions(v, cur, list, cfg);
+  }
+
+  // Each plan card (app.js leaves an empty slot for the owner) gets: Pay first when payments are on,
+  // or a disabled "Online payment coming soon" when they are off. The manual request stays as the secondary button.
+  function fillPlanActions(v, cur, list, cfg) {
+    var curOrder = cur.sort_order || 0;
+    var slots = v.querySelectorAll('.plan-act');
+    for (var i = 0; i < slots.length; i++) {
+      var el = slots[i];
+      var code = el.getAttribute('data-plan-code');
+      var p = list.filter(function (x) { return x.code === code; })[0];
+      if (!p || p.code === cur.code) continue;
+      var h = '';
+      if (p.sort_order > curOrder) {
+        if (cfg.enabled) {
+          h += '<button class="btn" data-act="bill-pay" data-plan="' + esc(p.code) + '">' +
+            esc(fill(t('bl_pay_btn'), 'plan', p.name)) + '</button>';
+        } else {
+          h += '<button class="btn sec" disabled>' + esc(t('bl_pay_soon')) + '</button>';
+        }
+      }
+      h += '<div class="mt"><button class="btn sec sm" data-act="planreq" data-plan="' + esc(p.code) + '">' +
+        esc(t('s3_ask_upgrade')) + '</button></div>';
+      el.innerHTML = h;
+    }
   }
 
   // Promo code redemption.
@@ -255,6 +270,8 @@
   var before = B.after;
   B.after = function (page, v, sub) {
     if (before) before(page, v, sub);
+    // #/plans is the sidebar and More entry to the same Plan page (see app.js).
+    if (page === 'plans' && v) { planExtras(v); return; }
     if (page !== 'settings' || !v || !sub || sub[0] !== 'plan') return;
     if (sub[1] === 'promos') { adminScreen(v); return; }
     if (!sub[1]) planExtras(v);

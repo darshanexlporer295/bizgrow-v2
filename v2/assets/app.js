@@ -42,6 +42,7 @@ settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4
 more:'M5 12h.01M12 12h.01M19 12h.01',
 team:'M17 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M10 10a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM21 20v-2a4 4 0 0 0-3-3.9M16 2.1a4 4 0 0 1 0 7.8',
 privacy:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z',
+plans:'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.6 6.1 20.7l1.2-6.6-4.8-4.6 6.6-.9z',
 };
 const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${IC[n]}"/></svg>`;
 const LOGO=`<svg width="34" height="34" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#fff"/><path d="M32 50V31" stroke="#0A192F" stroke-width="5" stroke-linecap="round"/><path d="M32 33C32 23 24 18 15 19c0 10 7 16 17 14Z" fill="#0A192F"/><path d="M32 29c0-8 6-13 15-12 0 9-6 14-15 12Z" fill="#F59E0B"/></svg>`;
@@ -50,7 +51,7 @@ const CATS=[['kirana','Kirana / grocery'],['cafe','Café / tea stall'],['salon',
 const EXPCATS=['Milk & Dairy','Stock purchase','Shop rent','Staff wages','Electricity','Transport','Repairs','Packaging','Other'];
 const EXPCATS_CREATOR=[['Tools & software','c_exp_tools'],['Gear & equipment','c_exp_gear'],['Ads & promotion','c_exp_ads'],['Internet & phone','c_exp_internet'],['Travel','c_exp_travel'],['Freelancers & editors','c_exp_freelance'],['Other','c_exp_other']];
 const isOwner=()=>S.me&&S.me.role==='owner';
-const NAV=()=>[['home','home'],['sell','sell'],['bills','bills'],['khata','khata'],['stock','stock'],['expenses','expenses'],['reports','reports'],['suppliers','suppliers'],['tasks','tasks'],['store','store'],...(isOwner()?[['team','team'],['privacy','privacy'],['settings','settings']]:[])];
+const NAV=()=>[['home','home'],['sell','sell'],['bills','bills'],['khata','khata'],['stock','stock'],['expenses','expenses'],['reports','reports'],['suppliers','suppliers'],['tasks','tasks'],['store','store'],...(isOwner()?[['plans','plans'],['team','team'],['privacy','privacy'],['settings','settings']]:[])];
 const TABS=[['home','home'],['sell','sell'],['khata','khata'],['stock','stock'],['more','more']];
 
 /* ---------- modal ---------- */
@@ -81,13 +82,13 @@ async function render(){
   document.documentElement.lang=S.lang;
   const nav=NAV();
   $('#app').innerHTML=`<div class="shell"><aside class="side"><div class="brand">${LOGO}<div>BizGrow<small>${esc(S.me.shop.name)}</small></div></div>
-  <nav class="nav">${nav.map(([k,i])=>`<a href="#/${k}" class="${S.page===k?'on':''}">${ic(i)}<span>${t(k)}</span></a>`).join('')}</nav>
+  <nav class="nav">${nav.map(([k,i])=>`<a href="#/${k}" class="${S.page===k?'on':''}${k==='plans'?' plans-link':''}">${ic(i)}<span>${t(k)}</span></a>`).join('')}</nav>
   ${isCreator()?clipsSide():`<a class="sidecta" target="_blank" rel="noopener" href="${revoLink('growing my business')}"><b>Consult RÊVO</b><span>Website · WhatsApp · Reels</span></a>`}<div class="who"><b>${esc(S.me.user.name)}</b><span class="muted">${S.me.role==='owner'?'Owner':S.me.role==='manager'?'Manager':'Staff'}</span><br><button data-act="logout">${t('signout')}</button></div></aside>
   <main class="main" id="view"><div class="empty">…</div></main>
-  <nav class="tabbar">${TABS.map(([k,i])=>`<a href="#/${k}" class="${(S.page===k||(k==='more'&&['suppliers','tasks','store','orders','team','privacy','settings','reports','expenses'].includes(S.page)))?'on':''}">${ic(i)}<span>${t(k)}</span></a>`).join('')}</nav></div>`;
+  <nav class="tabbar">${TABS.map(([k,i])=>`<a href="#/${k}" class="${(S.page===k||(k==='more'&&['suppliers','tasks','store','orders','team','privacy','settings','reports','expenses','plans'].includes(S.page)))?'on':''}">${ic(i)}<span>${t(k)}</span></a>`).join('')}</nav></div>`;
   const v=$('#view');
   try{
-    const P={home:pHome,sell:pSell,bills:pBills,khata:pKhata,stock:pStock,expenses:pExpenses,reports:pReports,suppliers:pSuppliers,tasks:pTasks,store:pStore,orders:pOrders,more:pMore,team:pTeam,privacy:pPrivacy,settings:pSettings}[S.page]||pHome;
+    const P={home:pHome,sell:pSell,bills:pBills,khata:pKhata,stock:pStock,expenses:pExpenses,reports:pReports,suppliers:pSuppliers,tasks:pTasks,store:pStore,orders:pOrders,more:pMore,team:pTeam,privacy:pPrivacy,settings:pSettings,plans:pPlan}[S.page]||pHome;
     await P(v,page.slice(1));
     if(window.BGV2&&BGV2.after)BGV2.after(S.page,v,page.slice(1));
     if(S.page==='home'){if(isOwner()&&!S.me.onboarded&&!sessionStorage.getItem('bg_skipob'))setTimeout(onboarding,300);else if(S.me.onboarded||!isOwner()){clearTimeout(S.popT);S.popT=setTimeout(revoPopup,3500);}}
@@ -658,8 +659,12 @@ async function pOrders(v){ v.innerHTML=head(t('orders'),t('ord_sub'))+'<div clas
 
 /* ---------- more (mobile) ---------- */
 async function pMore(v){
-  const items=[['bills','bills'],['reports','reports'],['expenses','expenses'],['suppliers','suppliers'],['tasks','tasks'],['store','store'],...(isOwner()?[['team','team'],['privacy','privacy'],['settings','settings']]:[])];
-  v.innerHTML=head(t('more'),'')+`<div class="card"><div class="list">${items.map(([k,i])=>`<a class="li" href="#/${k}" style="color:inherit"><span style="color:var(--primary)">${ic(i).replace('<svg','<svg width="22" height="22"')}</span><span class="grow bold">${t(k)}</span>›</a>`).join('')}</div></div>
+  const items=[['bills','bills'],['reports','reports'],['expenses','expenses'],['suppliers','suppliers'],['tasks','tasks'],['store','store'],...(isOwner()?[['plans','plans'],['team','team'],['privacy','privacy'],['settings','settings']]:[])];
+  // Plans (owners only) gets a navy row with a saffron label, so it stands out on the white list.
+  const row=([k,i])=>k==='plans'
+    ?`<a class="li plans-row" href="#/plans"><span>${ic(i).replace('<svg','<svg width="22" height="22"')}</span><span class="grow bold">${t(k)}</span>›</a>`
+    :`<a class="li" href="#/${k}" style="color:inherit"><span style="color:var(--primary)">${ic(i).replace('<svg','<svg width="22" height="22"')}</span><span class="grow bold">${t(k)}</span>›</a>`;
+  v.innerHTML=head(t('more'),'')+`<div class="card"><div class="list">${items.map(row).join('')}</div></div>
   <div class="card mt">${isOwner()?'':langPick('moreLang')}<button class="btn sec block" data-act="logout">${t('signout')}</button></div>`;
 }
 document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.act==='lang')ACT.lang(e.target);});
@@ -712,13 +717,14 @@ async function pPlan(v){
     [t('s3_row_reports'),yn(p.features.full_reports)]
   ];
   const planCard=p=>{const isNow=p.code===cur.code;
-    const action=isNow?'':(isOwner()?`<div class="mt"><button class="btn sec sm" data-act="planreq" data-plan="${esc(p.code)}">${t('s3_ask_upgrade')}</button></div>`:`<p class="small muted mt">${t('s3_owner_only')}</p>`);
+    // Owner: the buttons (Pay first, then the manual request) are filled in by v2-billing.js, so the page never shows the manual button alone.
+    const action=isNow?'':(isOwner()?`<div class="mt plan-act" data-plan-code="${esc(p.code)}"></div>`:`<p class="small muted mt">${t('s3_owner_only')}</p>`);
     return `<div class="card${isNow?' plan-now':''}"><div class="row sp"><h3 style="margin:0">${esc(planName(p.code))}</h3>${isNow?`<span class="badge amber">${t('s3_current')}</span>`:''}</div><div class="list small mt">${rowsFor(p).map(([k,val])=>`<div class="li"><span class="grow">${esc(k)}</span><b>${esc(val)}</b></div>`).join('')}</div>${action}</div>`;};
-  v.innerHTML=`<a class="link" href="#/settings">← ${t('settings')}</a>`+head(t('s3_plan_title'),t('s3_plan_sub'))+
+  // Opened from the sidebar or More (#/plans) there is no back link; #/settings/plan keeps its link back to Settings.
+  v.innerHTML=(S.page==='plans'?'':`<a class="link" href="#/settings">← ${t('settings')}</a>`)+head(t('s3_plan_title'),t('s3_plan_sub'))+
   `<div class="card"><div class="row sp"><b>${esc(planName(cur.code))}</b><span class="badge amber">${t('s3_current')}</span></div>${meterHtml(cur)}${billNotice(cur)}</div>`+
   (req?`<div class="card mt"><p class="small">${esc(t('s3_req_sent').replace('{plan}',planName(req.to_plan)))}</p></div>`:'')+
-  `<div class="plans mt" style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${list.items.map(planCard).join('')}</div>`+
-  `<div class="card mt"><p class="small muted">${t('s3_no_pay')}</p></div>`;
+  `<div class="plans mt" style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${list.items.map(planCard).join('')}</div>`;
 }
 ACT.planreq=async el=>{try{await api('/plan/request','POST',{plan:el.dataset.plan});toast(t('s3_req_toast'));render();}catch(e){toast(e.message);}};
 async function pSettings(v,args){
@@ -733,9 +739,7 @@ async function pSettings(v,args){
   <div class="f"><label>GST number (optional)</label><input class="in" name="gstin" value="${esc(s.gstin||'')}"></div>
   <button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>
   <div class="card mt" style="max-width:640px"><h3>${t('s3_biz_title')}</h3><p class="muted small mb">${t('s3_biz_sub')}</p><form data-form="biztype"><div class="f"><select class="in" name="business_type">${bizOpts}</select></div><button class="btn sec" type="submit">${t('save')}</button></form></div>
-  <div class="card mt" style="max-width:640px"><h3>${t('s3_plan_title')}</h3><div id="setPlanBox"></div><a class="btn sec mt" href="#/settings/plan">${t('s3_plan_link')}</a></div>`;
-  // The plan figures fill in after the page is drawn, so the page does not wait on the network (keeps focus where it was).
-  planNow().then(p=>{const el=$('#setPlanBox');if(el&&p)el.innerHTML=`<b>${esc(planName(p.code))}</b>${meterHtml(p)}`;}).catch(()=>{});
+  <p class="small mt" style="max-width:640px"><a class="link" href="#/settings/plan">${t('s3_plan_link')}</a></p>`;
 }
 ACT.redoob=()=>onboarding();
 FORM.biztype=async(f,d)=>{const v=d.business_type||'';localStorage.setItem('bg_biztype_'+S.me.shop.id,v);const r=await api('/business-type','PUT',{business_type:v});S.me=await api('/me');toast(r&&r.saved_here?t('s3_biz_local'):t('s3_biz_saved'));render();};
