@@ -22,6 +22,7 @@
       nosound: 'I did not hear anything. Tap the mic and speak again.',
       noapi: 'Voice does not work in this browser. Type instead.',
       failed: 'Voice stopped. Tap the mic to try again, or type instead.',
+      checking: 'Checking what you said…', retry: 'Online voice did not work. Speak again.',
       mute_on: 'Hello sound: on (tap to mute)', mute_off: 'Hello sound: muted (tap to turn on)'
     },
     hi: {
@@ -33,6 +34,7 @@
       nosound: 'कुछ सुनाई नहीं दिया। माइक दबाकर फिर बोलें।',
       noapi: 'इस ब्राउज़र में आवाज़ काम नहीं करती। लिखकर बताएं।',
       failed: 'आवाज़ रुक गई। माइक दबाकर फिर कोशिश करें, या लिखकर बताएं।',
+      checking: 'आपकी बात जांची जा रही है…', retry: 'ऑनलाइन आवाज़ नहीं चली। फिर से बोलें।',
       mute_on: 'नमस्ते की आवाज़: चालू (बंद करने के लिए दबाएं)', mute_off: 'नमस्ते की आवाज़: बंद (चालू करने के लिए दबाएं)'
     },
     mr: {
@@ -44,6 +46,7 @@
       nosound: 'काही ऐकू आले नाही. माइक दाबा आणि पुन्हा बोला.',
       noapi: 'या ब्राउझरमध्ये आवाज चालत नाही. लिहून सांगा.',
       failed: 'आवाज थांबला. माइक दाबून पुन्हा प्रयत्न करा, किंवा लिहून सांगा.',
+      checking: 'तुम्ही काय सांगितले ते तपासत आहे…', retry: 'ऑनलाइन आवाज चालली नाही. पुन्हा बोला.',
       mute_on: 'स्वागत आवाज: चालू (बंद करण्यासाठी दाबा)', mute_off: 'स्वागत आवाज: बंद (चालू करण्यासाठी दाबा)'
     },
     gu: {
@@ -55,6 +58,7 @@
       nosound: 'કંઈ સંભળાયું નહીં. માઇક દબાવીને ફરી બોલો.',
       noapi: 'આ બ્રાઉઝરમાં અવાજ ચાલતો નથી. લખીને કહો.',
       failed: 'અવાજ બંધ થયો. ફરી માઇક દબાવો, અથવા લખીને કહો.',
+      checking: 'તમે જે કહ્યું તે તપાસું છું…', retry: 'ઓનલાઈન અવાજ ચાલ્યો નહીં. ફરી બોલો.',
       mute_on: 'સ્વાગત અવાજ: ચાલુ (બંધ કરવા દબાવો)', mute_off: 'સ્વાગત અવાજ: બંધ (ચાલુ કરવા દબાવો)'
     }
   };
@@ -112,7 +116,7 @@
   // ---- listening ----
   // run.rec is the one live recognition object. It is kept here so the browser does not lose it.
   // Every callback checks that it is still the current one, so an old session cannot change the screen.
-  var run = { on: false, stopping: false, id: 0, rec: null, finals: '', interim: '', empty: 0, err: '', timer: null };
+  var run = { on: false, stopping: false, id: 0, rec: null, finals: '', interim: '', empty: 0, err: '', timer: null, mode: 'browser' };
 
   function paintMic(on) {
     var b = document.querySelector('[data-v2="mic"]'); if (!b) return;
@@ -235,29 +239,152 @@
     });
   }
 
+  // ---- online recognition (through the Worker to the speech service) ----
+  // One short clip is recorded with MediaRecorder, sent to /api/voice/transcribe, and checked like typed words.
+  // When voice online is off, the browser cannot record, or the call fails, the browser recognition above takes over.
+  // The speech key is never in this page. The request goes to the original fetch, not the demo stand-in.
+  var sv = { state: null, mr: null, stream: null, chunks: [], timer: null, busy: false };   // state: null unknown, true or false
+  var MAX_REC_MS = 25000;
+  function recordOK() { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder); }
+  function apiFetch() { return window.BGV2_fetch || window.fetch.bind(window); }
+  function stopTracks(s) { try { if (s) s.getTracks().forEach(function (t) { t.stop(); }); } catch (e) { /* already stopped */ } }
+
+  // Asks the Worker once whether voice online is on. Any problem counts as off, and the browser recognition is used.
+  function checkOnline() {
+    // Opened as a local file, there is no Worker to ask, so voice online stays off without a failed call.
+    if (!recordOK() || location.protocol === 'file:') { sv.state = false; return; }
+    apiFetch()('/api/voice/config', { method: 'GET', credentials: 'same-origin', cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { sv.state = !!(d && d.enabled === true); }, function () { sv.state = false; });
+  }
+
+  function pickType() {
+    var list = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+    try {
+      if (!window.MediaRecorder || !window.MediaRecorder.isTypeSupported) return '';
+      for (var i = 0; i < list.length; i++) if (window.MediaRecorder.isTypeSupported(list[i])) return list[i];
+    } catch (e) { /* use the browser default */ }
+    return '';
+  }
+
+  // Product names help the speech service with odd words. Customer names are never sent.
+  function productTerms() {
+    var out = [], seen = {};
+    (B.S.products || []).forEach(function (p) {
+      var n = String((p && p.name) || '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 64);
+      if (n && !seen[n] && out.length < 50) { seen[n] = true; out.push(n); }
+    });
+    return out;
+  }
+
+  function endRun() {
+    clearTimeout(run.timer); run.timer = null;
+    run.on = false; run.stopping = false; run.rec = null; run.finals = ''; run.interim = '';
+    paintMic(false);
+  }
+
+  // The browser recognition takes over after an online failure. The member speaks again.
+  // The member may already have tapped the mic off while the clip was checked (stopOnline clears run.on),
+  // so the listening state is set again here; otherwise the failed check would leave "Checking" on screen.
+  function fallbackBrowser(id) {
+    if (id !== run.id) return;   // the member left the page or started again
+    run.mode = 'browser';
+    if (!speechClass()) { stopWith('failed'); return; }
+    if (!run.on) { run.on = true; run.stopping = false; run.finals = ''; run.interim = ''; run.empty = 0; paintMic(true); }
+    msg(vt('retry'));
+    startRec(id);
+  }
+
+  function startOnline(id) {
+    if (!run.on || id !== run.id) return;
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      if (!run.on || id !== run.id) { stopTracks(stream); return; }
+      var mr, type = pickType();
+      try { mr = type ? new window.MediaRecorder(stream, { mimeType: type }) : new window.MediaRecorder(stream); }
+      catch (e) { stopTracks(stream); fallbackBrowser(id); return; }
+      sv.stream = stream; sv.mr = mr; sv.chunks = [];
+      mr.ondataavailable = function (ev) { if (ev && ev.data && ev.data.size) sv.chunks.push(ev.data); };
+      mr.onstop = function () { onOnlineStop(id, mr); };
+      try { mr.start(); } catch (e) { sv.mr = null; stopTracks(stream); sv.stream = null; fallbackBrowser(id); return; }
+      msg(vt('bolo'));
+      sv.timer = setTimeout(stopOnline, MAX_REC_MS);
+    }, function () { fallbackBrowser(id); });
+  }
+
+  // The member tapped the mic again, or the clip reached its time limit. Stops the recording and checks it.
+  function stopOnline() {
+    clearTimeout(sv.timer); sv.timer = null;
+    if (!run.on) return;
+    run.on = false; paintMic(false);
+    var mr = sv.mr;
+    if (!mr) { msg(''); return; }
+    try { mr.stop(); } catch (e) { sv.mr = null; stopTracks(sv.stream); sv.stream = null; msg(vt('nosound')); }
+  }
+
+  function onOnlineStop(id, mr) {
+    var chunks = sv.chunks; sv.chunks = []; sv.mr = null;
+    stopTracks(sv.stream); sv.stream = null;
+    if (id !== run.id) return;   // the member left the page or started again
+    var type = (mr && mr.mimeType) || (chunks[0] && chunks[0].type) || 'audio/webm';
+    var blob = new Blob(chunks, { type: type });
+    if (blob.size < 1000) { endRun(); msg(vt('nosound')); return; }
+    msg(vt('checking'));
+    sendOnline(blob, type, id);
+  }
+
+  function sendOnline(blob, type, id) {
+    sv.busy = true;
+    var fd = new FormData();
+    var ext = type.indexOf('mp4') >= 0 ? 'mp4' : (type.indexOf('ogg') >= 0 ? 'ogg' : 'webm');
+    fd.append('audio', blob, 'speech.' + ext);
+    fd.append('language', langOf());
+    fd.append('keyterms', JSON.stringify(productTerms()));
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 25000);
+    apiFetch()('/api/voice/transcribe', { method: 'POST', body: fd, credentials: 'same-origin', signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { return r.json().catch(function () { return null; }).then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (x) {
+        clearTimeout(timer); sv.busy = false;
+        if (id !== run.id) return;
+        var d = x.d || {};
+        var tr = x.ok && d.ok === true && typeof d.transcript === 'string' ? d.transcript.trim() : '';
+        if (tr) { endRun(); var box = $('v2-type'); if (box) box.value = tr; msg(''); review(tr); return; }
+        if (d.code === 'empty') { endRun(); msg(vt('nosound')); return; }
+        fallbackBrowser(id);
+      }, function () { clearTimeout(timer); sv.busy = false; fallbackBrowser(id); });
+  }
+
   function listen() {
-    if (run.on) { stopUser(); return; }
-    if (!speechClass()) { msg(vt('noapi')); focusType(); return; }
+    if (run.on) { if (run.mode === 'sarvam') stopOnline(); else stopUser(); return; }
+    var online = sv.state === true && recordOK();
+    if (!online && !speechClass()) { msg(vt('noapi')); focusType(); return; }
     if (run.rec) { var old = run.rec; run.rec = null; try { old.abort(); } catch (e) { /* already ended */ } }
     clearTimeout(run.timer); run.timer = null;
     run.id++; run.on = true; run.stopping = false; run.finals = ''; run.interim = ''; run.empty = 0; run.err = '';
+    run.mode = online ? 'sarvam' : 'browser';
     paintMic(true);
     var id = run.id;
-    if (isMuted() || !canSpeak()) { msg(''); startRec(id); return; }
+    var go = function () { if (run.mode === 'sarvam') startOnline(id); else startRec(id); };
+    if (isMuted() || !canSpeak()) { msg(''); go(); return; }
     var hello = vt('greet', { name: B.assistant() });
     msg(hello);
     // The greeting ends first, so the microphone does not hear the assistant's own voice.
-    speak(hello, function () { startRec(id); });
+    speak(hello, go);
   }
 
-  // Leaving the page ends any listening or greeting.
+  // Leaving the page ends any listening, recording, or pending check.
   window.addEventListener('hashchange', function () {
-    if (!run.on && !run.rec) return;
+    if (!run.on && !run.rec && !sv.busy && !sv.mr) return;
     run.id++; run.on = false; run.stopping = false;
     var r = run.rec; run.rec = null; clearTimeout(run.timer); run.timer = null;
     if (r) { try { r.abort(); } catch (e) { /* already ended */ } }
+    clearTimeout(sv.timer); sv.timer = null;
+    if (sv.mr) { var m = sv.mr; sv.mr = null; try { m.stop(); } catch (e) { /* already stopped */ } }
+    stopTracks(sv.stream); sv.stream = null; sv.chunks = [];
     clearSpeech();
   });
+
+  checkOnline();
 
   // Turn the words into a bill to check. Nothing is saved here.
   async function review(txt) {

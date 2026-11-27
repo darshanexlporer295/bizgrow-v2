@@ -11,10 +11,27 @@
 // code made from the visitor's connection address and today's date. The address itself is never stored or sent.
 // Until patch-12 is run, the new functions are missing and the Worker falls back to the old ones, so nothing breaks.
 // The server key is never sent to the browser, never logged, and never echoed in a reply.
+// Voice (speech-to-text): the Worker secret SARVAM_API_KEY is used only here, on the server.
+//   GET  /api/voice/config      says whether voice is on (the key is set) and the max recording length.
+//   POST /api/voice/transcribe  takes one short recording, sends it to the speech service, returns the text.
+//   Limits: 1 MB per recording, 20 requests per minute per connection (best effort: each Worker instance
+//   keeps its own count), 20 second timeout. When voice is off or a call fails, the page uses its own
+//   browser recognition instead. Only product names are sent as hints; customer names never are.
 
 const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const NO_STORE = { 'content-type': 'application/json', 'cache-control': 'no-store' };
 const GENERIC_ERROR = 'Something went wrong. Please try again.';
+
+const SARVAM_URL = 'https://api.sarvam.ai/speech-to-text';
+const SARVAM_MODEL = 'saaras:v4';
+const VOICE_MAX_BYTES = 1024 * 1024;
+const VOICE_MAX_SECONDS = 25;
+const VOICE_LANGS = ['unknown', 'hi-IN', 'en-IN', 'mr-IN', 'gu-IN'];
+const VOICE_RATE_MAX = 20;
+const VOICE_RATE_WINDOW_MS = 60000;
+const VOICE_TIMEOUT_MS = 20000;
+const VOICE_FAILED = 'Voice typing did not work this time. Please try again or type it.';
+const voiceHits = new Map();
 
 function json(status, body) {
   return new Response(JSON.stringify(body), { status, headers: NO_STORE });
@@ -143,9 +160,100 @@ async function trackOrder(request, env) {
   return json(200, r.data || { ok: false, error: GENERIC_ERROR });
 }
 
+function voiceKeyOn(env) {
+  return typeof env.SARVAM_API_KEY === 'string' && env.SARVAM_API_KEY.trim() !== '';
+}
+
+// Counts requests per connection code for one minute. Returns false when the limit is passed.
+function voiceRateOk(who) {
+  const now = Date.now();
+  if (voiceHits.size > 5000) voiceHits.clear();
+  const h = voiceHits.get(who);
+  if (!h || now - h.start >= VOICE_RATE_WINDOW_MS) { voiceHits.set(who, { start: now, count: 1 }); return true; }
+  if (h.count >= VOICE_RATE_MAX) return false;
+  h.count += 1;
+  return true;
+}
+
+// Product-name hints only: plain text, up to 50 terms of up to 64 characters each.
+function voiceTerms(v) {
+  if (typeof v !== 'string' || !v) return [];
+  let arr;
+  try { arr = JSON.parse(v); } catch (e) { return []; }
+  if (!Array.isArray(arr)) return [];
+  const out = [];
+  for (const t of arr) {
+    if (typeof t !== 'string') continue;
+    const s = t.replace(/[\u0000-\u001f]/g, '').trim().slice(0, 64);
+    if (s && out.indexOf(s) < 0) out.push(s);
+    if (out.length >= 50) break;
+  }
+  return out;
+}
+
+async function transcribeVoice(request, env) {
+  if (!voiceKeyOn(env)) return json(503, { ok: false, code: 'voice_off', error: VOICE_FAILED });
+  const declared = Number(request.headers.get('content-length') || 0);
+  if (declared > VOICE_MAX_BYTES + 8192) {
+    return json(413, { ok: false, code: 'too_big', error: 'That recording is too long. Please try a shorter one.' });
+  }
+  const who = (await clientKey(request)) || 'anon';
+  if (!voiceRateOk(who)) {
+    return json(429, { ok: false, code: 'rate_limited', error: 'Too many voice tries. Wait a minute and try again.' });
+  }
+
+  let form;
+  try { form = await request.formData(); } catch (e) { form = null; }
+  if (!form) return json(400, { ok: false, code: 'bad_request', error: 'Please try again.' });
+  const audio = form.get('audio');
+  if (!audio || typeof audio === 'string' || !(audio.size > 0)) {
+    return json(400, { ok: false, code: 'no_audio', error: 'No sound was recorded. Please try again.' });
+  }
+  if (audio.size > VOICE_MAX_BYTES) {
+    return json(413, { ok: false, code: 'too_big', error: 'That recording is too long. Please try a shorter one.' });
+  }
+  const lang = typeof form.get('language') === 'string' ? form.get('language') : 'unknown';
+  if (VOICE_LANGS.indexOf(lang) < 0) return json(400, { ok: false, code: 'bad_language', error: 'Please try again.' });
+
+  const out = new FormData();
+  const name = typeof audio.name === 'string' && audio.name ? audio.name : 'speech.webm';
+  out.append('file', audio, name);
+  out.append('model', SARVAM_MODEL);
+  out.append('mode', 'transcribe');
+  out.append('language_code', lang);
+  const terms = voiceTerms(form.get('keyterms'));
+  if (terms.length) out.append('keyterms', JSON.stringify(terms));
+
+  let res;
+  try {
+    res = await fetch(SARVAM_URL, {
+      method: 'POST',
+      headers: { 'api-subscription-key': env.SARVAM_API_KEY.trim() },
+      body: out,
+      signal: AbortSignal.timeout(VOICE_TIMEOUT_MS)
+    });
+  } catch (e) {
+    return json(503, { ok: false, code: 'failed', error: VOICE_FAILED });
+  }
+  if (!res.ok) return json(503, { ok: false, code: 'failed', error: VOICE_FAILED });
+  const data = await res.json().catch(() => null);
+  const transcript = data && typeof data.transcript === 'string' ? data.transcript.trim().slice(0, 500) : '';
+  if (!transcript) return json(200, { ok: false, code: 'empty', error: 'I did not hear anything. Please try again.' });
+  const got = data && typeof data.language_code === 'string' ? data.language_code.slice(0, 12) : lang;
+  return json(200, { ok: true, transcript, language_code: got });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/api/voice/config') {
+      if (request.method !== 'GET') return json(405, { error: 'Use GET' });
+      return json(200, { enabled: voiceKeyOn(env), maxSeconds: VOICE_MAX_SECONDS });
+    }
+    if (url.pathname === '/api/voice/transcribe') {
+      if (request.method !== 'POST') return json(405, { ok: false, error: 'Use POST' });
+      return transcribeVoice(request, env);
+    }
     if (url.pathname === '/api/public/bot-check') {
       if (request.method !== 'GET') return json(405, { error: 'Use GET' });
       return json(200, botCheckInfo(env));

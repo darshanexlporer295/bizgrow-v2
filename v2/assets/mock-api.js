@@ -751,6 +751,7 @@
   var ROLES = ['owner', 'manager', 'cashier', 'stock-keeper', 'accountant'];
 
   var origFetch = window.fetch.bind(window);
+  window.BGV2_fetch = origFetch; // the real network call, for voice (which must not go to the demo stand-in)
   window.fetch = async function (input, init) {
     var url = typeof input === 'string' ? input : ((input && input.url) || '');
     if (url.indexOf('/api') !== 0) return origFetch(input, init);

@@ -5,12 +5,18 @@
   'use strict';
   var B = window.BGV2; if (!B) return;
 
-  var NUM = { ek: 1, one: 1, do: 2, two: 2, teen: 3, three: 3, char: 4, four: 4, paanch: 5, five: 5, chhe: 6, six: 6, saat: 7, seven: 7, aath: 8, eight: 8, nau: 9, nine: 9, das: 10, ten: 10 };
-  var SYN = { chini: 'sugar', cheeni: 'sugar', chai: 'tea', doodh: 'milk', biscut: 'biscuits', biscuit: 'biscuits', tel: 'oil', sabun: 'soap', aata: 'atta' };
-  var UNITS = ['kg', 'g', 'gm', 'gram', 'grams', 'ml', 'l', 'litre', 'liter', 'pack', 'packet', 'pc', 'pcs', 'bottle', 'nos', 'no'];
+  var NUM = { ek: 1, one: 1, do: 2, two: 2, teen: 3, three: 3, char: 4, four: 4, paanch: 5, five: 5, chhe: 6, six: 6, saat: 7, seven: 7, aath: 8, eight: 8, nau: 9, nine: 9, das: 10, ten: 10,
+    'एक': 1, 'तीन': 3, 'चार': 4, 'पांच': 5, 'पाँच': 5, 'छह': 6, 'छः': 6, 'सात': 7, 'आठ': 8, 'नौ': 9, 'दस': 10,
+    'એક': 1, 'બે': 2, 'ત્રણ': 3, 'ચાર': 4, 'પાંચ': 5, 'છ': 6, 'સાત': 7, 'આઠ': 8, 'નવ': 9, 'દસ': 10 };
+  var SYN = { chini: 'sugar', cheeni: 'sugar', chai: 'tea', doodh: 'milk', biscut: 'biscuits', biscuit: 'biscuits', tel: 'oil', sabun: 'soap', aata: 'atta',
+    'आटा': 'atta', 'चीनी': 'sugar', 'चाय': 'tea', 'दूध': 'milk', 'तेल': 'oil', 'साबुन': 'soap', 'बिस्कुट': 'biscuits', 'बिस्किट': 'biscuits',
+    'ખાંડ': 'sugar', 'ચા': 'tea', 'દૂધ': 'milk', 'તેલ': 'oil', 'સાબુ': 'soap', 'બિસ્કિટ': 'biscuits', 'લોટ': 'atta', 'આટો': 'atta' };
+  var UNITS = ['kg', 'g', 'gm', 'gram', 'grams', 'ml', 'l', 'litre', 'liter', 'pack', 'packet', 'pc', 'pcs', 'bottle', 'nos', 'no',
+    'kilo', 'kilogram', 'किलो', 'किलोग्राम', 'ग्राम', 'लीटर', 'पैकेट', 'કિલો', 'ગ્રામ', 'લિટર', 'પેકેટ', 'નંગ'];
   var RUPEE = ['rupees', 'rupee', 'rupaye', 'rupay', 'rs', 'rs.', 'rupaya', 'रुपये', 'रुपए', 'रु', 'रुपया'];
   var METHOD = { udhar: 'udhar', credit: 'udhar', 'उधार': 'udhar', 'ઉધાર': 'udhar', upi: 'upi', online: 'upi', 'यूपीआई': 'upi', cash: 'cash', naqad: 'cash', nakad: 'cash', rokad: 'cash', 'रोख': 'cash', 'नकद': 'cash', 'રોકડ': 'cash' };
-  var FILLER = ['ko', 'ka', 'ki', 'ke', 'aur', 'and', 'se', 'me', 'mein', 'ne', 'for', 'to', 'the', 'a', 'of', 'bill', 'likho', 'likh', 'do'];
+  var FILLER = ['ko', 'ka', 'ki', 'ke', 'aur', 'and', 'se', 'me', 'mein', 'ne', 'for', 'to', 'the', 'a', 'of', 'bill', 'likho', 'likh', 'do',
+    'को', 'का', 'की', 'के', 'और', 'से', 'में', 'ने', 'लिए', 'बिल', 'ને', 'નું', 'ની', 'માટે', 'અને', 'થી', 'માં'];
 
   function norm(s) {
     return String(s || '').toLowerCase()
