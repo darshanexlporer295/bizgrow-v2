@@ -651,10 +651,12 @@ async function pOrders(v){ v.innerHTML=head(t('orders'),t('ord_sub'))+'<div clas
 async function pMore(v){
   const items=[['bills','bills'],['reports','reports'],['expenses','expenses'],['suppliers','suppliers'],['tasks','tasks'],['store','store'],...(isOwner()?[['team','team'],['privacy','privacy'],['settings','settings']]:[])];
   v.innerHTML=head(t('more'),'')+`<div class="card"><div class="list">${items.map(([k,i])=>`<a class="li" href="#/${k}" style="color:inherit"><span style="color:var(--primary)">${ic(i).replace('<svg','<svg width="22" height="22"')}</span><span class="grow bold">${t(k)}</span>›</a>`).join('')}</div></div>
-  <div class="card mt"><div class="f"><label>${t('language')}</label><select class="in" data-act="lang">${Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('')}</select></div><button class="btn sec block" data-act="logout">${t('signout')}</button></div>`;
+  <div class="card mt">${isOwner()?'':langPick('moreLang')}<button class="btn sec block" data-act="logout">${t('signout')}</button></div>`;
 }
 document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.act==='lang')ACT.lang(e.target);});
-ACT.lang=async el=>{S.lang=el.value;localStorage.setItem('bg_lang',S.lang);api('/language','PUT',{lang:S.lang}).catch(()=>{});render();};
+/* The one language dropdown. Choosing a language switches the whole app; it is saved on this device and on the shop. */
+const langPick=id=>`<div class="f"><label for="${id}">${t('language')}</label><select class="in lang-pick" id="${id}" data-act="lang">${Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('')}</select></div>`;
+ACT.lang=async el=>{const id=el.id;S.lang=el.value;localStorage.setItem('bg_lang',S.lang);api('/language','PUT',{lang:S.lang}).catch(()=>{});render();if(id)setTimeout(()=>{const n=document.getElementById(id);if(n)n.focus();},0);};
 
 /* ---------- team ---------- */
 async function pTeam(v){
@@ -697,18 +699,18 @@ async function pSettings(v,args){
   const s=S.me.shop;
   const cur=s.business_type||localStorage.getItem('bg_biztype_'+s.id)||'';
   const bizOpts=[['','—'],...['textile_trader','yarn_fabric','raw_material','other'].map(k=>[k,t('s3_bt_'+k)])].map(([k,l])=>`<option value="${k}" ${cur===k?'selected':''}>${l}</option>`).join('');
-  v.innerHTML=head(t('settings'),'Your shop details')+`<div class="card" style="max-width:640px"><form data-form="settings"><div class="f"><label>${t('shop_name')}</label><input class="in" name="name" value="${esc(s.name)}" required></div>
+  v.innerHTML=head(t('settings'),'Your shop details')+`<div class="card" style="max-width:640px">${langPick('setLang')}</div><div class="card mt" style="max-width:640px"><form data-form="settings"><div class="f"><label>${t('shop_name')}</label><input class="in" name="name" value="${esc(s.name)}" required></div>
   <div class="frow"><div class="f"><label>Shop ${t('phone').toLowerCase()}</label><input class="in" name="phone" type="tel" value="${esc(s.phone||'')}"></div></div>
   <div class="f"><label>Your UPI ID</label><input class="in" name="upi_id" value="${esc(s.upi_id||'')}" placeholder="name@bank"><div class="hint">Shown on udhar bills and reminders so customers can pay you.</div></div>
   <div class="f"><label>Address (on bills)</label><input class="in" name="address" value="${esc(s.address||'')}"></div>
-  <div class="frow"><div class="f"><label>GST number (optional)</label><input class="in" name="gstin" value="${esc(s.gstin||'')}"></div><div class="f"><label>${t('language')}</label><select class="in" name="lang">${Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('')}</select></div></div>
+  <div class="f"><label>GST number (optional)</label><input class="in" name="gstin" value="${esc(s.gstin||'')}"></div>
   <button class="btn" type="submit">${t('save')}</button></form></div><div class="card mt" style="max-width:640px"><h3>Setup questions</h3><p class="muted small mb">Change your answers about your shop any time.</p><button class="btn sec" data-act="redoob">Open setup</button></div>
   <div class="card mt" style="max-width:640px"><h3>${t('s3_biz_title')}</h3><p class="muted small mb">${t('s3_biz_sub')}</p><form data-form="biztype"><div class="f"><select class="in" name="business_type">${bizOpts}</select></div><button class="btn sec" type="submit">${t('save')}</button></form></div>
   <div class="card mt" style="max-width:640px"><h3>${t('s3_plan_title')}</h3><a class="btn sec" href="#/settings/plan">${t('s3_plan_link')}</a></div>`;
 }
 ACT.redoob=()=>onboarding();
 FORM.biztype=async(f,d)=>{const v=d.business_type||'';localStorage.setItem('bg_biztype_'+S.me.shop.id,v);const r=await api('/business-type','PUT',{business_type:v});S.me=await api('/me');toast(r&&r.saved_here?t('s3_biz_local'):t('s3_biz_saved'));render();};
-FORM.settings=async(f,d)=>{delete d.store_enabled;const r=await api('/business','PUT',d);S.lang=d.lang;localStorage.setItem('bg_lang',d.lang);S.me=await api('/me');toast((r&&r.warning)||'Saved');render();};
+FORM.settings=async(f,d)=>{delete d.store_enabled;delete d.lang;const r=await api('/business','PUT',d);S.me=await api('/me');toast((r&&r.warning)||'Saved');render();};
 
 window.BGV2={ACT,FORM,S,api,render,toast,isOwner:()=>isOwner(),esc,inr,t,head,modal,go};
 document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicStore&&BGV2.publicStore())return;boot();});

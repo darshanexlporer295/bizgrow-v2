@@ -42,9 +42,6 @@
 .v2-type{display:flex;gap:8px;width:100%}
 .v2-type .in{flex:1}
 .v2-voice .v2-mute{font-size:15px;min-height:44px;text-align:left;width:100%}
-.v2-vlang{display:flex;flex-wrap:wrap;gap:8px;width:100%}
-.v2-chip{flex:1 1 140px;min-height:52px;padding:10px 14px;border:2px solid var(--primary);border-radius:12px;background:#fff;color:var(--navy);font:inherit;font-size:17px;font-weight:700;cursor:pointer}
-.v2-chip.on{background:var(--primary);color:#fff}
 .v2-check{width:100%}
 
 /* Confirm sheet for a voice bill */
@@ -111,3 +108,5 @@
 .sw input:checked + .sw-track::after{transform:translateX(22px)}
 .sw input:focus-visible + .sw-track{outline:3px solid var(--saffron);outline-offset:2px}
 @media (max-width:480px){.su-title{font-size:22px}.su-opt{min-height:56px;font-size:17px}}
+/* The one language dropdown: full width on a phone, big enough to tap, same field look as the rest. */
+.lang-pick{width:100%;max-width:360px;min-height:48px;font-size:16px}
