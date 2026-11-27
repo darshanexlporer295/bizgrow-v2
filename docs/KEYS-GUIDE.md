@@ -28,3 +28,47 @@ Chotu, the voice assistant, can use Sarvam AI to understand spoken Hindi, Hingli
 - If the secret is not set, or the call to Sarvam fails, Chotu falls back to the phone or computer's own listening. Nothing breaks.
 - Voice clips are sent to Sarvam only while someone is using the mic. Each clip is at most 25 seconds and 1 MB. Only product names are sent along as hints, never customer names.
 - Each connection can make at most 20 voice tries per minute.
+
+## TURNSTILE_SECRET_KEY (the security check on the order button)
+
+The store's order form has a small check (Cloudflare Turnstile) that keeps out robots. The public part of it (the site key, `0x4AAAAAAGTu8oOyY29HFWif`) is already in the code. Only the **secret** part is added here. Until it is added, the check stays off and orders still go through.
+
+**Steps**
+1. Open the Cloudflare dashboard in the browser. On the left, click **Turnstile**.
+2. Click the widget for `bizgrow.buildsit.workers.dev`. Check that its **Site key** starts with `0x4AAAAAAGTu8oOyY29HFWif`.
+3. Copy its **Secret key**. This is the secret one, not the Site key. Copy it once and do not paste it anywhere else.
+4. Click **Workers & Pages**, then **bizgrow-v2**, then **Settings**, then **Variables and Secrets**.
+5. Click **Add**. Choose type **Secret**.
+   - Name: `TURNSTILE_SECRET_KEY` (exactly this).
+   - Value: the Secret key from step 3.
+6. Click **Save** (and **Deploy**, if Cloudflare asks).
+
+**What the code does with it**
+- With the secret set, every order must pass the check. A missing or failed check gets the message "Please complete the security check and try again." and nothing is saved.
+- If Cloudflare's check service cannot be reached, the order is refused with "The security check could not be reached. Please try again." Nothing is saved.
+- With no secret set, the check is off and orders work as before.
+
+## SUPABASE_SERVICE_KEY (optional, only for the patch-10 lockdown)
+
+Add this only if you are going to run `patch-10-lockdown.sql`. Without that step the store works as it does now. This key can do anything in the database, so never put it in a chat, an email, a file or a photo.
+
+**Steps**
+1. Open the Supabase dashboard and your project. Click **Project Settings**, then **API**.
+2. Find the key named **service_role**. Click **Reveal** or **Copy**.
+3. In Cloudflare, go to **Workers & Pages**, **bizgrow-v2**, **Settings**, **Variables and Secrets**.
+4. Click **Add**. Choose type **Secret**. Name: `SUPABASE_SERVICE_KEY` (exactly this). Value: the service_role key.
+5. Click **Save** (and **Deploy**, if asked).
+
+Run the lockdown only after the security check box shows on your store link and a test order goes through. The full order is in `docs/SETUP-STEPS.md`, Part 6, and `supabase/RUN-ORDER.md`.
+
+## After the keys: what to test
+
+Run the check script from a computer with a terminal, in the project folder: `bash scripts/post-keys-check.sh`. It checks the live site and prints one line per check. Then test these by hand, on your phone:
+
+1. Open your store link. The security check box shows above the **Send order on WhatsApp** button.
+2. Place a test order with a test name and a test phone number. It shows up in the app's orders list. Then cancel it, so it does not count as a real sale.
+3. On the store page, use **Track your order** with that test order's reference and phone number. It shows the status. A wrong reference or phone shows "We could not find an order with that reference and phone number."
+4. In the app, tap the mic (Chotu) on the sale screen and say a short sale, for example one item and a quantity. The words should fill in. With the speech key off, the phone's own listening is used instead.
+5. In **Settings**, change the language to Hindi, Marathi or Gujarati, and check that the screens change.
+
+If any step fails, send the developer the step number and what you saw on the screen. Do not send any key.

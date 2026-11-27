@@ -1,4 +1,4 @@
--- Per-connection limit and default-privilege checks (stage 10, patch-12). SCRATCH DATABASE ONLY.
+-- Per-connection limit and default-privilege checks (stage 10, patch-12 and patch-13). SCRATCH DATABASE ONLY.
 -- Run by supabase/tests/run-checks.cjs after store-checks.sql, on the test shop 'test-shop-1'.
 -- Each row: id, ok (true = passed), detail. Phones used here start with 920000 and 930000 (test numbers).
 
@@ -29,11 +29,11 @@ select 'K02',
   and (select relrowsecurity from pg_class where oid = 'public.store_client_log'::regclass),
   'new functions exist; anon can run them; the limit log is closed to the API';
 
--- ---------- K03: 25 orders from one connection go through; the 26th is refused ----------
+-- ---------- K03: 10 orders from one connection go through; the 11th is refused ----------
 do $$
 declare i int; v_ok int := 0; v_msg text := 'no error'; v_before int; v_after int;
 begin
-  for i in 1..25 loop
+  for i in 1..10 loop
     perform public.place_store_order_for_client('test-shop-1', 'Key Buyer', '920000' || lpad(i::text, 4, '0'), null,
       jsonb_build_array(jsonb_build_object('product_id', '00000000-0000-0000-0000-0000000000c2', 'qty', '1')), 'key-a');
     v_ok := v_ok + 1;
@@ -46,8 +46,8 @@ begin
   end;
   select count(*) into v_after from public.store_orders where customer_phone = '9200000026';
   insert into client_check_results values ('K03',
-    v_ok = 25 and v_msg like 'Too many orders from this connection%' and v_before = 0 and v_after = 0,
-    'placed ' || v_ok || '; 26th: ' || v_msg || '; refused order saved: ' || v_after);
+    v_ok = 10 and v_msg like 'Too many orders from you%' and v_before = 0 and v_after = 0,
+    'placed ' || v_ok || '; 11th: ' || v_msg || '; refused order saved: ' || v_after);
 end $$;
 
 -- ---------- K04: another connection is not held back by the first one ----------
@@ -56,11 +56,19 @@ select 'K04', (public.place_store_order_for_client('test-shop-1', 'Other Connect
   jsonb_build_array(jsonb_build_object('product_id', '00000000-0000-0000-0000-0000000000c2', 'qty', '1')), 'key-b')->>'ok') = 'true',
   'a different connection can still place an order';
 
--- ---------- K05: no connection code means the order is not counted against any connection ----------
-insert into client_check_results
-select 'K05', (public.place_store_order_for_client('test-shop-1', 'No Code', '9200009002', null,
-  jsonb_build_array(jsonb_build_object('product_id', '00000000-0000-0000-0000-0000000000c2', 'qty', '1')), null)->>'ok') = 'true',
-  'an order with no connection code still goes through';
+-- ---------- K05: no connection code is refused, and nothing is saved (patch-13 makes the code required) ----------
+do $$
+declare v_msg text := 'no error'; v_saved int;
+begin
+  begin
+    perform public.place_store_order_for_client('test-shop-1', 'No Code', '9200009002', null,
+      jsonb_build_array(jsonb_build_object('product_id', '00000000-0000-0000-0000-0000000000c2', 'qty', '1')), null);
+  exception when others then v_msg := sqlerrm;
+  end;
+  select count(*) into v_saved from public.store_orders where customer_phone = '9200009002';
+  insert into client_check_results values ('K05', v_msg = 'Please try again in a moment.' and v_saved = 0,
+    'no connection code: ' || v_msg || '; saved: ' || v_saved);
+end $$;
 
 -- ---------- K06: an unknown store gets the same answer as the old function ----------
 do $$
@@ -80,11 +88,11 @@ begin
     'unknown store: same answer as before (' || v_new || ')');
 end $$;
 
--- ---------- K07: tracking allows 30 tries from one connection, then says wait ----------
+-- ---------- K07: tracking allows 10 tries from one connection in 15 minutes, then says wait ----------
 do $$
 declare i int; v_limited_before int := 0; v_last jsonb; v_refusal_text text;
 begin
-  for i in 1..30 loop
+  for i in 1..10 loop
     v_last := public.track_store_order_for_client('test-shop-1', 'ZZZZZZ', '930000' || lpad(i::text, 4, '0'), 'track-a');
     if coalesce((v_last->>'limited')::boolean, false) then v_limited_before := v_limited_before + 1; end if;
   end loop;
@@ -92,7 +100,7 @@ begin
   v_refusal_text := v_last->>'message';
   insert into client_check_results values ('K07',
     v_limited_before = 0 and (v_last->>'limited')::boolean = true and v_refusal_text like 'Too many tries%',
-    'tries 1 to 30 not limited; try 31 refused: ' || coalesce(v_refusal_text, 'no message'));
+    'tries 1 to 10 not limited; try 11 refused: ' || coalesce(v_refusal_text, 'no message'));
 end $$;
 
 -- ---------- K08: tracking with the right reference and phone still answers, for another connection ----------
