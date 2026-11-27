@@ -7,7 +7,7 @@ const path = require('path');
 
 const dir = __dirname;
 const target = path.join(dir, 'run-all-pending.sql');
-const patches = ['patch-08.sql', 'patch-09.sql', 'patch-11.sql', 'patch-12.sql', 'patch-13.sql', 'patch-14.sql', 'patch-15.sql', 'patch-16.sql'];
+const patches = ['patch-08.sql', 'patch-09.sql', 'patch-11.sql', 'patch-12.sql', 'patch-13.sql', 'patch-14.sql', 'patch-15.sql', 'patch-16.sql', 'patch-17.sql'];
 
 const current = fs.readFileSync(target, 'utf8');
 const cut = current.indexOf('-- ==================== BEGIN ');

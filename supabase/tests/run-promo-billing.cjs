@@ -1,10 +1,10 @@
-// Runs the promo-code, plan-payment and plan-source checks on a scratch Postgres database (patch-15, patch-16).
+// Runs the promo-code, plan-payment and plan-source checks on a scratch Postgres database (patch-15, patch-16, patch-17).
 // Usage (from this folder, after `npm install pg`):
 //   DATABASE_URL=postgres://user:pass@host:5432/scratch node run-promo-billing.cjs --scratch            (fresh scratch DB)
 //   DATABASE_URL=postgres://user:pass@host:5432/scratch node run-promo-billing.cjs --scratch --p07     (p07 scratch DB)
 // The database must be empty. Loads the local auth stand-in, schema.sql, supabase-defaults.sql, and (for --p07)
 // patch-01 to patch-07. Then one shop from before patch-14 is made (it gets the old All Features default),
-// then run-all-pending.sql (patch-08 to patch-16) runs TWICE, then promo-billing-checks.sql, then a real race:
+// then run-all-pending.sql (patch-08 to patch-17) runs TWICE, then promo-billing-checks.sql, then a real race:
 // 12 separate connections use one code that allows 3 uses. Exactly 3 must succeed.
 // --scratch is required on purpose: the stand-in replaces auth.uid() and must never run on the live project.
 const fs = require('fs');
