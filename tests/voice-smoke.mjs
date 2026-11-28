@@ -1,7 +1,10 @@
-// Voice check (no browser, no network). Sarvam is mocked: globalThis.fetch is replaced for the speech call.
-// Checks: the Worker's two voice routes (config and transcribe), size and language limits, the rate limit,
-// the request it sends to the speech service (header, fields, product-name hints only), that the key never
-// reaches a reply, and the Hindi, Marathi and Gujarati word additions in the parser.
+// Voice check (no browser, no network). Sarvam, the sign-in check and the database count are mocked:
+// globalThis.fetch is replaced for those calls.
+// Checks: the Worker's two voice routes (config and transcribe), sign-in (anonymous and bad token refused
+// before the body is read), size limits (counted while reading, so a body with no length header is refused),
+// language limits, the per-user rate limit (shared count in the database, run with the user's own token),
+// refusal when the count cannot be checked, the request it sends to the speech service (header, fields,
+// product-name hints only), that the key never reaches a reply, and the Hindi, Marathi and Gujarati word additions.
 // Usage: node tests/voice-smoke.mjs   (run from the repo folder; exits 1 on any failure)
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -15,19 +18,45 @@ const KEY = 'sarvam-test-key-4d2e';
 const out = [];
 const check = (name, ok, extra) => out.push((ok ? 'PASS ' : 'FAIL ') + name + (extra !== undefined ? ' (' + extra + ')' : ''));
 
+const SB = 'https://db.example.test';
+const ANON = 'anon-test-key-7f1a';
+// Three signed-in test users (session token -> user id). Any other token is rejected by the sign-in check.
+const USERS = { 'tok-a-session': '6a000000-0000-4000-8000-00000000000a', 'tok-b-session': '6b000000-0000-4000-8000-00000000000b', 'tok-c-session': '6c000000-0000-4000-8000-00000000000c' };
+const TOK_A = 'tok-a-session', TOK_B = 'tok-b-session', TOK_C = 'tok-c-session';
+const bearer = (h) => String((h && h.authorization) || '').replace(/^Bearer\s+/i, '');
+
 const realFetch = globalThis.fetch;
 let sarvamCalls = [];
 let sarvamReply = () => Response.json({ request_id: 'r1', transcript: 'दो किलो आटा', language_code: 'hi-IN' });
+let rpcMode = 'ok';       // 'ok' | 'missing' (function not in the database yet) | 'throw' (database unreachable)
+let rpcCalls = [];
+const voiceCounts = {};   // user id -> tries counted in the current window (the database keeps this in patch-18)
 globalThis.fetch = async (input, init) => {
   const u = String(input);
   if (u === 'https://api.sarvam.ai/speech-to-text') {
     sarvamCalls.push({ url: u, headers: init.headers, body: init.body });
     return sarvamReply();
   }
+  if (u === SB + '/auth/v1/user') {
+    const id = USERS[bearer(init.headers)];
+    return id ? Response.json({ id }) : new Response('{"msg":"bad jwt"}', { status: 401 });
+  }
+  if (u === SB + '/rest/v1/rpc/voice_take') {
+    rpcCalls.push({ headers: init.headers, body: JSON.parse(init.body) });
+    if (rpcMode === 'throw') throw new Error('db unreachable');
+    if (rpcMode === 'missing') return Response.json({ code: 'PGRST202', message: 'not found' }, { status: 404 });
+    const id = USERS[bearer(init.headers)];
+    if (!id) return Response.json({ ok: false, code: 'login' });
+    const max = JSON.parse(init.body).p_max;
+    const cur = voiceCounts[id] || 0;
+    if (cur >= max) return Response.json({ ok: false, code: 'limited' });
+    voiceCounts[id] = cur + 1;
+    return Response.json({ ok: true });
+  }
   throw new Error('unexpected outbound call in test');
 };
 
-const ENV_ON = { SARVAM_API_KEY: KEY, ASSETS: { fetch: async () => new Response('asset', { status: 200 }) } };
+const ENV_ON = { SARVAM_API_KEY: KEY, SUPABASE_URL: SB, SUPABASE_ANON_KEY: ANON, ASSETS: { fetch: async () => new Response('asset', { status: 200 }) } };
 const ENV_OFF = { ASSETS: ENV_ON.ASSETS };
 const IP = '203.0.113.9';
 
@@ -39,8 +68,11 @@ function voiceForm(over) {
   if (o.keyterms !== undefined) f.append('keyterms', o.keyterms);
   return f;
 }
-const post = (form, ip) => new Request('https://bizgrow.example/api/voice/transcribe', {
-  method: 'POST', body: form, headers: { 'CF-Connecting-IP': ip || IP } });
+// tok: a session token (default: user A). Pass null for an anonymous call.
+const post = (form, ip, tok) => new Request('https://bizgrow.example/api/voice/transcribe', {
+  method: 'POST', body: form,
+  headers: Object.assign({ 'CF-Connecting-IP': ip || IP },
+    tok === null ? {} : { authorization: 'Bearer ' + (tok === undefined ? TOK_A : tok) }) });
 const run = (req, env) => worker.fetch(req, env || ENV_ON);
 
 try {
@@ -61,8 +93,23 @@ try {
   body = await r.json();
   check('transcribe: 503 voice_off when key missing', r.status === 503 && body.code === 'voice_off' && sarvamCalls.length === 0);
 
+  // Sign-in: refused before the body is read and before the speech service is called
+  sarvamCalls = [];
+  r = await run(post(voiceForm(), '198.51.100.90', null), ENV_ON);
+  body = await r.json();
+  check('sign-in: anonymous call gets 401 login', r.status === 401 && body.code === 'login', r.status);
+  check('sign-in: anonymous call makes no speech call', sarvamCalls.length === 0);
+  r = await run(post(voiceForm(), '198.51.100.91', 'tok-forged'), ENV_ON);
+  check('sign-in: bad token gets 401', r.status === 401 && (await r.json()).code === 'login');
+  check('sign-in: bad token makes no speech call', sarvamCalls.length === 0);
+  // Anonymous and bad-token calls are refused even when the body is oversize (the body is not read).
+  const hugeAnon = new Blob([new Uint8Array(3 * 1024 * 1024)], { type: 'audio/webm' });
+  r = await run(post(voiceForm({ audio: hugeAnon }), '198.51.100.92', null), ENV_ON);
+  check('sign-in: anonymous oversize call still gets 401 (no body read)', r.status === 401);
+
   // Transcribe: happy path, with product-name hints
   sarvamCalls = [];
+  rpcCalls = [];
   const terms = ['Atta 10kg', 'Tea  ', 'Atta 10kg', 'x'.repeat(100)];
   r = await run(post(voiceForm({ keyterms: JSON.stringify(terms) }), '198.51.100.1'), ENV_ON);
   body = await r.json();
@@ -78,6 +125,9 @@ try {
   check('transcribe: keyterms are de-duplicated, trimmed and length-limited', Array.isArray(sent) && sent.length === 3 &&
     sent[0] === 'Atta 10kg' && sent[1] === 'Tea' && sent.every(t => t.length <= 64));
   check('transcribe: key never in the reply', !JSON.stringify(body).includes(KEY));
+  check('rate count: runs with the user\'s own token and the public key, not the server key',
+    rpcCalls.length === 1 && bearer(rpcCalls[0].headers) === TOK_A && rpcCalls[0].headers.apikey === ANON);
+  check('rate count: 20 per 60 seconds', rpcCalls.length === 1 && rpcCalls[0].body.p_max === 20 && rpcCalls[0].body.p_window_seconds === 60);
 
   // Auto-detect and the other languages are accepted
   for (const lang of ['unknown', 'en-IN', 'mr-IN', 'gu-IN']) {
@@ -98,6 +148,14 @@ try {
   r = await run(post(voiceForm({ audio: big }), '198.51.100.33'), ENV_ON);
   check('transcribe: too big refused with 413', r.status === 413 && (await r.json()).code === 'too_big' && sarvamCalls.length === 0);
 
+  // Streamed body with no length header, larger than the cap: refused while reading, no speech call
+  const bigStream = new Response(voiceForm({ audio: new Blob([new Uint8Array(1024 * 1024 + 300 * 1024)], { type: 'audio/webm' }) }));
+  const streamedReq = new Request('https://bizgrow.example/api/voice/transcribe', {
+    method: 'POST', body: bigStream.body, duplex: 'half',
+    headers: { 'content-type': bigStream.headers.get('content-type'), 'CF-Connecting-IP': '198.51.100.34', authorization: 'Bearer ' + TOK_A } });
+  r = await run(streamedReq, ENV_ON);
+  check('transcribe: streamed oversize body (no length header) refused with 413', r.status === 413 && sarvamCalls.length === 0, r.status);
+
   // Speech service failures fall back quietly: 503 failed, no raw error text, no key
   sarvamReply = () => new Response('secret detail ' + KEY, { status: 500 });
   r = await run(post(voiceForm(), '198.51.100.40'), ENV_ON);
@@ -115,15 +173,30 @@ try {
   check('transcribe: empty transcript gives empty (200, ok false)', r.status === 200 && (await r.json()).code === 'empty');
   sarvamReply = () => Response.json({ request_id: 'r2', transcript: 'दो किलो आटा', language_code: 'hi-IN' });
 
-  // Rate limit: 20 per minute per connection, then 429
+  // Rate limit: 20 per minute per signed-in user (shared count), then 429. Runs as user B, so earlier tries
+  // by user A do not count against it.
+  sarvamCalls = [];
   let codes = [];
   for (let i = 0; i < 21; i++) {
-    r = await run(post(voiceForm(), '192.0.2.77'), ENV_ON);
+    r = await run(post(voiceForm(), '192.0.2.77', TOK_B), ENV_ON);
     codes.push(r.status);
   }
   check('rate limit: 20 allowed, the 21st refused', codes.slice(0, 20).every(c => c === 200) && codes[20] === 429, codes.slice(-2).join(','));
-  r = await run(post(voiceForm(), '192.0.2.78'), ENV_ON);
-  check('rate limit: another connection is not blocked', r.status === 200);
+  check('rate limit: refused call makes no speech call', sarvamCalls.length === 20);
+  r = await run(post(voiceForm(), '192.0.2.78', TOK_C), ENV_ON);
+  check('rate limit: another user is not blocked', r.status === 200);
+  r = await run(post(voiceForm(), '192.0.2.79', TOK_B), ENV_ON);
+  check('rate limit: the same user from a new connection is still limited', r.status === 429);
+
+  // Count cannot be checked: refused (fail closed), no speech call
+  sarvamCalls = [];
+  rpcMode = 'missing';
+  r = await run(post(voiceForm(), '192.0.2.80', TOK_C), ENV_ON);
+  check('count missing (database not updated): 503 failed', r.status === 503 && (await r.json()).code === 'failed' && sarvamCalls.length === 0);
+  rpcMode = 'throw';
+  r = await run(post(voiceForm(), '192.0.2.81', TOK_C), ENV_ON);
+  check('count unreachable: 503 failed', r.status === 503 && sarvamCalls.length === 0);
+  rpcMode = 'ok';
 
   // Other methods and the old routes still work
   r = await run(new Request('https://x.example/api/voice/transcribe', { method: 'GET' }), ENV_ON);

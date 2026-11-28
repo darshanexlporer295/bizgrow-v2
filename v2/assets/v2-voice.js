@@ -363,7 +363,12 @@
     fd.append('keyterms', JSON.stringify(productTerms()));
     var ctl = typeof AbortController === 'function' ? new AbortController() : null;
     var timer = setTimeout(function () { if (ctl) ctl.abort(); }, 25000);
-    apiFetch()('/api/voice/transcribe', { method: 'POST', body: fd, credentials: 'same-origin', signal: ctl ? ctl.signal : undefined })
+    // Only a signed-in user can use the speech service, so the session token goes with the clip.
+    var tokenOf = window.BGV2_token ? window.BGV2_token() : Promise.resolve('');
+    tokenOf.then(function (tok) {
+      var hdr = tok ? { authorization: 'Bearer ' + tok } : {};
+      return apiFetch()('/api/voice/transcribe', { method: 'POST', body: fd, credentials: 'same-origin', headers: hdr, signal: ctl ? ctl.signal : undefined });
+    })
       .then(function (r) { return r.json().catch(function () { return null; }).then(function (d) { return { ok: r.ok, d: d }; }); })
       .then(function (x) {
         clearTimeout(timer); sv.busy = false;

@@ -69,6 +69,11 @@
     return (r && r.data && r.data.session) || null;
   }
 
+  // Voice calls use the original fetch, so they ask for the signed-in token here. Empty when nobody is signed in.
+  window.BGV2_token = function () {
+    return session().then(function (s) { return (s && s.access_token) || ''; }, function () { return ''; });
+  };
+
   // Remove the one-time sign-in code from the address bar after it has been used.
   function tidyUrl() {
     if (/[?&](code|error|error_description)=/.test(location.search)) {

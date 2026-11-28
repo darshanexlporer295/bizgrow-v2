@@ -1,25 +1,28 @@
 // BizGrow v2 Worker (stage 8, stage 10). It serves the static site from ./v2 and answers these public store routes:
 //   GET  /api/public/bot-check  tells the page whether the bot check is on, and the public site key.
-//   POST /api/public/order      checks the Turnstile token (when the secret is set), then places the order.
-//   POST /api/public/track      looks up an order's status for the customer (stage 10: limited per connection).
+//   POST /api/public/order      checks the Turnstile token, then places the order.
+//   POST /api/public/track      looks up an order's status for the customer (limited per connection).
 // The secret key lives only in Cloudflare (Worker secret TURNSTILE_SECRET_KEY). It is never sent to the
-// browser, never written to a file, and never echoed in a reply. With no secret, the bot check is off and
-// orders still go through (fail open), and the bot-check route says enabled:false.
+// browser, never written to a file, and never echoed in a reply. With no secret, the order and track routes
+// refuse with 503 (fail closed); the bot-check route still says enabled:false so the page knows.
 // Stage 9: the database calls use the server key (Worker secret SUPABASE_SERVICE_KEY) when it is set.
 // Until that secret is added, the public key (SUPABASE_ANON_KEY) is used, so nothing breaks.
 // Stage 10 (supabase/patch-12.sql): orders and tracking are limited per connection. The Worker sends a one-way
 // code made from the visitor's connection address and today's date. The address itself is never stored or sent.
-// Until patch-12 is run, the new functions are missing and the Worker falls back to the old ones, so nothing breaks.
+// The Worker no longer falls back to the older order and track functions (they have no per-connection limit).
+// If the newer ones are missing, the route refuses with 503 until supabase/run-all-pending.sql is run.
+// With no connection address the route refuses too, because the limit could not apply.
 // The server key is never sent to the browser, never logged, and never echoed in a reply.
 //   GET  /api/billing/config, POST /api/billing/create-order, /verify, /webhook (worker/billing.mjs; payments).
 // Voice (speech-to-text): the Worker secret SARVAM_API_KEY is used only here, on the server.
 //   GET  /api/voice/config      says whether voice is on (the key is set) and the max recording length.
 //   POST /api/voice/transcribe  takes one short recording, sends it to the speech service, returns the text.
-//   Limits: 1 MB per recording, 20 requests per minute per connection (best effort: each Worker instance
-//   keeps its own count), 20 second timeout. When voice is off or a call fails, the page uses its own
+//   Only a signed-in user may call it (401 otherwise, checked before the body is read). Limits: 1 MB per
+//   recording (counted while reading), 20 requests per minute per user (shared count in the database, patch-18;
+//   refused when that count cannot be checked), 20 second timeout. When voice is off or a call fails, the page uses its own
 //   browser recognition instead. Only product names are sent as hints; customer names never are.
 
-import { handleBilling } from './billing.mjs';
+import { handleBilling, signedInUser } from './billing.mjs';
 
 const SITEVERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const NO_STORE = { 'content-type': 'application/json', 'cache-control': 'no-store' };
@@ -28,13 +31,13 @@ const GENERIC_ERROR = 'Something went wrong. Please try again.';
 const SARVAM_URL = 'https://api.sarvam.ai/speech-to-text';
 const SARVAM_MODEL = 'saaras:v4';
 const VOICE_MAX_BYTES = 1024 * 1024;
+const VOICE_BODY_MAX = VOICE_MAX_BYTES + 64 * 1024;   // the clip plus the form wrapper
 const VOICE_MAX_SECONDS = 25;
 const VOICE_LANGS = ['unknown', 'hi-IN', 'en-IN', 'mr-IN', 'gu-IN'];
 const VOICE_RATE_MAX = 20;
 const VOICE_RATE_WINDOW_MS = 60000;
 const VOICE_TIMEOUT_MS = 20000;
 const VOICE_FAILED = 'Voice typing did not work this time. Please try again or type it.';
-const voiceHits = new Map();
 
 function json(status, body) {
   return new Response(JSON.stringify(body), { status, headers: NO_STORE });
@@ -109,55 +112,81 @@ function dbError(r) {
   return GENERIC_ERROR;
 }
 
+// Fail closed: with no bot-check secret, the public order and track routes refuse (they never run unchecked).
+// Returns a reply to send, or null when the bot check is set up.
+const PAUSED = 'Ordering and tracking are paused for a moment. Please try again later.';
+function refuseWithoutBotCheck(env) {
+  if (secretOn(env)) return null;
+  console.error('public routes refused: TURNSTILE_SECRET_KEY is not set');
+  return json(503, { ok: false, code: 'bot_check_off', error: PAUSED });
+}
+
+// The visitor code for the per-connection limit. With no connection address there is no code, and the limit
+// would be skipped, so the route refuses instead (fail closed). Cloudflare always sends the address.
+async function visitorKeyOr503(request) {
+  const key = await clientKey(request);
+  if (key) return { key };
+  console.error('public routes refused: no connection address on request');
+  return { reply: json(503, { ok: false, code: 'unavailable', error: PAUSED }) };
+}
+
 async function placeOrder(request, env) {
+  const off = refuseWithoutBotCheck(env);
+  if (off) return off;
   let body;
   try { body = await request.json(); } catch (e) { body = null; }
   if (!body || typeof body !== 'object') return json(400, { ok: false, error: 'Please check the details and try again.' });
 
-  if (secretOn(env)) {
-    const token = typeof body.turnstile_token === 'string' ? body.turnstile_token : '';
-    const passed = await verifyTurnstile(env, token, request.headers.get('CF-Connecting-IP'));
-    if (passed === 'unreachable') {
-      return json(503, { ok: false, code: 'bot_check', error: 'The security check could not be reached. Please try again.' });
-    }
-    if (!passed) {
-      return json(403, { ok: false, code: 'bot_check', error: 'Please complete the security check and try again.' });
-    }
+  const token = typeof body.turnstile_token === 'string' ? body.turnstile_token : '';
+  const passed = await verifyTurnstile(env, token, request.headers.get('CF-Connecting-IP'));
+  if (passed === 'unreachable') {
+    return json(503, { ok: false, code: 'bot_check', error: 'The security check could not be reached. Please try again.' });
+  }
+  if (!passed) {
+    return json(403, { ok: false, code: 'bot_check', error: 'Please complete the security check and try again.' });
   }
 
+  const visitor = await visitorKeyOr503(request);
+  if (visitor.reply) return visitor.reply;
   const args = {
     p_slug: txt(body.shop), p_name: txt(body.name), p_phone: txt(body.phone), p_note: txt(body.note),
     p_items: Array.isArray(body.items) ? body.items : []
   };
   let r;
   try {
-    const key = await clientKey(request);
-    r = await callRpc(env, 'place_store_order_for_client', Object.assign({}, args, { p_client_key: key }));
-    if (missingFunction(r)) {
-      r = await callRpc(env, 'place_store_order', args);
-    }
+    r = await callRpc(env, 'place_store_order_for_client', Object.assign({}, args, { p_client_key: visitor.key }));
   } catch (e) {
     return json(503, { ok: false, error: GENERIC_ERROR });
+  }
+  // No fallback to the older function: it has no per-connection limit. If the newer one is missing, refuse.
+  if (missingFunction(r)) {
+    console.error('place_store_order_for_client is missing: run supabase/run-all-pending.sql');
+    return json(503, { ok: false, code: 'unavailable', error: PAUSED });
   }
   if (!r.res.ok) return json(400, { ok: false, error: dbError(r) });
   return json(200, r.data || { ok: false, error: GENERIC_ERROR });
 }
 
 async function trackOrder(request, env) {
+  const off = refuseWithoutBotCheck(env);
+  if (off) return off;
   let body;
   try { body = await request.json(); } catch (e) { body = null; }
   if (!body || typeof body !== 'object') return json(400, { ok: false, error: 'Please check the details and try again.' });
 
+  const visitor = await visitorKeyOr503(request);
+  if (visitor.reply) return visitor.reply;
   const args = { p_slug: txt(body.shop), p_ref: txt(body.ref), p_phone: txt(body.phone) };
   let r;
   try {
-    const key = await clientKey(request);
-    r = await callRpc(env, 'track_store_order_for_client', Object.assign({}, args, { p_client_key: key }));
-    if (missingFunction(r)) {
-      r = await callRpc(env, 'track_store_order', args);
-    }
+    r = await callRpc(env, 'track_store_order_for_client', Object.assign({}, args, { p_client_key: visitor.key }));
   } catch (e) {
     return json(503, { ok: false, error: GENERIC_ERROR });
+  }
+  // No fallback to the older function: it has no per-connection limit. If the newer one is missing, refuse.
+  if (missingFunction(r)) {
+    console.error('track_store_order_for_client is missing: run supabase/run-all-pending.sql');
+    return json(503, { ok: false, code: 'unavailable', error: PAUSED });
   }
   if (!r.res.ok) return json(400, { ok: false, error: dbError(r) });
   return json(200, r.data || { ok: false, error: GENERIC_ERROR });
@@ -167,15 +196,51 @@ function voiceKeyOn(env) {
   return typeof env.SARVAM_API_KEY === 'string' && env.SARVAM_API_KEY.trim() !== '';
 }
 
-// Counts requests per connection code for one minute. Returns false when the limit is passed.
-function voiceRateOk(who) {
-  const now = Date.now();
-  if (voiceHits.size > 5000) voiceHits.clear();
-  const h = voiceHits.get(who);
-  if (!h || now - h.start >= VOICE_RATE_WINDOW_MS) { voiceHits.set(who, { start: now, count: 1 }); return true; }
-  if (h.count >= VOICE_RATE_MAX) return false;
-  h.count += 1;
-  return true;
+// Counts voice tries per signed-in user in the database, so every Worker instance shares one count (patch-18).
+// The call runs with the user's own session token (not the server key), so the database sees that user only.
+// Returns 'ok', 'limited', or 'down' when the count cannot be checked (the call is then refused: fail closed).
+async function voiceRateOk(env, token) {
+  const base = String(env.SUPABASE_URL || '').replace(/\/+$/, '');
+  let r = null;
+  try {
+    const res = await fetch(base + '/rest/v1/rpc/voice_take', {
+      method: 'POST',
+      headers: {
+        apikey: String(env.SUPABASE_ANON_KEY || '').trim(),
+        authorization: 'Bearer ' + token,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({ p_max: VOICE_RATE_MAX, p_window_seconds: Math.round(VOICE_RATE_WINDOW_MS / 1000) })
+    });
+    const data = await res.json().catch(() => null);
+    r = { res, data };
+  } catch (e) { r = null; }
+  if (!r || r.res.status >= 400 || !r.data || typeof r.data !== 'object') return 'down';
+  return r.data.ok === true ? 'ok' : 'limited';
+}
+
+function bearerToken(request) {
+  return (request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim();
+}
+
+// Reads the whole body but stops as soon as it passes the limit, so a request with no length header cannot fill memory.
+// Returns null when the limit is passed.
+async function readBodyCapped(request, limit) {
+  if (!request.body) return new Uint8Array(0);
+  const reader = request.body.getReader();
+  const parts = [];
+  let total = 0;
+  for (;;) {
+    const got = await reader.read();
+    if (got.done) break;
+    total += got.value.byteLength;
+    if (total > limit) { await reader.cancel().catch(() => {}); return null; }
+    parts.push(got.value);
+  }
+  const all = new Uint8Array(total);
+  let at = 0;
+  for (const p of parts) { all.set(p, at); at += p.byteLength; }
+  return all;
 }
 
 // Product-name hints only: plain text, up to 50 terms of up to 64 characters each.
@@ -196,17 +261,30 @@ function voiceTerms(v) {
 
 async function transcribeVoice(request, env) {
   if (!voiceKeyOn(env)) return json(503, { ok: false, code: 'voice_off', error: VOICE_FAILED });
+  // Only a signed-in user may use the speech service. This is checked before the body is read.
+  const userId = await signedInUser(request, env);
+  if (!userId) return json(401, { ok: false, code: 'login', error: 'Please log in again and try again.' });
   const declared = Number(request.headers.get('content-length') || 0);
-  if (declared > VOICE_MAX_BYTES + 8192) {
+  if (declared > VOICE_BODY_MAX) {
     return json(413, { ok: false, code: 'too_big', error: 'That recording is too long. Please try a shorter one.' });
   }
-  const who = (await clientKey(request)) || 'anon';
-  if (!voiceRateOk(who)) {
+  const rate = await voiceRateOk(env, bearerToken(request));
+  if (rate === 'down') return json(503, { ok: false, code: 'failed', error: VOICE_FAILED });
+  if (rate === 'limited') {
     return json(429, { ok: false, code: 'rate_limited', error: 'Too many voice tries. Wait a minute and try again.' });
   }
 
+  // Counted while reading, so a missing or false length header cannot get past the limit.
+  let bytes;
+  try { bytes = await readBodyCapped(request, VOICE_BODY_MAX); } catch (e) { bytes = undefined; }
+  if (bytes === null) {
+    return json(413, { ok: false, code: 'too_big', error: 'That recording is too long. Please try a shorter one.' });
+  }
+  if (!bytes) return json(400, { ok: false, code: 'bad_request', error: 'Please try again.' });
   let form;
-  try { form = await request.formData(); } catch (e) { form = null; }
+  try {
+    form = await new Response(bytes, { headers: { 'content-type': request.headers.get('content-type') || '' } }).formData();
+  } catch (e) { form = null; }
   if (!form) return json(400, { ok: false, code: 'bad_request', error: 'Please try again.' });
   const audio = form.get('audio');
   if (!audio || typeof audio === 'string' || !(audio.size > 0)) {
