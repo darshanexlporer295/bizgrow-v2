@@ -281,7 +281,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 .list>.li.plans-row .bold{color:var(--saffron)}
 .list>.li.plans-row:hover{background:var(--primary)}
 
-/* First sign-in screen (landing): blue, logo and name centred, three big white rounded buttons at the bottom. */
+/* First sign-in screen (landing): blue, logo and name centred, two big white rounded buttons at the bottom. */
 .welcome{min-height:100vh;min-height:100dvh;background:#1A5FD0;color:#fff;display:flex;flex-direction:column;justify-content:space-between;text-align:center;padding:max(32px,env(safe-area-inset-top)) 22px max(24px,env(safe-area-inset-bottom));box-sizing:border-box}
 .w-top{display:flex;justify-content:flex-end;min-height:44px}
 .w-lang{background:#fff;color:#0A192F;border:0;border-radius:999px;padding:9px 16px;font:700 14px/1.2 Inter,sans-serif;max-width:60%;cursor:pointer}
@@ -290,9 +290,12 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;colo
 .w-name{font-size:34px;line-height:1.1;font-weight:800;margin:18px 0 8px;font-family:"Plus Jakarta Sans",Inter,"Noto Sans Devanagari","Noto Sans Gujarati",sans-serif;color:#fff}
 .w-sub{font-size:16px;line-height:1.45;margin:0;max-width:320px;color:#fff;opacity:.95}
 .w-btns{display:flex;flex-direction:column;gap:14px;width:100%;max-width:420px;margin:0 auto;padding-top:12px}
-.w-btn{position:relative;width:100%;min-height:60px;border:0;border-radius:999px;background:#fff;color:#0A192F;font:700 17px/1.2 Inter,"Noto Sans Devanagari","Noto Sans Gujarati",sans-serif;display:flex;align-items:center;justify-content:center;padding:0 20px;cursor:pointer;box-shadow:0 4px 14px rgba(5,20,50,.18)}
+.w-btn{position:relative;width:100%;min-height:60px;border:0;border-radius:999px;background:#fff;color:#0A192F;font:700 17px/1.2 Inter,"Noto Sans Devanagari","Noto Sans Gujarati",sans-serif;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 20px;cursor:pointer;box-shadow:0 4px 14px rgba(5,20,50,.18)}
 .w-btn:hover{background:#F1F5FF}
 .w-btn:focus-visible{outline:3px solid #F59E0B;outline-offset:3px}
+.w-ico{flex:0 0 22px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+.w-ico svg{width:22px;height:22px;display:block}
+.w-txt{min-width:0}
 .w-last{position:absolute;top:-9px;right:14px;background:#F59E0B;color:#0A192F;font-size:11.5px;font-weight:800;border-radius:99px;padding:3px 9px;line-height:1.3}
 .w-legal{margin:22px 0 0;font-size:13.5px;color:#fff}
 .w-legal a{color:#fff;font-weight:700;text-decoration:underline;padding:6px 4px;display:inline-block}
@@ -862,31 +865,31 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       pv_notice_sub: 'અમે શું એકત્ર કરીએ છીએ, કોણ જુએ છે, અને પાછું ખેંચવા કે કાઢવાની રીત.'
     }
   };
-  // The first sign-in screen: Apple, Google and email buttons, the Terms and Privacy links.
+  // The first sign-in screen: Google and email buttons, the Terms and Privacy links.
   var AUTH_LANDING = {
     en: {
-      auth_apple: 'Continue with Apple', auth_google: 'Continue with Google', auth_email: 'Continue with email',
+      auth_google: 'Continue with Google', auth_email: 'Continue with email',
       auth_last: 'Last used', auth_sub: 'Billing, stock and udhar in one simple app',
       auth_privacy: 'Privacy policy', auth_terms: 'Terms',
       auth_terms_body: 'The Terms of Service are still being finalised and are not published yet. Please read the Privacy Notice in the meantime, and contact the BizGrow team with any question.',
       auth_soon: '{p} sign-in is not available yet. Please use email for now.', auth_back: 'Back'
     },
     hi: {
-      auth_apple: 'Apple से जारी रखें', auth_google: 'Google से जारी रखें', auth_email: 'ईमेल से जारी रखें',
+      auth_google: 'Google से जारी रखें', auth_email: 'ईमेल से जारी रखें',
       auth_last: 'पिछली बार उपयोग किया', auth_sub: 'बिलिंग, स्टॉक और उधार, एक आसान ऐप में',
       auth_privacy: 'गोपनीयता नीति', auth_terms: 'शर्तें',
       auth_terms_body: 'सेवा की शर्तें अभी अंतिम रूप ले रही हैं और अभी प्रकाशित नहीं हुई हैं। तब तक गोपनीयता सूचना पढ़ें, और किसी सवाल के लिए BizGrow टीम से संपर्क करें।',
       auth_soon: '{p} से साइन इन अभी उपलब्ध नहीं है। अभी ईमेल का उपयोग करें।', auth_back: 'वापस'
     },
     mr: {
-      auth_apple: 'Apple ने पुढे जा', auth_google: 'Google ने पुढे जा', auth_email: 'ईमेलने पुढे जा',
+      auth_google: 'Google ने पुढे जा', auth_email: 'ईमेलने पुढे जा',
       auth_last: 'शेवटचे वापरले', auth_sub: 'बिलिंग, स्टॉक आणि उधारी, एका सोप्या ॲपमध्ये',
       auth_privacy: 'गोपनीयता धोरण', auth_terms: 'अटी',
       auth_terms_body: 'सेवेच्या अटी अजून अंतिम होत आहेत आणि अजून प्रकाशित झालेल्या नाहीत. तोपर्यंत गोपनीयता सूचना वाचा आणि प्रश्नांसाठी BizGrow टीमशी संपर्क करा.',
       auth_soon: '{p} साइन-इन अजून उपलब्ध नाही. सध्या ईमेल वापरा.', auth_back: 'मागे'
     },
     gu: {
-      auth_apple: 'Apple સાથે ચાલુ રાખો', auth_google: 'Google સાથે ચાલુ રાખો', auth_email: 'ઈમેલ સાથે ચાલુ રાખો',
+      auth_google: 'Google સાથે ચાલુ રાખો', auth_email: 'ઈમેલ સાથે ચાલુ રાખો',
       auth_last: 'છેલ્લે વાપર્યું', auth_sub: 'બિલિંગ, સ્ટોક અને ઉધાર, એક સરળ એપમાં',
       auth_privacy: 'ગોપનીયતા નીતિ', auth_terms: 'શરતો',
       auth_terms_body: 'સેવાની શરતો હજી અંતિમ થઈ રહી છે અને હજી પ્રકાશિત થઈ નથી. ત્યાં સુધી ગોપનીયતા સૂચના વાંચો, અને કોઈ પ્રશ્ન હોય તો BizGrow ટીમનો સંપર્ક કરો.',
@@ -2898,7 +2901,7 @@ async function renderAuth(){
   const title=resetTok?'Choose a new password':mode==='forgot'?'Forgot your password?':inv?'Join '+esc(invite.shop):mode==='login'?t('sign_in'):t('create_account');
   const sub=resetTok?'Pick a new password for your account. This link works once.':mode==='forgot'?'We will email you a link to set a new password.':inv?'Create your login to start working with the team.':t(mode==='login'?'sub_signin':'sub_signup');
   const plain=!!(inv||resetTok||mode==='forgot');
-  // First visit: the landing with the big buttons (Apple, Google, email). Email opens the form below.
+  // First visit: the landing with the big buttons (Google, email). Email opens the form below.
   if(!invite&&!resetTok&&!sessionStorage.getItem('bg_mode')){$('#app').innerHTML=landingHTML();const ll=document.getElementById('authLang');if(ll)ll.onchange=()=>{S.lang=ll.value;localStorage.setItem('bg_lang',S.lang);document.documentElement.lang=S.lang;renderAuth();};return;}
   const switchLink=plain?'':(mode==='login'
     ?`<div class="auth-switch">${t('no_account_q')} <button type="button" class="link" data-act="mode" data-m="signup">${t('switch_signup')}</button></div>`
@@ -2933,26 +2936,28 @@ async function renderAuth(){
   if(al)al.onchange=()=>{S.lang=al.value;localStorage.setItem('bg_lang',S.lang);document.documentElement.lang=S.lang;renderAuth();};
 }
 ACT.mode=el=>{sessionStorage.setItem('bg_mode',el.dataset.m);renderAuth();};
-// The landing screen: a big logo, the BizGrow name and three buttons. Apple and Google try the live sign-in; email opens the form.
+// The landing screen: a big logo, the BizGrow name and two buttons. Google tries the live sign-in; email opens the form.
 const LAST_LOGIN=()=>localStorage.getItem('bg_last_login')||'';
+// Official Google "G" (four brand colours) and a plain envelope, both inline, drawn left of the button text.
+const G_ICON='<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+const MAIL_ICON='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>';
 function landingHTML(){
   const last=LAST_LOGIN();
   const logoSrc=(document.querySelector('link[rel="apple-touch-icon"]')||{}).href||'/assets/icon-192.png';
-  const btn=(k,label,act)=>`<button type="button" class="w-btn" data-act="${act}">${esc(label)}${last===k?`<span class="w-last">${t('auth_last')}</span>`:''}</button>`;
+  const btn=(k,label,act,icon)=>`<button type="button" class="w-btn" data-act="${act}"><span class="w-ico">${icon}</span><span class="w-txt">${esc(label)}</span>${last===k?`<span class="w-last">${t('auth_last')}</span>`:''}</button>`;
   const langs=Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('');
   return `<div class="welcome"><div class="w-top"><select class="w-lang" id="authLang" aria-label="Language">${langs}</select></div><div class="w-mid"><img class="w-logo" src="${logoSrc}" width="112" height="112" alt="BizGrow logo"><h1 class="w-name">BizGrow</h1><p class="w-sub">${t('auth_sub')}</p></div>
-  <div class="w-btns">${btn('apple',t('auth_apple'),'pick-apple')}${btn('google',t('auth_google'),'pick-google')}${btn('email',t('auth_email'),'pick-email')}</div>
+  <div class="w-btns">${btn('google',t('auth_google'),'pick-google',G_ICON)}${btn('email',t('auth_email'),'pick-email',MAIL_ICON)}</div>
   <p class="w-legal"><a href="#" data-act="privacy-notice">${t('auth_privacy')}</a> · <a href="#" data-act="terms-notice">${t('auth_terms')}</a></p></div>`;
 }
 ACT['pick-email']=()=>{localStorage.setItem('bg_last_login','email');sessionStorage.setItem('bg_mode','login');renderAuth();};
 ACT['pick-google']=()=>pickOAuth('google');
-ACT['pick-apple']=()=>pickOAuth('apple');
 async function pickOAuth(p){
   const before=LAST_LOGIN();
   localStorage.setItem('bg_last_login',p);
   let ok=false;
   try{ok=!!(window.BGV2&&BGV2.oauth&&await BGV2.oauth(p));}catch(e){ok=false;}
-  if(!ok){if(before)localStorage.setItem('bg_last_login',before);else localStorage.removeItem('bg_last_login');toast(t('auth_soon').replace('{p}',p==='apple'?'Apple':'Google'));}
+  if(!ok){if(before)localStorage.setItem('bg_last_login',before);else localStorage.removeItem('bg_last_login');toast(t('auth_soon').replace('{p}','Google'));}
 }
 ACT['auth-back']=()=>{sessionStorage.removeItem('bg_mode');renderAuth();};
 ACT['terms-notice']=()=>modal(`<h2>${t('auth_terms')}</h2><p class="small">${t('auth_terms_body')}</p><button class="btn block mt" onclick="this.closest('.ov').close()">OK</button>`);
@@ -7311,7 +7316,7 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     if (r && r.error) throw new Error('Could not start Google sign-in. Please try again.');
   };
 
-  // Used by the landing screen for Google and Apple. Returns true when the sign-in step started,
+  // Used by the landing screen for Google. Returns true when the sign-in step started,
   // false when it is not available here (file page, or the provider is not switched on yet).
   // The switch is read from the public settings first, so a provider that is off never opens a raw error page.
   B.oauth = async function (provider) {

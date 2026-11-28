@@ -127,7 +127,7 @@ async function renderAuth(){
   const title=resetTok?'Choose a new password':mode==='forgot'?'Forgot your password?':inv?'Join '+esc(invite.shop):mode==='login'?t('sign_in'):t('create_account');
   const sub=resetTok?'Pick a new password for your account. This link works once.':mode==='forgot'?'We will email you a link to set a new password.':inv?'Create your login to start working with the team.':t(mode==='login'?'sub_signin':'sub_signup');
   const plain=!!(inv||resetTok||mode==='forgot');
-  // First visit: the landing with the big buttons (Apple, Google, email). Email opens the form below.
+  // First visit: the landing with the big buttons (Google, email). Email opens the form below.
   if(!invite&&!resetTok&&!sessionStorage.getItem('bg_mode')){$('#app').innerHTML=landingHTML();const ll=document.getElementById('authLang');if(ll)ll.onchange=()=>{S.lang=ll.value;localStorage.setItem('bg_lang',S.lang);document.documentElement.lang=S.lang;renderAuth();};return;}
   const switchLink=plain?'':(mode==='login'
     ?`<div class="auth-switch">${t('no_account_q')} <button type="button" class="link" data-act="mode" data-m="signup">${t('switch_signup')}</button></div>`
@@ -162,26 +162,28 @@ async function renderAuth(){
   if(al)al.onchange=()=>{S.lang=al.value;localStorage.setItem('bg_lang',S.lang);document.documentElement.lang=S.lang;renderAuth();};
 }
 ACT.mode=el=>{sessionStorage.setItem('bg_mode',el.dataset.m);renderAuth();};
-// The landing screen: a big logo, the BizGrow name and three buttons. Apple and Google try the live sign-in; email opens the form.
+// The landing screen: a big logo, the BizGrow name and two buttons. Google tries the live sign-in; email opens the form.
 const LAST_LOGIN=()=>localStorage.getItem('bg_last_login')||'';
+// Official Google "G" (four brand colours) and a plain envelope, both inline, drawn left of the button text.
+const G_ICON='<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+const MAIL_ICON='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>';
 function landingHTML(){
   const last=LAST_LOGIN();
   const logoSrc=(document.querySelector('link[rel="apple-touch-icon"]')||{}).href||'/assets/icon-192.png';
-  const btn=(k,label,act)=>`<button type="button" class="w-btn" data-act="${act}">${esc(label)}${last===k?`<span class="w-last">${t('auth_last')}</span>`:''}</button>`;
+  const btn=(k,label,act,icon)=>`<button type="button" class="w-btn" data-act="${act}"><span class="w-ico">${icon}</span><span class="w-txt">${esc(label)}</span>${last===k?`<span class="w-last">${t('auth_last')}</span>`:''}</button>`;
   const langs=Object.entries(LANGS).map(([k,n])=>`<option value="${k}" ${S.lang===k?'selected':''}>${n}</option>`).join('');
   return `<div class="welcome"><div class="w-top"><select class="w-lang" id="authLang" aria-label="Language">${langs}</select></div><div class="w-mid"><img class="w-logo" src="${logoSrc}" width="112" height="112" alt="BizGrow logo"><h1 class="w-name">BizGrow</h1><p class="w-sub">${t('auth_sub')}</p></div>
-  <div class="w-btns">${btn('apple',t('auth_apple'),'pick-apple')}${btn('google',t('auth_google'),'pick-google')}${btn('email',t('auth_email'),'pick-email')}</div>
+  <div class="w-btns">${btn('google',t('auth_google'),'pick-google',G_ICON)}${btn('email',t('auth_email'),'pick-email',MAIL_ICON)}</div>
   <p class="w-legal"><a href="#" data-act="privacy-notice">${t('auth_privacy')}</a> · <a href="#" data-act="terms-notice">${t('auth_terms')}</a></p></div>`;
 }
 ACT['pick-email']=()=>{localStorage.setItem('bg_last_login','email');sessionStorage.setItem('bg_mode','login');renderAuth();};
 ACT['pick-google']=()=>pickOAuth('google');
-ACT['pick-apple']=()=>pickOAuth('apple');
 async function pickOAuth(p){
   const before=LAST_LOGIN();
   localStorage.setItem('bg_last_login',p);
   let ok=false;
   try{ok=!!(window.BGV2&&BGV2.oauth&&await BGV2.oauth(p));}catch(e){ok=false;}
-  if(!ok){if(before)localStorage.setItem('bg_last_login',before);else localStorage.removeItem('bg_last_login');toast(t('auth_soon').replace('{p}',p==='apple'?'Apple':'Google'));}
+  if(!ok){if(before)localStorage.setItem('bg_last_login',before);else localStorage.removeItem('bg_last_login');toast(t('auth_soon').replace('{p}','Google'));}
 }
 ACT['auth-back']=()=>{sessionStorage.removeItem('bg_mode');renderAuth();};
 ACT['terms-notice']=()=>modal(`<h2>${t('auth_terms')}</h2><p class="small">${t('auth_terms_body')}</p><button class="btn block mt" onclick="this.closest('.ov').close()">OK</button>`);

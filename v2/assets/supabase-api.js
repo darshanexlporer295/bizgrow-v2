@@ -818,7 +818,7 @@
     if (r && r.error) throw new Error('Could not start Google sign-in. Please try again.');
   };
 
-  // Used by the landing screen for Google and Apple. Returns true when the sign-in step started,
+  // Used by the landing screen for Google. Returns true when the sign-in step started,
   // false when it is not available here (file page, or the provider is not switched on yet).
   // The switch is read from the public settings first, so a provider that is off never opens a raw error page.
   B.oauth = async function (provider) {
