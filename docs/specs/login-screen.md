@@ -34,3 +34,11 @@ The first screen is blue, with the BizGrow logo and name, and three large white 
 ## Manual steps for the member
 
 1. Follow the Google steps in `docs/KEYS-GUIDE.md` when ready, then test on the live site in a private window.
+
+## Evidence, review round 3 (28 Nov 2026)
+
+- `tests/landing-smoke.js` on a fresh run: 21 of 21 pass. Covers the Google-off message in demo, the email form and Back link, the last-used tag and remembered email, the two buttons with Apple hidden, icon sizes, button size (at least 56 px tall), logo, Terms and Privacy.
+- `bizgrow-v2-build/plan-logout-smoke.js`: 13 of 13 pass.
+- Not covered by a browser check yet: a language switch on the sign-in screen. Live Google sign-in still needs the provider switched on in Supabase.
+- The helper `BGV2.authDone` is kept: it is called by the sign-in screen (app.js), so it is in use.
+- The `/public/track` branch in the app's own database wrapper was removed: nothing called it (the store uses the Worker route), and it ran the tracking query without the bot check.

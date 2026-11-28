@@ -38,3 +38,13 @@ An owner types a promo code on the Plan page. If the code is valid, the shop get
 ## Manual step for the member
 
 1. Run `supabase/run-all-pending.sql` in the Supabase SQL editor (safe to run again).
+
+## Evidence, review round 3 (28 Nov 2026)
+
+Run on a fresh scratch database with `supabase/tests/run-promo-billing.cjs --scratch` (all patches, then the checks): 61 of 61 pass.
+
+- **Concurrency.** P18: 12 shops redeem the same limited code at the same moment; exactly 3 succeed (the limit is 3), used count 3, redemptions 3.
+- **Expiry.** P44: a code past its end date is refused with a plain message; P45 and P46: a wrong or empty code is refused.
+- **30-day end.** P40 and P43: a 30-day code gives 30 days left and returns the shop to Free when it runs out; a code with no end date shows "for good".
+- **Abuse.** P47: all 8 refused attempts (wrong, ended, empty and similar) get plain messages; the global cap of 50 failed tries per code an hour and 300 overall is checked by `supabase/tests/limits-18-checks.sql` (12 of 12, earlier run).
+- **Not run here.** The live project. The owner runs `supabase/run-all-pending.sql` first.

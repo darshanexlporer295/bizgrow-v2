@@ -7302,12 +7302,8 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     if (path === '/public/store' && method === 'GET') {
       return reply(200, await rpc('public_store_catalogue', { p_slug: txt(qs && qs.get('shop')) }));
     }
-    // /public/order and /public/bot-check are not answered here: the Cloudflare Worker (worker/index.mjs)
-    // checks the bot-check token and then places the order (stage 8). See the wrapper at the end of this file.
-    if (path === '/public/track' && method === 'POST') {
-      var tb = body || {};
-      return reply(200, await rpc('track_store_order', { p_slug: txt(tb.shop), p_ref: txt(tb.ref), p_phone: txt(tb.phone) }));
-    }
+    // /public/order, /public/bot-check and /public/track are not answered here: the Cloudflare Worker (worker/index.mjs)
+    // checks the bot-check token and then places the order or looks up the order (stage 8). See the wrapper at the end of this file.
     if (/^\/(login|password|invite)/.test(path) || path === '/signup') {
       return fail(400, path.indexOf('/invite') === 0 ? 'This invite link is not valid.' : 'Sign in with Google. Email and password are not used here.');
     }
