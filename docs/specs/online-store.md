@@ -111,7 +111,7 @@ The public order goes through a small Cloudflare Worker (`worker/index.mjs`) tha
 62. Does the checkout show the security check box just above the Send order button, and does the page fit at 360 px with no sideways scrolling? Must be **yes**. Demo check: "the checkout shows the security check box", "the check box sits just above the send button", "no sideways scrolling at 360 px". The widget itself is a stand-in in the demo.
 63. Does the Worker refuse an order with no token, or a token Cloudflare does not accept, with HTTP 403 and code `bot_check`, before any order is written? Must be **yes**. Worker check: `stage8-worker-smoke.mjs` (Cloudflare test secrets, Supabase stubbed). Review: the Worker calls `siteverify` before the database call.
 64. When the check is refused or missing, does the shopper see a friendly message and can they retry with a fresh check? Must be **yes**. Demo check: "no token: friendly message, no order sent", "refused check: friendly message, not the server text", "retry with a fresh check places the order".
-65. Is the check off (fail open) when `TURNSTILE_SECRET_KEY` is empty, with no box shown and orders still placed? Must be **yes**. Demo check: "check off: no box is shown", "check off: order still goes through". Worker check: `enabled` is false from `/api/public/bot-check`.
+65. Is the order refused (fail closed) when `TURNSTILE_SECRET_KEY` is empty, with no order written? Must be **yes** (changed 28 Nov 2026; it used to fail open). Worker check: order and track answer 503 `bot_check_off` (`tests/public-routes-smoke.mjs`, 27 of 27). The page still shows no box when the bot-check route says `enabled: false`. Demo check: "check off: no box is shown".
 66. Does the WhatsApp order text stay the same as before the check was added? Must be **yes**. Demo check: "WhatsApp text has the name, the item line and the total".
 
 ## N. Online orders only through the Worker (stage 9, `supabase/patch-10-lockdown.sql`, opt-in)
@@ -150,7 +150,7 @@ Anonymous surface review (stage 9): the findings and what was left open are in `
 ## H. Known gaps and future work
 
 - **Two sessions at once are not tested.** Stock is locked per item, so two orders for the last of an item should not both succeed, but no check runs two orders at the same moment. The existing sale function (`create_sale`) locks items in cart order, so a rare deadlock between a sale and an online order placed at the same moment is possible. Postgres would stop one of them with an error; no wrong stock is written.
-- **Bot check is off until the owner sets the secret.** The check is built (section M), but it fails open: with `TURNSTILE_SECRET_KEY` empty, orders go through without a check. Until the secret is set, the per-number limits (criteria 13 to 15) are the only protection.
+- **Bot check is off until the owner sets the secret.** The check is built (section M), and it now fails closed: with `TURNSTILE_SECRET_KEY` empty the Worker answers 503 and places no order (section P). Until the secret is set, the per-number limits (criteria 13 to 15) are the only protection.
 - **Public order function (closed by patch-10, opt-in).** Until the owner runs `supabase/patch-10-lockdown.sql` (section N), the publishable key can still call `place_store_order` directly. The owner runs it only after the bot check box shows and a test order works. Undo with `supabase/patch-10-rollback.sql`.
 - **Shop order cap can be used up.** The 300-orders-an-hour cap per shop counts every anonymous order, so one visitor can stop a shop taking online orders for up to an hour (CHANGES.md, Stage 9, finding 3). Product choice needed.
 - **Tracking cap can block a shop.** Every tracking try, refused or not, counts toward the 300-an-hour cap per shop, so one visitor can block tracking for a whole shop for up to an hour (finding 4). Product choice needed.
@@ -173,3 +173,14 @@ To test the stage 9 lockdown and its rollback as well, add `--lockdown` (same sc
     DATABASE_URL=postgres://user:pass@host:5432/scratch node supabase/tests/run-checks.cjs --scratch --lockdown
 
 This runs the same steps, then `supabase/patch-10-lockdown.sql` (twice), `supabase/tests/lockdown-checks.sql` (L01 to L09), `supabase/patch-10-rollback.sql` (twice) and `supabase/tests/rollback-checks.sql` (R01 to R03).
+
+## P. Review fixes for public routes, 28 Nov 2026 (patch-12, patch-13, worker)
+
+Checked by `tests/public-routes-smoke.mjs` (mocked Cloudflare and Supabase, 27 of 27 pass) and the browser checks.
+
+- **Fail closed.** No `TURNSTILE_SECRET_KEY`: order and track return 503 `bot_check_off` and nothing is written. No connection address: 503, the limit cannot be skipped.
+- **No fallback.** If the `_for_client` order or track function is missing, the Worker answers 503 and logs that `supabase/run-all-pending.sql` must be run. It never calls the older `place_store_order` or `track_store_order`.
+- **Turnstile outcomes.** Pass places the order; fail (403) and no token place nothing; unreachable, server error and bad reply answer 503 and place nothing. The secret is sent to Cloudflare only.
+- **Per visitor.** A visitor (a one-way hash of the connection address and the UTC day) can place 10 orders an hour and make 10 tracking tries per 15 minutes per shop. Refused tries are counted.
+- **Still open (cannot be closed in code).** The 300-orders-an-hour cap for the whole shop still exists. Many addresses can still use it up. The fix is a Cloudflare rate-limit rule on `/api/public/*`, set in the Cloudflare dashboard by the owner (not done).
+- **Live check.** Not run on the live project. The member must run `supabase/run-all-pending.sql` first (safe to repeat).
