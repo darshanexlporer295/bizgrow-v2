@@ -86,6 +86,28 @@ service key is missing. Check the spelling, then deploy again.
 
 Test payments are fake. Nothing is charged.
 
+### TEST-MODE checklist (tick each line; the only thing you do is paste the keys)
+
+Before you start: Parts 1 to 3 are done (test keys, webhook, three Cloudflare secrets), and
+`supabase/run-all-pending.sql` has been run once in the Supabase SQL editor (safe to run again).
+
+| # | Step | What you should see | If not |
+|---|------|---------------------|--------|
+| 1 | Open `https://bizgrow.buildsit.workers.dev/api/billing/config` in a browser | A line that says `"enabled":true` and no key in the text | Keys are missing or misspelt in Cloudflare (Part 3) |
+| 2 | Sign in as the shop **owner**, open Settings, then Plan | A **Pay for Growth** button | A staff login sees no Pay button, by design |
+| 3 | Press **Pay for Growth** | The Razorpay test window opens with the plan price. The price in the SQL is an assumed Rs 499 (see the note in `supabase/run-all-pending.sql`); confirm it is the price you want before going live | Note the message on the screen and send it to us; do not retry many times |
+| 4 | Pay with a published Razorpay test card, any future expiry, any CVV | The window closes and the Plan page says the plan is updated | Wait one minute, then reload the Plan page (the webhook may finish it) |
+| 5 | Reload the Plan page | The current plan shows Growth with an end date about 30 days away | If it still shows the old plan, go to step 6 |
+| 6 | Razorpay dashboard, test mode, **Webhooks**, then the webhook's log | A `payment.captured` delivery with a green status (200) | A red status: check the webhook secret matches Part 3 exactly |
+| 7 | Razorpay dashboard, test mode, **Payments** | The test payment with the same amount, status Captured | No payment: the checkout did not finish; repeat step 3 |
+| 8 | Optional: repeat steps 3 to 4 with the same shop | The Plan page says the plan is unchanged, and no second charge is made by BizGrow | This is expected: the shop is already at that plan |
+
+What the checks above prove, and what they do not: the code path (order, signature, payment read-back, webhook,
+database update, refusals for tampering) is tested without Razorpay, in `tests/razorpay-sim.mjs` (26 of 26) and
+`tests/billing-worker-smoke.mjs` (30 of 30). Steps 1 to 7 are the only proof that Razorpay's real servers agree
+with that. Record the date, the order id and the payment id in `docs/specs/billing.md` (Evidence section) after
+a successful run. Do not write the keys in that file.
+
 ---
 
 ## Part 5 - Going live (only when you are ready)
