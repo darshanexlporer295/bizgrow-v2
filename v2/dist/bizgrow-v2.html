@@ -3948,7 +3948,7 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
   ['આપ્યા', 'આપ્યું', 'આપ્યો'].forEach(function (w) { var rr = toRoman(w); PAY.long = PAY.long.filter(function (x) { return x !== rr; }); });
   var STOCK = mkSet(['stock', 'stok', 'maal', 'mal', 'माल', 'स्टॉक', 'स्टोक', 'aaya', 'aayi', 'aaye', 'aala', 'aali', 'add', 'आला', 'आली', 'आले',
     'jodo', 'joda', 'jodi', 'umero', 'ummero', 'उमेरो', 'आया', 'आयी', 'जोड़ो', 'ઉમેરો', 'ઉમેરા', 'આવ્યો', 'આવ્યા', 'આવી', 'સ્ટોક', 'સ્ટોક',
-    'daalo', 'dalo', 'daalna', 'डालो', 'डाला', 'डालना']);
+    'daalo', 'dalo', 'daalna', 'डालो', 'डाला', 'डालना', 'स्टॉकमध्ये', 'स्टॉकमध्ये', 'टाका', 'टाकायचा', 'टाकायचे']);
   var CASH = mkSet(['cash', 'naqad', 'nakad', 'nagad', 'naqd', 'rokad', 'rokda', 'roka', 'रोख', 'रोकड़', 'रोकड', 'नकद', 'नगद',
     'कैश', 'रोकडा', 'રોકડ', 'રોકડા', 'નકદ', 'કેશ']);
   // Words that mean "paid" or "money received" (kept apart from the Latin list above)
@@ -3959,7 +3959,7 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
     'aani', 'kade', 'no', 'nu', 'ni',
     'de', 'dena', 'dijiye', 'apo', 'aapo', 'aapi', 'par', 'pe', 'kay', 'kya', 'bhi', 'को', 'का', 'की', 'के', 'और', 'से', 'में',
     'ने', 'लिए', 'बिल', 'ला', 'च्या', 'ची', 'चे', 'साठी', 'मध्ये', 'ને', 'નું', 'ની', 'માટે', 'અને', 'થી', 'માં', 'ના', 'બિલ', 'લખો', 'આપો',
-    'सेव', 'करो', 'करा', 'कोणतेही', 'नाही', 'કરો', 'બનાવો']
+    'सेव', 'करो', 'करा', 'कोणतेही', 'नाही', 'કરો', 'બનાવો', 'એ']
     .forEach(function (w) { FILLER[toRoman(w)] = true; });
 
   // Learned corrections for this shop: heard word (Latin) -> { k: 'p' or 'c', id }. Set by the voice page.
@@ -3996,7 +3996,11 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
   function numberAt(T, kind, i) {
     if (kind[i]) return null;
     var v = numAt(T, i), j = i + 1, m, w;
-    if (isNaN(v)) return null;
+    if (isNaN(v)) {
+      // A bare hundred or thousand word ("sau rupaye", "so rupiya") counts as one of it
+      if (!multAt(T, i)) return null;
+      v = 1; j = i;
+    }
     if (j < T.length && !kind[j] && (m = multAt(T, j))) {
       v = v * m; j++;
       if (m === 100 && j < T.length && !kind[j]) {
@@ -4014,7 +4018,7 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
   function splitName(name) {
     return String(name || '').split(/[^\p{L}\p{N}]+/u).map(function (p) { return toRoman(p); }).filter(Boolean);
   }
-  var POSS = ['aachya', 'aachi', 'aache', 'aacha', 'ichya', 'ichi', 'iche', 'ache', 'chya', 'chi', 'che', 'cha', 'chaa', 'ya', 'ne', 'na', 'laa', 'la'];
+  var POSS = ['aachya', 'aachi', 'aache', 'aacha', 'ichya', 'ichi', 'iche', 'ache', 'chya', 'chi', 'che', 'cha', 'chaa', 'ya', 'ne', 'na', 'laa', 'la', 'kaduun', 'kadun'];
   // Possible names with a possessive or case ending taken off (the stem, and the stem with a final 'a' added back)
   function possStems(r) {
     var out = [];
@@ -4153,6 +4157,15 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
         if (p2 && !p2.used) { q = p2.v; p2.used = true; }
       }
       pt.qty = (q != null && q > 0) ? q : 1;
+      pt.explicit = q != null;
+    });
+    // "potato and onion three three": items with no number of their own get the repeated number that follows the list
+    prodTok.forEach(function (pt) {
+      if (pt.explicit) return;
+      var j = pt.i + 1, p2, p3;
+      while (j < n && (kind[j] === 'filler' || kind[j] === 'prod')) j++;
+      p2 = phrStart[j]; p3 = p2 && phrStart[p2.end];
+      if (p2 && p3 && p3.v === p2.v) pt.qty = p2.v;
     });
 
     // 6. Lines, merging the same product
