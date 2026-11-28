@@ -184,5 +184,16 @@ Checked by `tests/public-routes-smoke.mjs` (mocked Cloudflare and Supabase, 39 o
 - **Tracking now needs the bot check too** (it had none, so plain requests could spend the shop's tracking cap). The tracking box has its own check widget; each try uses a fresh single-use token.
 - **Per visitor, in the database.** A visitor (a one-way hash of the connection address and the UTC day) can place 10 orders an hour and make 10 tracking tries per 15 minutes per shop. Refused tries are counted.
 - **Per visitor, in the Worker (no dashboard rule needed).** The same numbers (10 orders an hour, 10 tracking tries per 15 minutes) are checked in the Worker before the database is called. Each Worker instance keeps its own count, so this is a first line, not the shared count. Tested: the 11th try is refused with no database call; another visitor is not affected; the window reopens.
-- **Still open: the whole-shop cap.** `place_store_order` and `track_store_order` still refuse when the whole shop passes 300 orders (or 300 tracking tries) in an hour. Now that tracking needs a check, plain requests cannot spend it; only a visitor who passes the Cloudflare check can. Removing the cap, or raising it, needs a new SQL patch that changes the two functions. That patch was not written this round because no scratch Postgres could run the SQL checks (port 54329 down). The Cloudflare rate-limit rule on `/api/public/*` is still an option for the owner.
+- **Whole-shop cap removed (patch-20, see section Q).** `place_store_order` and `track_store_order` no longer refuse when the whole shop passes 300 orders (or 300 tracking tries) in an hour. The per phone and per connection limits still apply. The Cloudflare rate-limit rule on `/api/public/*` remains an outer guard the owner can add.
 - **Live check.** Not run on the live project. The member must run `supabase/run-all-pending.sql` first (safe to repeat).
+
+## Q. Whole-shop caps removed (stage 12, `supabase/patch-20.sql`)
+
+Checked by `supabase/tests/patch-20-checks.sql` on a scratch database (6 of 6 pass), inside the full store run (`run-checks.cjs --scratch`, 46 of 46 store checks, patch-13 checks 9 of 9).
+
+- **Why.** The shop-wide cap (300 orders an hour in `place_store_order`, 300 tracking tries an hour in `track_store_order`) let any visitor who could reach the public pages use up the shop's count and block every other customer for an hour.
+- **What changed.** Both functions are redefined without those lines. Nothing else in them changed. Grants are kept (create or replace does not change them).
+- **What stays.** Per phone number: 3 orders in 10 minutes for a known number, 2 an hour for a new one, and 10 tracking tries in 15 minutes. Per connection (patch-12, patch-13): 10 orders an hour and 10 tracking tries in 15 minutes per shop. Bot check on the public pages (Turnstile) and the per visitor limit in the Worker.
+- **Tested.** With 300 orders already in the hour, a new customer's order is saved (C03). With 300 tracking tries already in the hour, a new number is not refused (C04). The 11th tracking try from one number is still refused (C05). The per connection limit still reads 10 (C06).
+- **Left to the owner.** A Cloudflare rate-limit rule on `/api/public/*` is an extra outer guard. It is set in the Cloudflare dashboard, not here.
+- **Live database.** Not run. The owner runs `supabase/run-all-pending.sql` (it now includes patch-20).

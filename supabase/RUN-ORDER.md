@@ -54,8 +54,9 @@ The live website and the server part (the Worker) are published by pushing to Gi
 | `patch-17.sql` | Promo codes end to end: a plan ends at its end date and goes back to Free at read time; codes ignore case and spaces; plain messages; one-time fix for default shops | In `run-all-pending.sql` |
 | `patch-18.sql` | Promo codes: a global cap on failed tries per code (50 an hour) and in total (300 an hour) across all accounts; voice: a shared per-person limit (20 a minute) in the database; internal helper functions are closed to the public and anon roles | In `run-all-pending.sql` |
 | `patch-19.sql` | Owner alert: a payment that does not raise the plan shows a notice on the plan screen (plan and end date unchanged); the notice clears when a later payment raises the plan | In `run-all-pending.sql` |
+| `patch-20.sql` | Whole-shop caps removed: the public order and tracking functions no longer stop every order or try for a whole store after 300 in an hour. Per phone and per connection limits stay | In `run-all-pending.sql` |
 | `make-platform-owner.sql` | Marks the login revobuildsit@gmail.com as the BizGrow platform owner (for promo codes). Sign in once first | Run once, after the main file |
-| `run-all-pending.sql` | patch-08 to patch-19 joined, in order | Run tomorrow |
+| `run-all-pending.sql` | patch-08 to patch-20 joined, in order | Run tomorrow |
 | `patch-10-lockdown.sql` | Only the server can place orders | Optional, last |
 | `patch-10-rollback.sql` | Undo of patch-10 | Only if needed |
 

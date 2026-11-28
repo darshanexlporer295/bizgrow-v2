@@ -32,14 +32,12 @@ select 'P02', (public.place_store_order_for_client('test-shop-1', 'Visitor Y', '
   jsonb_build_array(jsonb_build_object('product_id', '00000000-0000-0000-0000-0000000000c2', 'qty', '1')), 'p13-y')->>'ok') = 'true',
   'a second visitor can still order after the first one hit the limit';
 
--- ---------- P03: one visitor cannot use up the whole shop's cap; the 300-an-hour cap is still in place ----------
+-- ---------- P03: one visitor cannot use up the whole shop's cap; the whole-shop 300 cap is gone (patch-20) ----------
 insert into p13_results
 select 'P03',
   (select count(*) from public.store_client_log where client_key = 'p13-x' and kind = 'order' and tried_at > now() - interval '1 hour') = 10
-  and (select count(*) from public.store_orders o join public.shops s on s.id = o.shop_id
-        where s.store_slug = 'test-shop-1' and o.created_at > now() - interval '1 hour') < 300
-  and pg_get_functiondef('public.place_store_order(text,text,text,text,jsonb)'::regprocedure) like '%v_recent >= 300%',
-  'one visitor used 10 of the shop''s hourly orders; the shop-wide 300 cap is still in the database function';
+  and pg_get_functiondef('public.place_store_order(text,text,text,text,jsonb)'::regprocedure) not like '%>= 300%',
+  'one visitor used 10 of the shop''s hourly orders; the whole-shop 300 cap is no longer in the database function (patch-20)';
 
 -- ---------- P04: tracking: 10 tries in 15 minutes, the 11th is refused; every try counts ----------
 do $$
