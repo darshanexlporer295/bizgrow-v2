@@ -773,4 +773,17 @@ end $$;
 insert into p15_results values ('P50', (select count(*) from public.shops where plan_base_source = 'legacy') = 0,
   'legacy fallbacks: ' || (select count(*) from public.shops where plan_base_source = 'legacy'));
 
+-- P51: the owner sees the notice for a payment that did not raise the plan (plan and end date unchanged)
+select set_config('request.jwt.claim.sub', '15000000-0000-0000-0000-000000000002', false);
+set local role authenticated;
+do $$
+declare v jsonb;
+begin
+  v := public.get_my_plan('15100000-0000-0000-0000-000000000003');
+  insert into p15_results values ('P51', v->>'billing_notice_plan' = 'growth' and v->>'code' = 'all'
+      and (select plan_until from public.shops where id = '15100000-0000-0000-0000-000000000003') is null,
+    'notice: ' || coalesce(v->>'billing_notice_plan', 'none') || ', plan: ' || coalesce(v->>'code', '-'));
+end $$;
+reset role;
+
 select id, ok, detail from p15_results order by id;

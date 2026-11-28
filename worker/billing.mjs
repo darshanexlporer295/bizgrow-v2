@@ -210,7 +210,7 @@ async function finishPayment(env, p, deps) {
   if (r.status >= 400 || !r.data || r.data.ok !== true) {
     return json(409, { ok: false, error: dbMessage(r) || TRY_AGAIN });
   }
-  return json(200, { ok: true, status: r.data.status || 'paid', plan: r.data.plan || null });
+  return json(200, { ok: true, status: r.data.status || 'paid', plan: r.data.plan || null, plan_changed: r.data.plan_changed !== false });
 }
 
 // POST /api/billing/webhook  (Razorpay sends the signature in X-Razorpay-Signature)

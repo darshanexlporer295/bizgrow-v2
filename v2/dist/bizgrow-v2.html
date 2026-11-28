@@ -1631,6 +1631,7 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       bl_plan_fail: "The plan could not be loaded just now. Your sign-in is fine. Tap Try again.",
       bl_retry: "Try again",
       bl_ends_in: "Your {plan} plan ends in {n} days, on {date}. After that the shop goes back to {back}. Your data is kept.",
+      bl_notice_unapplied: "We received your online payment for the {plan} plan, but your shop is already on a plan at or above it, so nothing was changed. Please contact BizGrow with your payment reference so we can sort it out.",
       bl_ends_tomorrow: "Your {plan} plan ends tomorrow, on {date}. After that the shop goes back to {back}. Your data is kept.",
       bl_ends_today: "Your {plan} plan ends today. After that the shop goes back to {back}. Your data is kept.",
       bl_adm_left: "{n} left",
@@ -1685,6 +1686,7 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       bl_plan_fail: "प्लान अभी लोड नहीं हो सका। आपका साइन-इन ठीक है। फिर से कोशिश करें दबाएँ।",
       bl_retry: "फिर से कोशिश करें",
       bl_ends_in: "आपका {plan} प्लान {n} दिनों में, {date} को खत्म होगा। उसके बाद दुकान {back} पर वापस चली जाएगी। आपका डेटा रखा रहेगा।",
+      bl_notice_unapplied: "आपका {plan} प्लान का ऑनलाइन भुगतान मिल गया है, लेकिन आपकी दुकान पहले से उसके बराबर या ऊपर के प्लान पर है, इसलिए कुछ नहीं बदला गया। कृपया अपना भुगतान नंबर लेकर BizGrow से संपर्क करें, ताकि हम इसे ठीक कर सकें।",
       bl_ends_tomorrow: "आपका {plan} प्लान कल, {date} को खत्म होगा। उसके बाद दुकान {back} पर वापस चली जाएगी। आपका डेटा रखा रहेगा।",
       bl_ends_today: "आपका {plan} प्लान आज खत्म हो रहा है। उसके बाद दुकान {back} पर वापस चली जाएगी। आपका डेटा रखा रहेगा।",
       bl_adm_left: "{n} बाकी",
@@ -1739,6 +1741,7 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       bl_plan_fail: "प्लॅन आत्ता लोड होऊ शकला नाही. तुमचे साइन-इन ठीक आहे. पुन्हा प्रयत्न करा दाबा.",
       bl_retry: "पुन्हा प्रयत्न करा",
       bl_ends_in: "तुमचा {plan} प्लॅन {n} दिवसांनी, {date} रोजी संपेल. त्यानंतर दुकान {back} वर परत जाईल. तुमचा डेटा जपून ठेवला जाईल.",
+      bl_notice_unapplied: "तुमचे {plan} प्लॅनचे ऑनलाइन पेमेंट मिळाले आहे, पण दुकान आधीच त्याच्या बरोबरीच्या किंवा वरच्या प्लॅनवर आहे, म्हणून काहीही बदलले नाही. कृपया तुमचा पेमेंट नंबर घेऊन BizGrow शी संपर्क साधा, म्हणजे आम्ही ते नीट करू शकू.",
       bl_ends_tomorrow: "तुमचा {plan} प्लॅन उद्या, {date} रोजी संपेल. त्यानंतर दुकान {back} वर परत जाईल. तुमचा डेटा जपून ठेवला जाईल.",
       bl_ends_today: "तुमचा {plan} प्लॅन आज संपत आहे. त्यानंतर दुकान {back} वर परत जाईल. तुमचा डेटा जपून ठेवला जाईल.",
       bl_adm_left: "{n} शिल्लक",
@@ -1793,6 +1796,7 @@ window.I18N_TX={"hi": {"No internet connection. Please check and try again.": "�
       bl_plan_fail: "પ્લાન અત્યારે લોડ ન થયો. તમારું સાઇન-ઇન બરાબર છે. ફરી પ્રયાસ કરો દબાવો.",
       bl_retry: "ફરી પ્રયાસ કરો",
       bl_ends_in: "તમારો {plan} પ્લાન {n} દિવસમાં, {date} ના રોજ પૂરો થશે. ત્યાર પછી દુકાન {back} પર પાછી જશે. તમારો ડેટા સચવાયેલો રહેશે.",
+      bl_notice_unapplied: "અમને તમારું {plan} પ્લાનનું ઓનલાઇન પેમેન્ટ મળ્યું છે, પણ દુકાન પહેલેથી તેના બરાબર કે ઉપરના પ્લાન પર છે, તેથી કંઈ બદલાયું નથી. કૃપા કરીને તમારો પેમેન્ટ નંબર લઈને BizGrow નો સંપર્ક કરો, જેથી અમે તેને ઠીક કરી શકીએ.",
       bl_ends_tomorrow: "તમારો {plan} પ્લાન કાલે, {date} ના રોજ પૂરો થશે. ત્યાર પછી દુકાન {back} પર પાછી જશે. તમારો ડેટા સચવાયેલો રહેશે.",
       bl_ends_today: "તમારો {plan} પ્લાન આજે પૂરો થાય છે. ત્યાર પછી દુકાન {back} પર પાછી જશે. તમારો ડેટા સચવાયેલો રહેશે.",
       bl_adm_left: "{n} બાકી",
@@ -6261,6 +6265,13 @@ document.addEventListener('DOMContentLoaded',()=>{if(window.BGV2&&BGV2.publicSto
       var note = fill(fill(fill(t(key), 'plan', cur.name || cur.code), 'n', nLeft), 'date', cur.plan_until_text);
       note = fill(note, 'back', cur.back_to_name || 'Free');
       html += '<div class="card mt" role="status"><p class="small" style="margin:0">' + esc(note) + '</p></div>';
+    }
+    // A payment that was received but did not raise the plan: the owner is asked to contact BizGrow (shown until a later upgrade).
+    if (cur && cur.billing_notice_plan) {
+      var noticeName = cur.billing_notice_plan;
+      list.forEach(function (pl) { if (pl.code === cur.billing_notice_plan) noticeName = pl.name || noticeName; });
+      html += '<div class="card mt" role="alert" data-test="billing-notice"><p class="small" style="margin:0">' +
+        esc(fill(t('bl_notice_unapplied'), 'plan', noticeName)) + '</p></div>';
     }
     // Only the shop owner can use a code or pay (the database and the Worker check this too).
     if (B.isOwner()) {

@@ -20,6 +20,7 @@ Run each file in the Supabase dashboard: **SQL Editor**, then **New query**, pas
    - `patch-15.sql`: online payment for plan upgrades (Razorpay, set up later), promo codes, and plan end dates. Prices: Growth Rs 499 and All Features Rs 999 for 30 days (to be confirmed). Promo codes are made only by the BizGrow team.
    - `patch-16.sql`: fixes promo codes and payments for shops that were given All Features by default (they can now take a promo or pay). Records where each shop's plan came from. A promo for the plan a shop already has adds days to its end date. A lower plan is refused with a clear message.
    - `patch-18.sql`: promo guessing capped across accounts, the voice per-person limit in the database, and internal helper functions locked from anon. Safe to run again.
+   - `patch-19.sql`: owner alert when an online payment does not raise the plan (shown on the plan screen). Safe to run again.
    - `patch-17.sql`: promo codes done properly. Codes ignore capital letters and spaces. A plan that reaches its end date goes back to Free on its own, even if nobody opens the app, and the shop's data is kept. Shops that were on All Features by default go back to Free when their promo ends. The plan screen shows how many days are left. The BizGrow team sees who used each code and how many uses are left. Codes can be switched off, and a code cannot be used twice by one shop.
 3. Nothing is deleted. Running it a second time is safe.
 4. Open the live site in a new tab, and do a hard refresh (on a phone: close the tab and open it again).
@@ -52,8 +53,9 @@ The live website and the server part (the Worker) are published by pushing to Gi
 | `patch-16.sql` | Plan source (default, promo, paid, manual); promo and payment fixes for default shops | In `run-all-pending.sql` |
 | `patch-17.sql` | Promo codes end to end: a plan ends at its end date and goes back to Free at read time; codes ignore case and spaces; plain messages; one-time fix for default shops | In `run-all-pending.sql` |
 | `patch-18.sql` | Promo codes: a global cap on failed tries per code (50 an hour) and in total (300 an hour) across all accounts; voice: a shared per-person limit (20 a minute) in the database; internal helper functions are closed to the public and anon roles | In `run-all-pending.sql` |
+| `patch-19.sql` | Owner alert: a payment that does not raise the plan shows a notice on the plan screen (plan and end date unchanged); the notice clears when a later payment raises the plan | In `run-all-pending.sql` |
 | `make-platform-owner.sql` | Marks the login revobuildsit@gmail.com as the BizGrow platform owner (for promo codes). Sign in once first | Run once, after the main file |
-| `run-all-pending.sql` | patch-08, 09, 11, 12, 13, 14, 15, 16 and 17 joined, in order | Run tomorrow |
+| `run-all-pending.sql` | patch-08 to patch-19 joined, in order | Run tomorrow |
 | `patch-10-lockdown.sql` | Only the server can place orders | Optional, last |
 | `patch-10-rollback.sql` | Undo of patch-10 | Only if needed |
 

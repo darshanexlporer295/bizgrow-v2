@@ -260,6 +260,104 @@ await check('unknown billing path is not handled here', async () => {
   assert.equal(res, null);
 });
 
+// Duplicate and replay checks. The database makes the second call a no-op (proven in supabase/tests/promo-billing-checks.sql);
+// here we prove the worker sends the same payment ids each time and answers the repeat with 200, not an error.
+await check('duplicate webhook: same payment id sent twice is sent to the database twice with the same ids and both answer 200', async () => {
+  const seen = [];
+  const { fetchImpl } = fakeNet([
+    ['/rest/v1/rpc/billing_mark_paid', (u, init) => { seen.push(JSON.parse(init.body)); return { body: { ok: true, status: 'paid', plan: 'growth', plan_changed: seen.length === 1 } }; }]
+  ]);
+  const a = await handleBilling(req('/api/billing/webhook', { raw: WH_BODY, headers: { 'x-razorpay-signature': WH_SIG } }), ENV_ON, '/api/billing/webhook', { fetch: fetchImpl });
+  const b = await handleBilling(req('/api/billing/webhook', { raw: WH_BODY, headers: { 'x-razorpay-signature': WH_SIG } }), ENV_ON, '/api/billing/webhook', { fetch: fetchImpl });
+  assert.equal(a.status, 200);
+  assert.equal(b.status, 200);
+  assert.equal(seen.length, 2);
+  assert.deepEqual(seen[0], seen[1], 'the repeat carries the same order, payment, amount and source');
+  assert.equal(seen[0].p_payment, 'pay_TESTVEC001');
+});
+
+await check('replay: a signed webhook for a second payment on an already-paid order is refused by the database and not applied', async () => {
+  const OTHER_BODY = WH_BODY.replace('pay_TESTVEC001', 'pay_TESTVEC009');
+  const OTHER_SIG = await hmacHexForTest(WEBHOOK_SECRET, OTHER_BODY);
+  const { fetchImpl } = fakeNet([
+    ['/rest/v1/rpc/billing_mark_paid', { status: 400, body: { code: 'P0001', message: 'This order was already paid.' } }]
+  ]);
+  const res = await handleBilling(req('/api/billing/webhook', { raw: OTHER_BODY, headers: { 'x-razorpay-signature': OTHER_SIG } }), ENV_ON, '/api/billing/webhook', { fetch: fetchImpl });
+  assert.equal(res.status, 409);
+  assert.equal((await res.json()).error, 'This order was already paid.');
+});
+
+await check('tamper: a webhook whose amount was raised after signing is refused before any database call', async () => {
+  const { fetchImpl, calls } = fakeNet([]);
+  const forged = WH_BODY.replace('"amount":49900', '"amount":100');
+  const res = await handleBilling(req('/api/billing/webhook', { raw: forged, headers: { 'x-razorpay-signature': WH_SIG } }), ENV_ON, '/api/billing/webhook', { fetch: fetchImpl });
+  assert.equal(res.status, 400);
+  assert.equal(calls.length, 0);
+});
+
+await check('tamper: a webhook re-signed with the wrong secret is refused before any database call', async () => {
+  const { fetchImpl, calls } = fakeNet([]);
+  const sig = await hmacHexForTest(KEY_SECRET, WH_BODY);
+  const res = await handleBilling(req('/api/billing/webhook', { raw: WH_BODY, headers: { 'x-razorpay-signature': sig } }), ENV_ON, '/api/billing/webhook', { fetch: fetchImpl });
+  assert.equal(res.status, 400);
+  assert.equal(calls.length, 0);
+});
+
+await check('tamper: verify uses the amount Razorpay reports, never the amount the browser sends', async () => {
+  let mark = null;
+  const { fetchImpl } = fakeNet([
+    OWNER_AUTH,
+    ['api.razorpay.com/v1/payments/pay_TESTVEC001', { body: { id: 'pay_TESTVEC001', order_id: 'order_TESTVEC001', amount: 49900, currency: 'INR', status: 'captured' } }],
+    ['/rest/v1/rpc/billing_mark_paid', (u, init) => { mark = JSON.parse(init.body); return { body: { ok: true, status: 'paid', plan: 'growth' } }; }]
+  ]);
+  const res = await handleBilling(req('/api/billing/verify', {
+    body: { razorpay_order_id: 'order_TESTVEC001', razorpay_payment_id: 'pay_TESTVEC001', razorpay_signature: PAY_SIG, amount: 100, plan: 'enterprise' },
+    headers: { authorization: 'Bearer t' }
+  }), ENV_ON, '/api/billing/verify', { fetch: fetchImpl });
+  assert.equal(res.status, 200);
+  assert.equal(mark.p_amount, 49900);
+  assert.equal(mark.p_plan === undefined, true, 'the plan is never taken from the browser');
+});
+
+await check('tamper: verify where Razorpay says the payment belongs to another order is refused, nothing marked', async () => {
+  const { fetchImpl, calls } = fakeNet([
+    OWNER_AUTH,
+    ['api.razorpay.com/v1/payments/pay_TESTVEC001', { body: { id: 'pay_TESTVEC001', order_id: 'order_OTHER999', amount: 49900, currency: 'INR', status: 'captured' } }]
+  ]);
+  const res = await handleBilling(req('/api/billing/verify', {
+    body: { razorpay_order_id: 'order_TESTVEC001', razorpay_payment_id: 'pay_TESTVEC001', razorpay_signature: PAY_SIG },
+    headers: { authorization: 'Bearer t' }
+  }), ENV_ON, '/api/billing/verify', { fetch: fetchImpl });
+  assert.equal(res.status, 400);
+  assert.equal(calls.filter(c => c.url.includes('billing_mark_paid')).length, 0);
+});
+
+await check('tamper: verify with a payment signed for a different order is refused before Razorpay is called', async () => {
+  const { fetchImpl, calls } = fakeNet([OWNER_AUTH]);
+  const res = await handleBilling(req('/api/billing/verify', {
+    body: { razorpay_order_id: 'order_OTHER999', razorpay_payment_id: 'pay_TESTVEC001', razorpay_signature: PAY_SIG },
+    headers: { authorization: 'Bearer t' }
+  }), ENV_ON, '/api/billing/verify', { fetch: fetchImpl });
+  assert.equal(res.status, 400);
+  assert.equal(calls.filter(c => c.url.includes('/payments/')).length, 0);
+});
+
+await check('owner alert: captured payment that does not raise the plan still answers 200 and the database flags it', async () => {
+  const { fetchImpl } = fakeNet([
+    ['/rest/v1/rpc/billing_mark_paid', { body: { ok: true, status: 'paid', plan: 'enterprise', plan_changed: false } }]
+  ]);
+  const res = await handleBilling(req('/api/billing/webhook', { raw: WH_BODY, headers: { 'x-razorpay-signature': WH_SIG } }), ENV_ON, '/api/billing/webhook', { fetch: fetchImpl });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.plan_changed, false);
+});
+
+async function hmacHexForTest(secret, text) {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const mac = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(text));
+  return [...new Uint8Array(mac)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 for (const [s, n] of results) console.log(s, n);
 const failed = results.filter(r => r[0] === 'FAIL').length;
 console.log(`${passed} passed, ${failed} failed`);

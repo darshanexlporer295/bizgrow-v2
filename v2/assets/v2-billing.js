@@ -80,6 +80,13 @@
       note = fill(note, 'back', cur.back_to_name || 'Free');
       html += '<div class="card mt" role="status"><p class="small" style="margin:0">' + esc(note) + '</p></div>';
     }
+    // A payment that was received but did not raise the plan: the owner is asked to contact BizGrow (shown until a later upgrade).
+    if (cur && cur.billing_notice_plan) {
+      var noticeName = cur.billing_notice_plan;
+      list.forEach(function (pl) { if (pl.code === cur.billing_notice_plan) noticeName = pl.name || noticeName; });
+      html += '<div class="card mt" role="alert" data-test="billing-notice"><p class="small" style="margin:0">' +
+        esc(fill(t('bl_notice_unapplied'), 'plan', noticeName)) + '</p></div>';
+    }
     // Only the shop owner can use a code or pay (the database and the Worker check this too).
     if (B.isOwner()) {
       html += '<div class="card mt"><h3 style="margin:0">' + esc(t('bl_pay_title')) + '</h3>' +
