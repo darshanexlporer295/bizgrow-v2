@@ -95,8 +95,8 @@
     rice: ['rice', 'chawal', 'chaval', 'bhat', 'bhaat', 'चावल', 'तांदूळ', 'भात', 'ચોખા'],
     dal: ['dal', 'daal', 'दाल', 'डाळ', 'दाळ', 'દાળ'],
     salt: ['salt', 'namak', 'mithu', 'नमक', 'मीठ', 'મીઠું'],
-    onion: ['onion', 'pyaaz', 'pyaz', 'kanda', 'प्याज', 'कांदा', 'ડુંગળી'],
-    potato: ['potato', 'aloo', 'alu', 'batata', 'bateta', 'आलू', 'बटाटा', 'બટાકા'],
+    onion: ['onion', 'pyaaz', 'pyaz', 'kanda', 'kande', 'kandya', 'प्याज', 'कांदा', 'कांदे', 'कांद्या', 'ડુંગળી'],
+    potato: ['potato', 'aloo', 'alu', 'batata', 'batate', 'batatya', 'bateta', 'आलू', 'बटाटा', 'बटाटे', 'बटाट्या', 'બટાકા'],
     ghee: ['ghee', 'ghi', 'tup', 'घी', 'तूप', 'ઘી'],
     curd: ['curd', 'dahi', 'dahee', 'दही', ' દહીં'],
     haldi: ['haldi', 'haldee', 'हळद', 'हळदी', 'હળદર'],
@@ -131,8 +131,31 @@
     [8, ['eight', 'aath', 'aat', 'आठ', 'આઠ']],
     [9, ['nine', 'nau', 'nav', 'nao', 'नौ', 'नऊ', 'નવ']],
     [10, ['ten', 'das', 'dus', 'दस', 'दहा', 'દસ']],
+    [11, ['agyaarah', 'gyarah', 'gyaarah', 'ग्यारह', 'ગિયારા', 'અગિયાર']],
+    [12, ['barah', 'baarah', 'बारह', 'બાર']],
+    [13, ['terah', 'teraah', 'तेरह', 'તેર']],
+    [14, ['chaudah', 'chaudaa', 'चौदह', 'ચૌદ']],
+    [15, ['pandrah', 'pandraah', 'पंद्रह', 'पन्द्रह', 'પંદર']],
+    [16, ['solah', 'solaah', 'सोलह', 'સોળ']],
+    [17, ['satrah', 'satraah', 'सतरह', 'सत्रह', 'સત્તર']],
+    [18, ['athaarah', 'athrah', 'अठारह', 'અઢાર']],
+    [19, ['unnees', 'unees', 'उन्नीस', 'ઓગણીસ']],
     [20, ['bees', 'twenty', 'बीस', 'वीस', 'વીસ']],
+    [30, ['tees', 'thirty', 'तीस', 'ત્રીસ']],
+    [40, ['chaalis', 'chalis', 'चालीस', 'ચાલીસ']],
+    [60, ['saath', 'saath', 'साठ', 'સાઠ']],
+    [70, ['sattar', 'sitter', 'सत्तर', 'સિત્તેર']],
+    [80, ['assi', 'assee', 'अस्सी', 'એંસી']],
+    [90, ['nabbe', 'nabbey', 'नब्बे', 'નેવું']],
     [50, ['pachaas', 'pachas', 'पचास', 'पन्नास', 'પચાસ']],
+    [200, ['donshe', 'donse', 'dosau', 'दोनशे', 'दोनसे', 'दोनशें', 'બસો']],
+    [300, ['teenshe', 'tinshe', 'tinsau', 'तीनशे', 'तीनसे', 'तीनशें', 'ત્રણસો']],
+    [400, ['chaarshe', 'charshe', 'charsau', 'चारशे', 'चारसे', 'चारशें', 'ચારસો']],
+    [500, ['paanchshe', 'panchshe', 'paachshe', 'पाचशे', 'पांचशे', 'पाचसे', 'पाचशें', 'પાંચસો']],
+    [600, ['sahashe', 'chhashe', 'सहाशे', 'छसो', 'છસો']],
+    [700, ['saatshe', 'satshe', 'sataashe', 'सातशे', 'सातसे', 'સાતસો']],
+    [800, ['aathshe', 'aatshe', 'आठशे', 'આઠસો']],
+    [900, ['naushe', 'naoshe', 'naushe', 'नऊशे', 'नवशे', 'નવસો']],
     [0.25, ['paav', 'पाव', 'પાવ']],
     [0.5, ['adha', 'aadha', 'half', 'आधा', 'आधी', 'अर्धा', 'અડધો', 'અડધું']],
     [1.5, ['dedh', 'डेढ़', 'डेढ', 'दीड', 'દોઢ', 'ડેઢ']],
@@ -178,9 +201,13 @@
     'bakaya', 'उधार', 'उधारी', 'उधारे', 'बाकी', 'खाते', 'खाता', 'खात्यात', 'ઉધાર', 'ઉધારી', 'બાકી', 'ખાતે', 'ખાતામાં']);
   var PAY = mkSet(['jama', 'jamaa', 'paid', 'payment', 'pament', 'received', 'जमा', 'पेमेंट', 'पेड', 'भरले', 'भरला', 'bharle', 'bharla', 'bhare',
     'दिले', 'दिए', 'दिये', 'दिली',
-    'chukaya', 'chukavla', 'chukvla', 'चुकवले', 'चुकाया', 'ચૂકવ્યા', 'ચુકવ્યા', 'જમા', 'ભર્યા', 'પેમેન્ટ']);
+    'chukaya', 'chukavla', 'chukvla', 'चुकवले', 'चुकाया', 'ચૂકવ્યા', 'ચુકવ્યા', 'જમા', 'ભર્યા', 'પેમેન્ટ',
+    'આપ્યા', 'આપ્યું', 'આપ્યો']);
+  // Gujarati 'gave' forms are exact matches only: fuzzy matching would read the Hindi 'aaya' (came) as 'aapyaa' (gave)
+  ['આપ્યા', 'આપ્યું', 'આપ્યો'].forEach(function (w) { var rr = toRoman(w); PAY.long = PAY.long.filter(function (x) { return x !== rr; }); });
   var STOCK = mkSet(['stock', 'stok', 'maal', 'mal', 'माल', 'स्टॉक', 'स्टोक', 'aaya', 'aayi', 'aaye', 'aala', 'aali', 'add', 'आला', 'आली', 'आले',
-    'jodo', 'joda', 'jodi', 'umero', 'ummero', 'उमेरो', 'आया', 'आयी', 'जोड़ो', 'ઉમેરો', 'ઉમેરા', 'આવ્યો', 'આવ્યા', 'આવી', 'સ્ટોક', 'સ્ટોક']);
+    'jodo', 'joda', 'jodi', 'umero', 'ummero', 'उमेरो', 'आया', 'आयी', 'जोड़ो', 'ઉમેરો', 'ઉમેરા', 'આવ્યો', 'આવ્યા', 'આવી', 'સ્ટોક', 'સ્ટોક',
+    'daalo', 'dalo', 'daalna', 'डालो', 'डाला', 'डालना']);
   var CASH = mkSet(['cash', 'naqad', 'nakad', 'nagad', 'naqd', 'rokad', 'rokda', 'roka', 'रोख', 'रोकड़', 'रोकड', 'नकद', 'नगद',
     'कैश', 'रोकडा', 'રોકડ', 'રોકડા', 'નકદ', 'કેશ']);
   // Words that mean "paid" or "money received" (kept apart from the Latin list above)
@@ -246,6 +273,18 @@
   function splitName(name) {
     return String(name || '').split(/[^\p{L}\p{N}]+/u).map(function (p) { return toRoman(p); }).filter(Boolean);
   }
+  var POSS = ['aachya', 'aachi', 'aache', 'aacha', 'ichya', 'ichi', 'iche', 'ache', 'chya', 'chi', 'che', 'cha', 'chaa', 'ya', 'ne', 'na', 'laa', 'la'];
+  // Possible names with a possessive or case ending taken off (the stem, and the stem with a final 'a' added back)
+  function possStems(r) {
+    var out = [];
+    POSS.forEach(function (suf) {
+      if (r.length - suf.length >= 3 && r.slice(-suf.length) === suf) {
+        var st = r.slice(0, -suf.length); out.push(st, st + 'a');
+      }
+    });
+    return out;
+  }
+
   function nameWords(name) {
     var key = String(name);
     if (!NW_CACHE.hasOwnProperty(key)) {
@@ -354,6 +393,8 @@
       r = T[i].r;
       // Filler words that are spelled out exactly are never items ("માટે", "मध्ये" would otherwise fuzzy-match an item)
       if (FILLER.hasOwnProperty(r)) { kind[i] = 'filler'; continue; }
+      // "चा" / "cha" straight after a customer's name is the Marathi possessive ("Gita cha udhar"), not tea
+      if ((r === 'cha' || r === 'chaa' || r === 'chya') && i > 0 && T[i - 1] && nameHit(T[i - 1].r)) { kind[i] = 'filler'; continue; }
       var cands = productCands(r, prods, fixes);
       // A word that closely matches a customer's name is left for the customer step, unless an item matches strongly
       if (cands.length && cands[0].score < 0.85 && nameHit(r)) { cands = []; }
@@ -396,7 +437,11 @@
         if (kind[i]) continue;
         var fx = fixes[T[i].r], s = 0;
         if (fx && fx.k === 'c' && fx.id === c.id) s = 1;
-        else words.forEach(function (w) { s = Math.max(s, wordScore(T[i].r, w)); });
+        else {
+          words.forEach(function (w) { s = Math.max(s, wordScore(T[i].r, w)); });
+          // Marathi possessive on a name ('सुनिताचे' = Sunita's): try the name without the ending
+          possStems(T[i].r).forEach(function (st) { words.forEach(function (w) { s = Math.max(s, 0.95 * wordScore(st, w)); }); });
+        }
         if (s > best) { best = s; tok = i; }
       }
       if (best >= 0.69) found.push({ c: c, score: best, tok: tok, heard: tok >= 0 ? T[tok].raw : String(c.name) });

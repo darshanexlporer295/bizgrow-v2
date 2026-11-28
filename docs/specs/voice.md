@@ -12,7 +12,7 @@ A shopkeeper taps the mic and speaks Hindi, Marathi, Gujarati or English (or a m
 - `worker/billing.mjs`: `signedInUser` (checks the session with the sign-in service).
 - `supabase/patch-18.sql`: `voice_take` (shared per-person count, stored in the database) and `voice_attempts`. Revoked from public and anon.
 - `v2/assets/v2-voice.js`: mic, clip, language, top-3 picks and corrections.
-- `tests/voice-smoke.mjs`, `tests/voice-accuracy.mjs`, `tests/voice-baseline/`.
+- `tests/voice-smoke.mjs`, `tests/voice-accuracy.mjs`, `tests/voice-heldout.mjs`, `tests/voice-heldout-2.mjs`, `tests/voice-heldout-3.mjs`, `tests/voice-baseline/`.
 
 ## Rules
 
@@ -27,12 +27,18 @@ A shopkeeper taps the mic and speaks Hindi, Marathi, Gujarati or English (or a m
 
 - `node tests/voice-smoke.mjs`: 49 of 49 pass. Covers the 401 for anonymous and bad tokens (including an oversize anonymous call, which still gets 401 with no body read), the 413 for an oversize clip and a streamed oversize body with no length header, the 20-then-429 limit shared across connections, and no speech call on refusal.
 - Browser voice check (`bizgrow-v2-build/voice-browser-smoke.js`): 16 of 16 pass after the change (commit 876e576).
-- `node tests/voice-accuracy.mjs`: 157 of 158 phrases pass. The one miss is a Marathi phrase, "गीता चा उधार तांदूळ पाच किलो", which the parser does not turn into items. Not fixed in this round.
+- `node tests/voice-accuracy.mjs`: 158 of 158 pass (was 157 of 158). The Marathi miss "गीता चा उधार तांदूळ पाच किलो" is fixed: a possessive "चा" right after a customer's name is no longer read as tea. Fixed in the same round: Marathi plurals (कांदे, बटाटे), possessive or dative endings on names (सुनिताचे, सुनीताला), hundreds written as one word (दोनशे, पाचशे), numbers 11 to 19 and the round tens, and the stock word डालो.
+- Held-out sets (phrases written apart from the tuning set, in Marathi, Hindi, Gujarati and English):
+  - `tests/voice-heldout.mjs`: 39 of 39 on the first run, before any change.
+  - `tests/voice-heldout-2.mjs`: 23 of 27 on the first run (the misses were plural nouns, a name with a possessive ending, and "दोनशे"). Those gaps were then fixed in the parser, so this set is no longer clean; it now reads 27 of 27.
+  - `tests/voice-heldout-3.mjs`: a clean third set. 24 of 29 on its first run (before the fixes). After the fixes it reads 28 of 29; it is no longer clean either.
+- Known gap, not fixed: "ત્રણ ત્રણ" (three each, said after two items) gives the first item the number and the second item 1.
+- Honest limit: the phrases in these sets were written by the same person who wrote the parser, so they are not a stranger's speech. Real shop speech will be checked only with the live speech key or real use.
 
 ## Not done
 
 - The speech key has not been tried on a live call (needs the member's key in the Worker secrets).
-- The Marathi phrase above.
+- "ત્રણ ત્રણ" (each) quantity.
 - The rate limit is per person, not per shop; a shared shop login can use the same 20 a minute.
 
 ## Manual steps for the member
