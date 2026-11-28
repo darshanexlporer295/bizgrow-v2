@@ -266,7 +266,7 @@
   });
 
   /* ---------- 3. Public: the store a buyer opens from the link ---------- */
-  var PS = { slug: '', shop: null, items: [], cart: {}, lang: 'en', q: '', bot: null, botToken: '', botId: null };
+  var PS = { slug: '', shop: null, items: [], cart: {}, lang: 'en', q: '', bot: null, botToken: '', botId: null, trToken: '', trBotId: null };
 
   function T(k, vars) {
     var d = (window.I18N && window.I18N[PS.lang]) || {};
@@ -305,6 +305,7 @@
     await loadBotCheck();
     paintPublic(app);
     mountBot();
+    mountTrackBot();
   }
 
   // Stage 8: Cloudflare Turnstile (the bot check on the checkout). The Worker says whether the check is on,
@@ -347,6 +348,25 @@
       });
     });
   }
+  // The tracking box has its own check widget and its own single-use token.
+  function mountTrackBot() {
+    var box = document.getElementById('psTrBot');
+    if (!box || !PS.bot) return;
+    loadTurnstile().then(function (ok) {
+      if (!ok) { showTrackMsg(T('pub_bot_fail')); return; }
+      if (PS.trBotId !== null) return;
+      PS.trBotId = window.turnstile.render(box, {
+        sitekey: PS.bot.siteKey, size: 'flexible', theme: 'light',
+        callback: function (tok) { PS.trToken = String(tok || ''); showTrackMsg(''); },
+        'expired-callback': function () { PS.trToken = ''; },
+        'error-callback': function () { PS.trToken = ''; showTrackMsg(T('pub_bot_fail')); }
+      });
+    });
+  }
+  function resetTrackBot() {
+    PS.trToken = '';
+    try { if (PS.trBotId !== null && window.turnstile) window.turnstile.reset(PS.trBotId); } catch (e) { /* widget gone */ }
+  }
   function resetBot() {
     PS.botToken = '';
     try { if (PS.botId !== null && window.turnstile) window.turnstile.reset(PS.botId); } catch (e) { /* widget gone: nothing to reset */ }
@@ -354,7 +374,7 @@
 
   function paintPublic(app) {
     var sh = PS.shop;
-    PS.botId = null;
+    PS.botId = null; PS.trBotId = null; PS.trToken = '';
     var phone = sh.phone ? '<a href="tel:' + esc(digits(sh.phone)) + '">' + esc(sh.phone) + '</a>' : '';
     app.innerHTML = '<div class="ps">' +
       '<header><h1>' + esc(sh.name || '') + '</h1><div class="ps-meta">' + esc(sh.city || '') + (sh.city && phone ? ' · ' : '') + phone + '</div></header>' +
@@ -376,6 +396,7 @@
       '<p class="ps-intro">' + esc(T('pub_track_sub')) + '</p>' +
       '<label class="ps-field">' + esc(T('pub_track_ref')) + '<input id="psRef" maxlength="12" autocomplete="off" autocapitalize="characters"></label>' +
       '<label class="ps-field">' + esc(T('pub_phone')) + '<input id="psTrPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="20"></label>' +
+      (PS.bot ? '<div id="psTrBot" class="ps-bot"></div>' : '') +
       '<button id="psTrackBtn" class="ps-send" data-ps="track" type="button">' + esc(T('pub_track_btn')) + '</button>' +
       '<div id="psTrMsg" class="ps-msg" role="alert"></div>' +
       '<div id="psTrOut"></div>' +
@@ -512,15 +533,17 @@
     var phone = digits(phoneIn);
     var btn = $('#psTrackBtn'), out = $('#psTrOut');
     if (!ref || phone.length < 10 || phone.length > 13) return showTrackMsg(T('pub_track_need'));
+    if (PS.bot && !PS.trToken) return showTrackMsg(PS.trBotId !== null ? T('pub_track_bot') : T('pub_bot_fail'));
     btn.disabled = true;
     var res, data = {};
     try {
       res = await fetch('/api/public/track', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ shop: PS.slug, ref: ref, phone: phone })
+        body: JSON.stringify({ shop: PS.slug, ref: ref, phone: phone, turnstile_token: PS.trToken })
       });
       data = await res.json().catch(function () { return {}; });
     } catch (e) { res = null; }
+    resetTrackBot();
     btn.disabled = false;
     out.innerHTML = '';
     if (!res || !res.ok) return showTrackMsg(T('pub_error'));

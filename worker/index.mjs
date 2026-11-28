@@ -1,7 +1,7 @@
 // BizGrow v2 Worker (stage 8, stage 10). It serves the static site from ./v2 and answers these public store routes:
 //   GET  /api/public/bot-check  tells the page whether the bot check is on, and the public site key.
 //   POST /api/public/order      checks the Turnstile token, then places the order.
-//   POST /api/public/track      looks up an order's status for the customer (limited per connection).
+//   POST /api/public/track      checks the Turnstile token, then looks up an order's status (limited per connection).
 // The secret key lives only in Cloudflare (Worker secret TURNSTILE_SECRET_KEY). It is never sent to the
 // browser, never written to a file, and never echoed in a reply. With no secret, the order and track routes
 // refuse with 503 (fail closed); the bot-check route still says enabled:false so the page knows.
@@ -130,6 +130,44 @@ async function visitorKeyOr503(request) {
   return { reply: json(503, { ok: false, code: 'unavailable', error: PAUSED }) };
 }
 
+// The bot check for a public route. Returns null when it passed, or the reply to send. Used by order and track,
+// so a tracking try needs a fresh check token too (the shop-wide tracking cap cannot be spent by plain requests).
+async function botGate(request, env, token) {
+  const passed = await verifyTurnstile(env, token, request.headers.get('CF-Connecting-IP'));
+  if (passed === 'unreachable') {
+    return json(503, { ok: false, code: 'bot_check', error: 'The security check could not be reached. Please try again.' });
+  }
+  if (!passed) {
+    return json(403, { ok: false, code: 'bot_check', error: 'Please complete the security check and try again.' });
+  }
+  return null;
+}
+
+// In-Worker limit per visitor, the same numbers the database uses (patch-12 and patch-13): 10 orders an hour,
+// 10 tracking tries per 15 minutes. Needs no dashboard rule. Each Worker instance keeps its own count, so this
+// is a first line that spares the database; the database keeps the shared count across instances.
+const LIMITS = {
+  order: { max: 10, windowMs: 60 * 60 * 1000 },
+  track: { max: 10, windowMs: 15 * 60 * 1000 }
+};
+const hits = new Map();
+const KEEP_MS = 60 * 60 * 1000;
+export function limitAllow(route, key, now) {
+  const rule = LIMITS[route];
+  if (!rule || !key) return false;
+  const k = route + ':' + key;
+  const cutoff = now - rule.windowMs;
+  const list = (hits.get(k) || []).filter(t => t > cutoff);
+  const allowed = list.length < rule.max;
+  if (allowed) list.push(now);
+  hits.set(k, list);
+  if (hits.size > 5000) {
+    for (const [kk, v] of hits) { if (!v.length || v[v.length - 1] < now - KEEP_MS) hits.delete(kk); }
+  }
+  return allowed;
+}
+export function limitReset() { hits.clear(); }
+
 async function placeOrder(request, env) {
   const off = refuseWithoutBotCheck(env);
   if (off) return off;
@@ -138,16 +176,14 @@ async function placeOrder(request, env) {
   if (!body || typeof body !== 'object') return json(400, { ok: false, error: 'Please check the details and try again.' });
 
   const token = typeof body.turnstile_token === 'string' ? body.turnstile_token : '';
-  const passed = await verifyTurnstile(env, token, request.headers.get('CF-Connecting-IP'));
-  if (passed === 'unreachable') {
-    return json(503, { ok: false, code: 'bot_check', error: 'The security check could not be reached. Please try again.' });
-  }
-  if (!passed) {
-    return json(403, { ok: false, code: 'bot_check', error: 'Please complete the security check and try again.' });
-  }
+  const gate = await botGate(request, env, token);
+  if (gate) return gate;
 
   const visitor = await visitorKeyOr503(request);
   if (visitor.reply) return visitor.reply;
+  if (!limitAllow('order', visitor.key, Date.now())) {
+    return json(400, { ok: false, error: 'Too many orders from you for now. Please wait a while, or call the shop.' });
+  }
   const args = {
     p_slug: txt(body.shop), p_name: txt(body.name), p_phone: txt(body.phone), p_note: txt(body.note),
     p_items: Array.isArray(body.items) ? body.items : []
@@ -174,8 +210,15 @@ async function trackOrder(request, env) {
   try { body = await request.json(); } catch (e) { body = null; }
   if (!body || typeof body !== 'object') return json(400, { ok: false, error: 'Please check the details and try again.' });
 
+  const token = typeof body.turnstile_token === 'string' ? body.turnstile_token : '';
+  const gate = await botGate(request, env, token);
+  if (gate) return gate;
+
   const visitor = await visitorKeyOr503(request);
   if (visitor.reply) return visitor.reply;
+  if (!limitAllow('track', visitor.key, Date.now())) {
+    return json(200, { ok: false, limited: true, error: 'Too many tries for now. Please wait a few minutes and try again, or call the shop.' });
+  }
   const args = { p_slug: txt(body.shop), p_ref: txt(body.ref), p_phone: txt(body.phone) };
   let r;
   try {

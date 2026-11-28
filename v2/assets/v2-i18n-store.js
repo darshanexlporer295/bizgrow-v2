@@ -105,6 +105,7 @@
       pub_shop_phone: "Phone",
       pub_call_shop: "Call the shop",
       pub_bot_need: "Please finish the security check above, then send the order again.",
+      pub_track_bot: "Please finish the security check above, then try again.",
       pub_bot_fail: "The security check did not work. Please try again."
     },
     hi: {
@@ -209,6 +210,7 @@
       pub_shop_phone: "फोन",
       pub_call_shop: "दुकान को कॉल करें",
       pub_bot_need: "कृपया ऊपर सुरक्षा जाँच पूरी करें, फिर ऑर्डर दोबारा भेजें।",
+      pub_track_bot: "कृपया ऊपर सुरक्षा जाँच पूरी करें, फिर दोबारा कोशिश करें।",
       pub_bot_fail: "सुरक्षा जाँच नहीं हो पाई। कृपया फिर कोशिश करें।"
     },
     mr: {
@@ -313,6 +315,7 @@
       pub_shop_phone: "फोन",
       pub_call_shop: "दुकानाला कॉल करा",
       pub_bot_need: "कृपया वरील सुरक्षा तपासणी पूर्ण करा, मग ऑर्डर पुन्हा पाठवा.",
+      pub_track_bot: "कृपया वरील सुरक्षा तपासणी पूर्ण करा, मग पुन्हा प्रयत्न करा.",
       pub_bot_fail: "सुरक्षा तपासणी झाली नाही. कृपया पुन्हा प्रयत्न करा."
     },
     gu: {
@@ -417,6 +420,7 @@
       pub_shop_phone: "ફોન",
       pub_call_shop: "દુકાનને કૉલ કરો",
       pub_bot_need: "કૃપા કરીને ઉપરની સુરક્ષા ચકાસણી પૂરી કરો, પછી ઓર્ડર ફરી મોકલો.",
+      pub_track_bot: "કૃપા કરીને ઉપરની સુરક્ષા ચકાસણી પૂરી કરો, પછી ફરી પ્રયત્ન કરો.",
       pub_bot_fail: "સુરક્ષા ચકાસણી થઈ નહીં. કૃપા કરીને ફરી પ્રયાસ કરો."
     }
   };
