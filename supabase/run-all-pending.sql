@@ -1,6 +1,6 @@
 -- run-all-pending.sql: every database step that is still to run on the live project, in one paste.
 -- Paste the whole file into the Supabase SQL Editor (New query), then press Run once.
--- It contains, in this order: patch-08, patch-09, patch-11, patch-12, patch-13, patch-14, patch-15, patch-16, patch-17, patch-18.
+-- It contains, in this order: patch-08, patch-09, patch-11, patch-12, patch-13, patch-14, patch-15, patch-16, patch-17, patch-18, patch-19, patch-20.
 -- It is safe to run more than once. Nothing is deleted and no existing order, product, bill or supplier changes.
 -- It assumes schema.sql and patch-01 to patch-07 are already on the project (the state you have now).
 -- NOT included on purpose: patch-10-lockdown.sql (optional, run last, only after the bot-check box shows

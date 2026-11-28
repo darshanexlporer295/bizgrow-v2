@@ -26,6 +26,7 @@ Run each file in the Supabase dashboard: **SQL Editor**, then **New query**, pas
 4. Open the live site in a new tab, and do a hard refresh (on a phone: close the tab and open it again).
 5. Only once, for the BizGrow team's own login (needed to make promo codes): open `supabase/make-platform-owner.sql` on GitHub, click the pencil icon, and check that the email on the line marked EDIT HERE is the BizGrow login email. It is already set to revobuildsit@gmail.com; change it only if your login uses another email. Then paste the whole file into **SQL Editor**, **New query**, and click **Run**. It stops with a clear message if the placeholder was not changed or the email has no login yet. Do not put the email in any other file.
 6. Test: place one order from the shop link, check its tracking, and add and then delete a test supplier in the Suppliers screen. Delete the test supplier afterwards.
+7. Optional, reads only and changes nothing: open `supabase/verify-applied.sql` on GitHub, copy all of it, and paste it into **SQL Editor**, **New query**, then **Run**. Every line should say OK and the last line should say ALL IN PLACE (43 of 43). If a line says NOT OK, run `run-all-pending.sql` once more and try this file again.
 
 The live website and the server part (the Worker) are published by pushing to GitHub `main`. They do not need any step from you.
 
